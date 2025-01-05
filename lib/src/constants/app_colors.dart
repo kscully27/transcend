@@ -3,11 +3,7 @@
 library appcolors;
 
 import 'package:flutter/material.dart';
-
-String enumToString(Object o) => o.toString().split('.').last;
-
-T enumFromString<T>(String key, List<T> values) =>
-    values.where((v) => key == enumToString(v as Object)).firstOrNull as T;
+import 'package:trancend/src/constants/enums.dart';
 
 enum AppColor { Red, Orange, Blue, Green, Purple, Pink, Light, White, Dark }
 

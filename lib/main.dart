@@ -1,20 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:trancend/src/locator.dart';
 
 import 'src/app.dart';
 import 'src/settings/settings_controller.dart';
 import 'src/settings/settings_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+// import 'firebase_options.dart';
 
 void main() async {
-  // Set up the SettingsController, which will glue user settings to multiple
-  // Flutter Widgets.
-  final settingsController = SettingsController(SettingsService());
+  // Ensure Flutter bindings are initialized before calling native code
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  try {
+    // Initialize Firebase with the generated options
+    await Firebase.initializeApp(
+      // options: DefaultFirebaseOptions.currentPlatform,
+    );
+    
+    // Setup service locator after Firebase is initialized
+    await setupLocator();
 
-  // Load the user's preferred theme while the splash screen is displayed.
-  // This prevents a sudden theme change when the app is first displayed.
-  await settingsController.loadSettings();
+    // Set up the SettingsController
+    final settingsController = SettingsController(SettingsService());
+    await settingsController.loadSettings();
 
-  // Run the app and pass in the SettingsController. The app listens to the
-  // SettingsController for changes, then passes it further down to the
-  // SettingsView.
-  runApp(MyApp(settingsController: settingsController));
+    runApp(MyApp(settingsController: settingsController));
+  } catch (e) {
+    print('Error initializing Firebase: $e');
+    // Handle initialization error appropriately
+  }
 }
