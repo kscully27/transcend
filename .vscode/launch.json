@@ -5,6 +5,28 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Dev",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_dev.dart",
+            "args": ["--flavor", "dev", "--target", "lib/main_dev.dart" ]
+        },
+        {
+            "name": "Stage",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_stage.dart",
+            "args": ["--flavor", "stage", "--target", "lib/main_stage.dart" ]
+        },
+        {
+            "name": "Production",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_prod.dart",
+            "args": ["--flavor", "prod", "--target", "lib/main_prod.dart" ]
+        },
+
+        {
             "name": "trancend",
             "request": "launch",
             "type": "dart"

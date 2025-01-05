@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>56498301287-n9fap30ltsqgpc046uamc0e41916m8uc.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.56498301287-n9fap30ltsqgpc046uamc0e41916m8uc</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>56498301287-236j0odq03ka0hg0q8dd9h4ba4fei1s5.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyA9V0VIG30nhc94n1lHqimDWZ050OHwQe8</string>
+	<key>GCM_SENDER_ID</key>
+	<string>56498301287</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>app.trancend</string>
+	<key>PROJECT_ID</key>
+	<string>trancend-prod</string>
+	<key>STORAGE_BUCKET</key>
+	<string>trancend-prod.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:56498301287:ios:2ff48ed91613d2a2d067c2</string>
+	<key>DATABASE_URL</key>
+	<string>https://trancend-prod.firebaseio.com</string>
+</dict>
+</plist>

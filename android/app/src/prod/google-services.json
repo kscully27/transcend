@@ -1,0 +1,79 @@
+{
+  "project_info": {
+    "project_number": "56498301287",
+    "firebase_url": "https://trancend-prod.firebaseio.com",
+    "project_id": "trancend-prod",
+    "storage_bucket": "trancend-prod.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:56498301287:android:76879284d117b144d067c2",
+        "android_client_info": {
+          "package_name": "app.trancend"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "56498301287-236j0odq03ka0hg0q8dd9h4ba4fei1s5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.trancend",
+            "certificate_hash": "06746b746e86fe826bc9b5c755495cde1b9cef38"
+          }
+        },
+        {
+          "client_id": "56498301287-5bqcli07kcbjsader7a8p3phfj5mprbm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.trancend",
+            "certificate_hash": "c8c9451d01e2906ae242ec8e3c08a9dcae898f5f"
+          }
+        },
+        {
+          "client_id": "56498301287-7ffgo677u6tbmbhld3risa8uhaieka36.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.trancend",
+            "certificate_hash": "ab86fa5cc51e1150d61aca3aad751dc392f6f6ce"
+          }
+        },
+        {
+          "client_id": "56498301287-7jo2rmt7qqv1rj8lr09r77haoo6k1m7f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.trancend",
+            "certificate_hash": "315c34e2563eea53de7ec961bd12a390930ae999"
+          }
+        },
+        {
+          "client_id": "56498301287-gs8j1vj3o08v3i5krqdsihi0fjdl08k9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCjMYCEqwl4YUXwZmVwVv_bhCaX1TYO0yQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "56498301287-gs8j1vj3o08v3i5krqdsihi0fjdl08k9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "56498301287-g7t7hbrgbs1uo4pjvpd21mfqfkeg6r26.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "app.trancend.prod"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "782646386551",
+    "project_id": "trancend-stage",
+    "storage_bucket": "trancend-stage.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:782646386551:android:b18c748c8ab60c9ca54b72",
+        "android_client_info": {
+          "package_name": "app.trancend.stage"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBAnaFDK7gmS7GzMAe8bFZYbZJzvVP97s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
