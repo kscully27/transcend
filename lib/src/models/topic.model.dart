@@ -56,22 +56,28 @@ class Topic {
       id: data['id'],
       title: data['title'],
       description: data['description'],
-      image: data['image'],
-      icon: data['icon'],
-      svg: data['svg'],
-      goal: data['goal'],
-      group: data['group'],
-      activeVerb: data['activeVerb'],
-      price: data['price'],
-      totalTracks: data['totalTracks'],
+      image: data['image'] ?? '',
+      icon: data['icon'] ?? '',
+      svg: data['svg'] ?? '',
+      goal: data['goal'] ?? '',
+      group: data['group'] ?? '',
+      activeVerb: data['activeVerb'] ?? '',
+      price: data['price'] ?? 0,
+      totalTracks: data['totalTracks'] ?? 0,
       isPremium: data['isPremium'] ?? false,
-      isDefault: data['isDefault'],
-      isMentalHealth: data['isMentalHealth'],
-      isPriority: data['isPriority'],
-      strength: data['strength'],
-      totalDuration: data['totalDuration'],
-      totalFileSize: data['totalFileSize'],
-      isLocked: data['isLocked'],
+      isDefault: data['isDefault'] ?? false,
+      isMentalHealth: data['isMentalHealth'] ?? false,
+      isPriority: data['isPriority'] ?? false,
+      strength: data['strength'] ?? 0,
+      totalDuration: data['totalDuration'] != null 
+          ? (data['totalDuration'] is int 
+              ? (data['totalDuration'] as int).toDouble()
+              : double.tryParse(data['totalDuration'].toString()) ?? 0.0)
+          : 0.0,
+      totalFileSize: data['totalFileSize'] != null 
+          ? int.tryParse(data['totalFileSize'].toString()) ?? 0 
+          : 0,
+      isLocked: data['isLocked'] ?? false,
     );
   }
   // bool fromUser(User user) {

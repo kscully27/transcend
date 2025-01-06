@@ -88,25 +88,55 @@ class ColorGroup {
   int shadow;
   int highlight;
   String category;
-  ColorGroup(
-      {required this.name,
-      required this.flat,
-      required this.light,
-      required this.dark,
-      required this.shadow,
-      required this.highlight,
-      required this.category});
+  
+  ColorGroup({
+    required this.name,
+    required this.flat,
+    required this.light,
+    required this.dark,
+    required this.shadow,
+    required this.highlight,
+    required this.category,
+  });
 
-  factory ColorGroup.fromMap(dynamic _data) {
+  factory ColorGroup.fromMap(dynamic data) {
+    // Handle the case where data is a Map<String, int>
+    if (data is Map<String, int>) {
+      return ColorGroup(
+        name: ColorName.Blue, // Default color name
+        flat: data['flat'] ?? 0,
+        light: data['light'] ?? data['flat'] ?? 0,
+        dark: data['dark'] ?? data['flat'] ?? 0,
+        shadow: data['shadow'] ?? data['flat'] ?? 0,
+        highlight: data['highlight'] ?? data['flat'] ?? 0,
+        category: 'default', // Default category
+      );
+    }
+    
+    // Handle the case where data is a Map with ColorName
     return ColorGroup(
-      name: _data['name'],
-      flat: _data['flat'],
-      light: _data['light'] ?? _data['flat'],
-      dark: _data['dark'] ?? _data['flat'],
-      shadow: _data['shadow'] ?? _data['flat'],
-      highlight: _data['highlight'] ?? _data['flat'],
-      category: _data['category'],
+      name: (data['name'] as String?)?.toColorName() ?? ColorName.Blue,
+      flat: data['flat'] ?? 0,
+      light: data['light'] ?? data['flat'] ?? 0,
+      dark: data['dark'] ?? data['flat'] ?? 0,
+      shadow: data['shadow'] ?? data['flat'] ?? 0,
+      highlight: data['highlight'] ?? data['flat'] ?? 0,
+      category: data['category'] ?? 'default',
     );
+  }
+}
+
+// Add this extension to help convert String to ColorName
+extension StringToColorName on String {
+  ColorName toColorName() {
+    try {
+      return ColorName.values.firstWhere(
+        (e) => e.toString().split('.').last.toLowerCase() == toLowerCase(),
+        orElse: () => ColorName.Blue,
+      );
+    } catch (_) {
+      return ColorName.Blue;
+    }
   }
 }
 
@@ -173,77 +203,81 @@ class GradientColors {
 
 const Map<String, Map<String, int>> colors = {
   "blue": {
-    "flat": 0xFF5A9BFF,
-    "light": 0xFF64B6FF,
-    "dark": 0xFF4E7CFF,
-    "shadow": 0xFF275BAC,
-    "highlight": 0xFFBEDFFF,
+    "flat": 0xFFD59074,    // Warm Terracotta
+    "light": 0xFFE6B695,   // Light Clay
+    "dark": 0xFFB67857,    // Deep Clay
+    "shadow": 0xFF8B5E3C,  // Dark Brown
+    "highlight": 0xFFF2D9C7, // Pale Clay
   },
   "green": {
-    "flat": 0xFF77B534,
-    "light": 0xFF9AD051,
-    "dark": 0xFF4F9904,
-    "shadow": 0xFF4F9904,
-    "highlight": 0xFFEDFFC6,
+    "flat": 0xFF8B7355,    // Umber
+    "light": 0xFFAA9177,   // Light Umber
+    "dark": 0xFF6D5A43,    // Dark Umber
+    "shadow": 0xFF4D3F2D,  // Deep Brown
+    "highlight": 0xFFCCBDAA, // Pale Umber
   },
   "purple": {
-    "flat": 0xFF8652FF,
-    "light": 0xFFE16AFF,
-    "dark": 0xFFA835DE,
-    "shadow": 0xFF820ABA,
-    "highlight": 0xFFECA3FF,
+    "flat": 0xFF9C7A63,    // Taupe
+    "light": 0xFFBE9B84,   // Light Taupe
+    "dark": 0xFF7E5F48,    // Dark Taupe
+    "shadow": 0xFF5E4636,  // Deep Taupe
+    "highlight": 0xFFDEC3AD, // Pale Taupe
   },
   "red": {
-    "flat": 0xFFFB6A7A,
-    "light": 0xFFFF8290,
-    "dark": 0xFFD33447,
-    "shadow": 0xFFC5031B,
-    "highlight": 0xFFFFA7B1,
+    "flat": 0xFFA65D57,    // Terra Cotta
+    "light": 0xFFC88078,   // Light Terra Cotta
+    "dark": 0xFF884540,    // Dark Terra Cotta
+    "shadow": 0xFF663330,  // Deep Terra Cotta
+    "highlight": 0xFFE6B3B0, // Pale Terra Cotta
   },
   "orange": {
-    "flat": 0xFFF59850,
-    "light": 0xFFFFB160,
-    "dark": 0xFFEA7C3F,
-    "shadow": 0xFFE35D10,
-    "highlight": 0xFFFFD5AA,
+    "flat": 0xFFD6924A,    // Raw Sienna
+    "light": 0xFFE5B37C,   // Light Sienna
+    "dark": 0xFFB37339,    // Dark Sienna
+    "shadow": 0xFF8C592D,  // Deep Sienna
+    "highlight": 0xFFF2D4B3, // Pale Sienna
   },
   "pink": {
-    "flat": 0xFFEF519E,
-    "light": 0xFFFF6A97,
-    "dark": 0xFFDE35A5,
-    "shadow": 0xFFBA057C,
-    "highlight": 0xFFFF99B9,
+    "flat": 0xFFCB8A72,    // Rose Clay
+    "light": 0xFFDBAB93,   // Light Rose Clay
+    "dark": 0xFFAD6B53,    // Dark Rose Clay
+    "shadow": 0xFF8B503A,  // Deep Rose Clay
+    "highlight": 0xFFEBCCB4, // Pale Rose Clay
   },
   "dark": {
-    "flat": 0xFF3B4261,
-    "light": 0xFF4C5479,
-    "dark": 0xFF2A304A,
-    "shadow": 0xFF111111,
-    "highlight": 0xFF989FC0,
+    "flat": 0xFF4A3B2F,    // Dark Earth
+    "light": 0xFF695647,   // Medium Earth
+    "dark": 0xFF362B22,    // Deeper Earth
+    "shadow": 0xFF231C16,  // Darkest Earth
+    "highlight": 0xFF8C7A6B, // Light Earth
   },
   "light": {
-    "flat": 0xFFE3EAF4,
-    "light": 0xFFECF3FE,
-    "dark": 0xFFC4D6E9,
-    "shadow": 0xFF779FD3,
-    "highlight": 0xFFFFFFFF,
+    "flat": 0xFFF5E6D3,    // Natural Cream
+    "light": 0xFFFFF4E6,   // Light Cream
+    "dark": 0xFFE6D0B3,    // Dark Cream
+    "shadow": 0xFFBFA88C,  // Shadow Cream
+    "highlight": 0xFFFFFAF0, // Bright Cream
   },
   "white": {
-    "flat": 0xFFFFFFFF,
-    "dark": 0xFFC4D6E9,
-    "shadow": 0xFFC4D6E9,
+    "flat": 0xFFFAF6F0,    // Off White
+    "dark": 0xFFE6D0B3,    // Antique White
+    "shadow": 0xFFD4C4A8,  // Shadow White
   },
   "black": {
-    "flat": 0xFF000000,
+    "flat": 0xFF2B1810,    // Deep Brown Black
   },
   "google": {
-    "flat": 0xFFde5246,
+    "flat": 0xFF8B5E3C,    // Earth Brown
   },
   "facebook": {
-    "flat": 0xFF3b5998,
+    "flat": 0xFF6B4423,    // Deep Earth Brown
   },
-  "transparent": {"flat": 0x00000000},
-  "primaryDark": {"flat": 0xff5D658B}
+  "transparent": {
+    "flat": 0x00000000
+  },
+  "primaryDark": {
+    "flat": 0xFF4A3B2F     // Dark Earth
+  }
 };
 
 class AppColorMaker {
@@ -272,58 +306,58 @@ class AppColorMaker {
 }
 
 class AppColors {
-  static Color flat(String _color) {
-    return Color(ColorGroup.fromMap(colors[_color]).flat);
+  static Color flat(String color) {
+    return Color(ColorGroup.fromMap(colors[color]).flat);
   }
 
-  static Color light(String _color) {
-    return Color(ColorGroup.fromMap(colors[_color]).light);
+  static Color light(String color) {
+    return Color(ColorGroup.fromMap(colors[color]).light);
   }
 
-  static Color disabled(String _color) {
-    return Color(ColorGroup.fromMap(colors[_color]).light).withOpacity(.2);
+  static Color disabled(String color) {
+    return Color(ColorGroup.fromMap(colors[color]).light).withOpacity(.2);
   }
 
-  static Color dark(String _color) {
-    return Color(ColorGroup.fromMap(colors[_color]).dark);
+  static Color dark(String color) {
+    return Color(ColorGroup.fromMap(colors[color]).dark);
   }
 
-  static Color shadow(String _color) {
-    return Color(ColorGroup.fromMap(colors[_color]).shadow);
+  static Color shadow(String color) {
+    return Color(ColorGroup.fromMap(colors[color]).shadow);
   }
 
-  static Color highlight(String _color) {
-    return Color(ColorGroup.fromMap(colors[_color]).highlight);
+  static Color highlight(String color) {
+    return Color(ColorGroup.fromMap(colors[color]).highlight);
   }
 
-  static Gradient gradient(String _color) {
+  static Gradient gradient(String color) {
     return AppGradient.linear(
-      colors: [light(_color), flat(_color)],
+      colors: [light(color), flat(color)],
     );
   }
 
-  static Gradient bigGradient(String _color) {
+  static Gradient bigGradient(String color) {
     return AppGradient.linear(
-      colors: [light(_color), dark(_color)],
+      colors: [light(color), dark(color)],
     );
   }
 
-  static Gradient darkGradient(String _color) {
+  static Gradient darkGradient(String color) {
     return AppGradient.linear(
-      colors: [flat(_color), shadow(_color)],
+      colors: [flat(color), shadow(color)],
     );
   }
 
-  static Gradient extremeGradient(String _color) {
+  static Gradient extremeGradient(String color) {
     return AppGradient.linear(
       stops: [.1, .9],
-      colors: [highlight(_color), shadow(_color)],
+      colors: [highlight(color), shadow(color)],
     );
   }
 
-  static Gradient lightGradient(String _color) {
+  static Gradient lightGradient(String color) {
     return AppGradient.linear(
-      colors: [highlight(_color), light(_color)],
+      colors: [highlight(color), light(color)],
     );
   }
 

@@ -1,108 +1,167 @@
+import 'package:clay_containers/clay_containers.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_ui_firestore/firebase_ui_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/services/firestore.service.dart';
 
 import '../settings/settings_view.dart';
-import 'sample_item.dart';
 
-class TopicsViewModel extends ChangeNotifier {
-  late List<Topic> topics;
-  late String errorMessage;
-  TopicsViewModel();
-  final FirestoreService _firestoreService = locator<FirestoreService>();
-
-  Future<void> init() async {
-    try {
-      topics = await _firestoreService.getTopics();
-    } catch (e) {
-      errorMessage = 'Could not initialize counter';
-    }
-    notifyListeners();
-  }
-}
-
-/// Displays a list of SampleItems.
-class SampleItemListView extends StatelessWidget {
-  final TopicsViewModel viewModel = TopicsViewModel();
-  SampleItemListView({
-    super.key,
-    this.items = const [SampleItem(1), SampleItem(2), SampleItem(3)],
-  });
+class SampleItemListView extends StatefulWidget {
+  const SampleItemListView({super.key});
 
   static const routeName = '/';
 
-  final List<SampleItem> items;
+  @override
+  State<SampleItemListView> createState() => _SampleItemListViewState();
+}
+
+/// Displays a list of SampleItems.
+class _SampleItemListViewState extends State<SampleItemListView>
+    with SingleTickerProviderStateMixin {
+  final FirestoreService _firestoreService = locator<FirestoreService>();
+  Color baseColor = const Color(0xFFD59074);
+  Color textColor = const Color(0xFF883912);
+  Color titleColor = const Color(0xFFFBF3D8);
+  double firstDepth = 15;
+  double secondDepth = 50;
+  double thirdDepth = 50;
+  double fourthDepth = 50;
+  late AnimationController _animationController;
+  late final CollectionReference<Topic> collection;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize collection here instead of in build
+    collection = _firestoreService.getTopicQuery();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 5),
+    )..addListener(() {
+        setState(() {});
+      });
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    double _width = MediaQuery.of(context).size.width;
+    double _fullWidth = _width > 70 ? 70 : _width;
+
+    double? stagger(double value, double progress, double delay) {
+      var newProgress = progress - (1 - delay);
+      if (newProgress < 0) newProgress = 0;
+      return value * (newProgress / delay);
+    }
+
+    final calculatedFirstDepth =
+        stagger(firstDepth, _animationController.value, 0.25)!;
+
     return Scaffold(
+        backgroundColor: baseColor,
         appBar: AppBar(
-          title: const Text('Sample Items'),
+          title: ClayText("Topics",
+              emboss: false,
+              size: 36,
+              parentColor: baseColor,
+              textColor: titleColor,
+              color: baseColor,
+              depth: 9,
+              spread: 3,
+              style: TextStyle(fontWeight: FontWeight.w300)),
+          backgroundColor: baseColor,
           actions: [
             IconButton(
-              icon: const Icon(Icons.settings),
+              icon: Icon(Icons.settings, color: textColor, size: 36),
               onPressed: () {
-                // Navigate to the settings page. If the user leaves and returns
-                // to the app after it has been killed while running in the
-                // background, the navigation stack is restored.
                 Navigator.restorablePushNamed(context, SettingsView.routeName);
               },
             ),
           ],
         ),
-
-        // To work with lists that may contain a large number of items, it’s best
-        // to use the ListView.builder constructor.
-        //
-        // In contrast to the default ListView constructor, which requires
-        // building all Widgets up front, the ListView.builder constructor lazily
-        // builds Widgets as they’re scrolled into view.
-        body: ListenableBuilder(
-            listenable: viewModel,
-            builder: (context, child) {
-              return ListView.builder(
-                itemCount: viewModel.topics.length,
-                itemBuilder: (context, index) {
-                  final topic = viewModel.topics[index];
-                  return ListTile(
-                    title: Text('SampleItem ${topic.title}'),
-                    leading: const CircleAvatar(
-                      foregroundImage:
-                          AssetImage('assets/images/flutter_logo.png'),
-                    ),
-                  );
-                },
-              );
-            })
-
-        // ListView.builder(
-        //   // Providing a restorationId allows the ListView to restore the
-        //   // scroll position when a user leaves and returns to the app after it
-        //   // has been killed while running in the background.
-        //   restorationId: 'sampleItemListView',
-        //   itemCount: items.length,
-        //   itemBuilder: (BuildContext context, int index) {
-        //     final topic = items[index];
-
-        //     return ListTile(
-        //       title: Text('SampleItem ${topic.id}'),
-        //       leading: const CircleAvatar(
-        //         // Display the Flutter Logo image asset.
-        //         foregroundImage: AssetImage('assets/images/flutter_logo.png'),
-        //       ),
-        //       onTap: () {
-        //         // Navigate to the details page. If the user leaves and returns to
-        //         // the app after it has been killed while running in the
-        //         // background, the navigation stack is restored.
-        //         Navigator.restorablePushNamed(
-        //           context,
-        //           SampleItemDetailsView.routeName,
-        //         );
-        //       }
-        //     );
-        //   },
-        // ),
-        );
+        body: FirestoreListView(
+          query: collection,
+          padding: const EdgeInsets.all(8.0),
+          itemBuilder: (context, snapshot) {
+            final topic = snapshot.data();
+            return Column(
+              children: [
+                Container(
+                    color: baseColor,
+                    padding: const EdgeInsets.all(12),
+                    child: ClayContainer(
+                      color: baseColor,
+                      borderRadius: 20,
+                      height: 120,
+                      width: 400,
+                      curveType: CurveType.concave,
+                      spread: 5,
+                      depth: calculatedFirstDepth.toInt(),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(6.0),
+                              child: ClayContainer(
+                                  surfaceColor: AppColors.dark(topic.appColor),
+                                  parentColor: baseColor,
+                                  emboss: false,
+                                  spread: 2,
+                                  depth: 12,
+                                  curveType: CurveType.concave,
+                                  // surfaceColor: baseColor,
+                                  width: 36,
+                                  height: double.infinity,
+                                  customBorderRadius: BorderRadius.only(
+                                    topRight: Radius.elliptical(0, 0),
+                                    bottomRight: Radius.elliptical(0, 0),
+                                    topLeft: Radius.elliptical(16, 16),
+                                    bottomLeft: Radius.elliptical(16, 16),
+                                  )),
+                            ),
+                            SizedBox(
+                              width: 180,
+                              child: ClayText(topic.title,
+                                  emboss: true,
+                                  size: 18,
+                                  parentColor: baseColor,
+                                  textColor: textColor,
+                                  color: baseColor,
+                                  spread: 2,
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.w900)),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Align(
+                                alignment: Alignment.bottomRight,
+                                child: SvgPicture.network(
+                                  topic.svg,
+                                  fit: BoxFit.cover,
+                                  alignment: Alignment.bottomCenter,
+                                  color: textColor,
+                                  width: _fullWidth,
+                                ),
+                              ),
+                            ),
+                          ]),
+                    ))
+              ],
+            );
+          },
+        ));
   }
 }

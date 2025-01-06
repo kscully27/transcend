@@ -25,23 +25,5 @@
             "program": "lib/main_prod.dart",
             "args": ["--flavor", "prod", "--target", "lib/main_prod.dart" ]
         },
-
-        {
-            "name": "trancend",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "trancend (profile mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "profile"
-        },
-        {
-            "name": "trancend (release mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release"
-        }
     ]
 }
