@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'sample_feature/sample_item_details_view.dart';
-import 'sample_feature/sample_item_list_view.dart';
+import 'topics/sample_item_details_view.dart';
+import 'topics/topics_list_view.dart';
 import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 
@@ -67,7 +67,14 @@ class MyApp extends StatelessWidget {
             // Define a light and dark color theme. Then, read the user's
             // preferred ThemeMode (light, dark, or system default) from the
             // SettingsController to display the correct theme.
-            theme: ThemeData(),
+            theme: ThemeData(
+              appBarTheme: AppBarTheme(
+                // scrolledUnderElevation: 0.0,
+                // surfaceTintColor: Colors.transparent,
+                // shadowColor: Colors.transparent,
+                // backgroundColor: Colors.redAccent,
+              ),
+            ),
             darkTheme: ThemeData.dark(),
             themeMode: settingsController.themeMode,
 
@@ -82,10 +89,10 @@ class MyApp extends StatelessWidget {
                       return SettingsView(controller: settingsController);
                     case SampleItemDetailsView.routeName:
                       return const SampleItemDetailsView();
-                    case SampleItemListView.routeName:
-                      return SampleItemListView();
+                    case TopicsListView.routeName:
+                      return TopicsListView();
                     default:
-                      return SampleItemListView();
+                      return TopicsListView();
                   }
                 },
               );
