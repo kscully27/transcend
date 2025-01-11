@@ -4,6 +4,7 @@ part of './neo_bottom_nav.dart';
 class _SheetToggleButton extends StatelessWidget {
   final BoxDecoration? decoration;
   final Color? backgroundColor;
+  final Color? parentColor;
   final Color? foregroundColor;
   final IconData icon;
   final VoidCallback? onTap;
@@ -12,6 +13,7 @@ class _SheetToggleButton extends StatelessWidget {
       {Key? key,
       this.decoration,
       this.backgroundColor,
+      this.parentColor,
       this.foregroundColor,
       required this.icon,
       this.onTap})
@@ -21,7 +23,7 @@ class _SheetToggleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     final bgColor = backgroundColor ?? theme.colorScheme.secondary;
-    
+
     return Center(
       child: InkResponse(
         onTap: onTap,
@@ -31,10 +33,10 @@ class _SheetToggleButton extends StatelessWidget {
             width: 56,
             height: 56,
             color: bgColor,
-            parentColor: bgColor,
+            parentColor: parentColor ?? bgColor,
             surfaceColor: bgColor,
-            spread: 20,
-            depth: 20,
+            spread: 8,
+            depth: 16,
             borderRadius: 50,
             curveType: CurveType.concave,
             child: Icon(

@@ -5,15 +5,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_ui_firestore/firebase_ui_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/ui/glass_button.dart';
 import 'package:trancend/src/ui/glass_icon_button.dart';
-import 'package:remixicon/remixicon.dart';
-
-import '../settings/settings_view.dart';
 
 Color baseColor = const Color(0xFFD59074);
 Color baseColor2 = const Color(0xFFC67E60);
@@ -315,45 +313,77 @@ class _TopicsListViewState extends State<TopicsListView>
     with TickerProviderStateMixin {
   final FirestoreService _firestoreService = locator<FirestoreService>();
   late Query collection;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
     collection = _firestoreService.getTopicQuery();
-    return
-        // Scaffold(
-        //     backgroundColor: baseColor,
-        // appBar: AppBar(
-        //   title: ClayText("Topics",
-        //       emboss: false,
-        //       size: 36,
-        //       parentColor: baseColor,
-        //       textColor: titleColor,
-        //       color: baseColor,
-        //       depth: 9,
-        //       spread: 3,
-        //       style: TextStyle(fontWeight: FontWeight.w300)),
-        //   scrolledUnderElevation: 1,
-        //   surfaceTintColor: Colors.transparent,
-        //   shadowColor: Colors.transparent,
-        //   backgroundColor: Colors.transparent,
-        //   actions: [
-        //     IconButton(
-        //       icon: Icon(Icons.settings, color: textColor, size: 36),
-        //       onPressed: () {
-        //         Navigator.restorablePushNamed(context, SettingsView.routeName);
-        //       },
-        //     ),
-        //   ],
-        // ),
-        // body:
+    
+    return Stack(
+      children: [
         FirestoreListView(
-      query: collection,
-      padding: const EdgeInsets.all(8.0),
-      itemBuilder: (context, snapshot) {
-        final topic = snapshot.data() as Topic;
-        return TopicItem(topic: topic);
-      },
+          controller: _scrollController,
+          query: collection,
+          padding: EdgeInsets.only(
+            left: 8.0,
+            right: 8.0,
+            top: 80.0,
+            bottom: 96.0
+          ),
+          itemBuilder: (context, snapshot) {
+            final topic = snapshot.data() as Topic;
+            return TopicItem(topic: topic);
+          },
+        ),
+        AnimatedBuilder(
+          animation: _scrollController,
+          builder: (context, child) {
+            return Container(
+              height: 80,
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: 10,
+              ),
+              decoration: BoxDecoration(
+                color: baseColor,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    baseColor,
+                    baseColor,
+                    baseColor,
+                    baseColor.withOpacity(0.9),
+                    baseColor.withOpacity(0),
+                  ],
+                ),
+              ),
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: ClayText(
+                  "Goals",
+                  emboss: false,
+                  size: 36,
+                  parentColor: baseColor,
+                  textColor: titleColor.withOpacity(0.8),
+                  color: baseColor,
+                  depth: 9,
+                  spread: 3,
+                  style: TextStyle(fontWeight: FontWeight.w300),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     );
-    // );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 }

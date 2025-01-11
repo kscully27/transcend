@@ -133,6 +133,15 @@ class NeoBottomNavNSheet extends StatefulWidget {
   /// and ```false``` if sheet is closed
   final void Function(bool value)? onSheetToggle;
 
+  /// Clay container depth
+  final int depth;
+
+  /// Clay container spread
+  final int spread;
+
+  /// Clay container emboss
+  final bool emboss;
+
   const NeoBottomNavNSheet({
     Key? key,
     required this.items,
@@ -156,6 +165,9 @@ class NeoBottomNavNSheet extends StatefulWidget {
     this.sheetCloseIconBoxColor,
     this.sheetOpenIconColor,
     this.sheetCloseIconColor,
+    this.depth = 40,
+    this.spread = 100,
+    this.emboss = true,
   })  : assert(items.length >= 2 && items.length <= 5,
             "There must be at least 2 and at most 5 items!"),
         assert(
@@ -282,6 +294,7 @@ class _NeoBottomNavNSheetState extends State<NeoBottomNavNSheet>
           child: _SheetToggleButton(
             onTap: () => _showBottomSheet(),
             backgroundColor: iconBg,
+            parentColor: widget.backgroundColor,
             icon: _sheetOpen ? widget.sheetCloseIcon ?? openIcon : openIcon,
             foregroundColor: iconFg,
             decoration: widget.sheetToggleDecoration,
@@ -315,27 +328,22 @@ class _NeoBottomNavNSheetState extends State<NeoBottomNavNSheet>
     }
 
     final parentColorValue = widget.parentColor ?? widget.backgroundColor;
-    final emboss = true;
-    final depth = 40;
-    final spread = 100;
     var shadowList = <BoxShadow>[
       BoxShadow(
         color: ClayUtils.getAdjustColor(
           parentColorValue!,
-          // ignore: dead_code
-          emboss ? 0 - depth : depth,
+          widget.emboss ? 0 - widget.depth : widget.depth,
         ),
-        offset: Offset(0 - spread.toDouble(), 0 - spread.toDouble()),
-        blurRadius: spread.toDouble(),
+        offset: Offset(0 - widget.spread.toDouble(), 0 - widget.spread.toDouble()),
+        blurRadius: widget.spread.toDouble(),
       ),
       BoxShadow(
         color: ClayUtils.getAdjustColor(
           parentColorValue,
-          // ignore: dead_code
-          emboss ? depth : 0 - depth,
+          widget.emboss ? widget.depth : 0 - widget.depth,
         ),
-        offset: Offset(spread.toDouble(), spread.toDouble()),
-        blurRadius: spread.toDouble(),
+        offset: Offset(widget.spread.toDouble(), widget.spread.toDouble()),
+        blurRadius: widget.spread.toDouble(),
       ),
     ];
 

@@ -72,10 +72,11 @@ class _HomePageState extends State<HomePage> {
             ),
             bottomNavigationBar: NeoBottomNavNSheet(
               backgroundColor: navColor,
+              emboss: false,
               parentColor: baseColor,
               borderColors: [baseColor2, baseColor2, baseColor2, baseColor2],
               selectedItemColor: iconColor,
-              unselectedItemColor: titleColor,
+              unselectedItemColor: theme.colorScheme.secondary,
               sheetOpenIconBoxColor: iconColor,
               sheetOpenIconColor: textColor,
               onTap: (index) {
@@ -93,7 +94,7 @@ class _HomePageState extends State<HomePage> {
               sheetOpenIcon: Remix.menu_4_line,
               sheetCloseIcon: Remix.add_line,
               // sheetCloseIconBoxColor: Colors.white,
-              sheetCloseIconColor: theme.scaffoldBackgroundColor,
+              sheetCloseIconColor: theme.colorScheme.secondary,
               // sheetOpenIconColor: Colors.white,
               onSheetToggle: (v) {
                 setState(() {});
