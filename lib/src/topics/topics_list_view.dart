@@ -9,6 +9,9 @@ import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/services/firestore.service.dart';
+import 'package:trancend/src/ui/glass_button.dart';
+import 'package:trancend/src/ui/glass_icon_button.dart';
+import 'package:remixicon/remixicon.dart';
 
 import '../settings/settings_view.dart';
 
@@ -117,55 +120,50 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                         width: 0.5,
                       ),
                     ),
-                    child: IntrinsicHeight(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Center(
-                            child: FractionallySizedBox(
-                              widthFactor: 0.25,
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(2),
-                                  border: Border.all(
-                                    color: Colors.black12,
-                                    width: 0.5,
-                                  ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Center(
+                          child: FractionallySizedBox(
+                            widthFactor: 0.25,
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(
+                                vertical: 8,
+                              ),
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(2),
+                                border: Border.all(
+                                  color: Colors.black12,
+                                  width: 0.5,
                                 ),
                               ),
                             ),
                           ),
-                          Stack(
-                            children: [
-                              Container(
-                                margin: EdgeInsets.all(0),
-                                padding: EdgeInsets.all(0),
-                                height: 32,
-                                width: double.infinity,
-                                alignment: Alignment.topRight,
-                                child: IconButton(
-                                  icon: Icon(Icons.close, color: Colors.black),
-                                  iconSize: 32,
-                                  padding: EdgeInsets.all(0),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ),
+                        ),
+                        Stack(
+                          children: [
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: GlassIconButton(
+                                icon: Icons.close,
+                                iconColor: Colors.black,
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
                               ),
-                              Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Expanded(
-                                    child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        spacing: 12,
-                                        children: [
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
                                       Text(topic.title,
                                           style: TextStyle(
                                               fontSize: 24,
@@ -176,48 +174,41 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                                               fontSize: 16,
                                               fontWeight: FontWeight.w300,
                                               color: Colors.black)),
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 12),
-                                        child: Center(
-                                          child: Container(
-                                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                color: Colors.black,
-                                                width: .8,
-                                              ),
-                                              borderRadius: BorderRadius.circular(30),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  Icons.play_arrow,
-                                                  color: Colors.black,
-                                                  size: 40,
-                                                ),
-                                                SizedBox(width: 12),
-                                                Text(
-                                                  "Start Trance",
-                                                  style: TextStyle(
-                                                    fontSize: 32,
-                                                    fontWeight: FontWeight.w200,
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
+                                      SizedBox(height: 12),
+                                      GlassButton(
+                                        text: "Add to Favorites",
+                                        icon: Remix.heart_line,
+                                        width: double.infinity,
+                                        variant: GlassButtonVariant.text,
+                                        size: GlassButtonSize.xsmall,
+                                        align: GlassButtonAlign.center,
+                                        onPressed: () {
+                                          // Add your favorite logic here
+                                        },
                                       ),
-                                    ])),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                                      Divider(
+                                        height: 32,
+                                        thickness: 1,
+                                        color: Colors.black26,
+                                      ),
+                                      GlassButton(
+                                        text: "Start Session",
+                                        height: 80,
+                                        icon: Remix.play_fill,
+                                        width: double.infinity,
+                                        margin: EdgeInsets.only(bottom: 12),
+                                        onPressed: () {
+                                          // Add your session start logic here
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -328,38 +319,41 @@ class _TopicsListViewState extends State<TopicsListView>
   @override
   Widget build(BuildContext context) {
     collection = _firestoreService.getTopicQuery();
-    return Scaffold(
-        backgroundColor: baseColor,
-        appBar: AppBar(
-          title: ClayText("Topics",
-              emboss: false,
-              size: 36,
-              parentColor: baseColor,
-              textColor: titleColor,
-              color: baseColor,
-              depth: 9,
-              spread: 3,
-              style: TextStyle(fontWeight: FontWeight.w300)),
-          scrolledUnderElevation: 1,
-          surfaceTintColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          backgroundColor: Colors.transparent,
-          actions: [
-            IconButton(
-              icon: Icon(Icons.settings, color: textColor, size: 36),
-              onPressed: () {
-                Navigator.restorablePushNamed(context, SettingsView.routeName);
-              },
-            ),
-          ],
-        ),
-        body: FirestoreListView(
-          query: collection,
-          padding: const EdgeInsets.all(8.0),
-          itemBuilder: (context, snapshot) {
-            final topic = snapshot.data() as Topic;
-            return TopicItem(topic: topic);
-          },
-        ));
+    return
+        // Scaffold(
+        //     backgroundColor: baseColor,
+        // appBar: AppBar(
+        //   title: ClayText("Topics",
+        //       emboss: false,
+        //       size: 36,
+        //       parentColor: baseColor,
+        //       textColor: titleColor,
+        //       color: baseColor,
+        //       depth: 9,
+        //       spread: 3,
+        //       style: TextStyle(fontWeight: FontWeight.w300)),
+        //   scrolledUnderElevation: 1,
+        //   surfaceTintColor: Colors.transparent,
+        //   shadowColor: Colors.transparent,
+        //   backgroundColor: Colors.transparent,
+        //   actions: [
+        //     IconButton(
+        //       icon: Icon(Icons.settings, color: textColor, size: 36),
+        //       onPressed: () {
+        //         Navigator.restorablePushNamed(context, SettingsView.routeName);
+        //       },
+        //     ),
+        //   ],
+        // ),
+        // body:
+        FirestoreListView(
+      query: collection,
+      padding: const EdgeInsets.all(8.0),
+      itemBuilder: (context, snapshot) {
+        final topic = snapshot.data() as Topic;
+        return TopicItem(topic: topic);
+      },
+    );
+    // );
   }
 }
