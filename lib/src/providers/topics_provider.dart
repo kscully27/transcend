@@ -27,12 +27,20 @@ class TopicsProvider {
     if (_topics == null) return ['All'];
     
     final categories = _topics!
-        .map((topic) => topic.group)
+        .map((topic) => toTitleCase(topic.group))
         .toSet()
         .toList();
     
-    categories.sort();  // Sort alphabetically
-    return ['All', ...categories];  // Add 'All' at the beginning
+    categories.sort();
+    return ['All', ...categories];
+  }
+
+  String toTitleCase(String text) {
+    if (text.isEmpty) return text;
+    
+    return text.split(' ')
+        .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
+        .join(' ');
   }
 
   List<Topic> getFilteredTopics() {
@@ -40,7 +48,7 @@ class TopicsProvider {
     if (_selectedCategory == 'All') return _topics!;
     
     return _topics!
-        .where((topic) => topic.group == _selectedCategory)
+        .where((topic) => toTitleCase(topic.group) == _selectedCategory)
         .toList();
   }
 

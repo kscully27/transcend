@@ -10,6 +10,7 @@ import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/providers/topics_provider.dart';
 import 'package:trancend/src/ui/glass_button.dart';
 import 'package:trancend/src/ui/glass_icon_button.dart';
+import 'package:trancend/src/ui/clay_button.dart';
 
 Color baseColor = const Color(0xFFD59074);
 Color baseColor2 = const Color(0xFFC67E60);
@@ -307,74 +308,84 @@ class TopicsListView extends StatefulWidget {
   State<TopicsListView> createState() => _TopicsListViewState();
 }
 
-class _TopicsListViewState extends State<TopicsListView>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+class _TopicsListViewState extends State<TopicsListView> with SingleTickerProviderStateMixin {
   final TopicsProvider _topicsProvider = locator<TopicsProvider>();
   final ScrollController _scrollController = ScrollController();
-  List<Topic> _topics = [];
-  List<String> _categories = ['All'];
-
-  // Add animation controller for slide transitions
+  final ScrollController _categoriesScrollController = ScrollController();
   late AnimationController _slideController;
-  bool _isSliding = false;
-  int _slideDirection = 0;  // -1 for left, 1 for right
-
-  @override
-  bool get wantKeepAlive => true;
+  List<Topic> _topics = [];
+  List<String> _categories = [];
+  int _slideDirection = 1;
 
   @override
   void initState() {
     super.initState();
-    _loadTopics();
     _slideController = AnimationController(
-      duration: const Duration(milliseconds: 300),
       vsync: this,
+      duration: Duration(milliseconds: 300),
     );
+    _loadTopics();
   }
 
   Future<void> _loadTopics() async {
-    if (_topics.isEmpty) {
-      final topics = await _topicsProvider.getTopics();  // Wait for topics to load
-      if (mounted) {
-        setState(() {
-          _topics = _topicsProvider.getFilteredTopics();
-          _categories = _topicsProvider.getCategories();
-        });
-      }
-    }
-  }
-
-  void _onCategorySelected(String category) {
-    _topicsProvider.setCategory(category);
+    final topics = await _topicsProvider.getTopics();
     setState(() {
       _topics = _topicsProvider.getFilteredTopics();
+      _categories = _topicsProvider.getCategories();
     });
   }
 
   void _onCategoryChange(int direction) {
     final currentIndex = _categories.indexOf(_topicsProvider.selectedCategory);
-    int newIndex = currentIndex + direction;
+    final nextIndex = currentIndex + direction;
     
-    if (newIndex >= 0 && newIndex < _categories.length) {
+    if (nextIndex >= 0 && nextIndex < _categories.length) {
       setState(() {
-        _isSliding = true;
         _slideDirection = direction;
+        _topicsProvider.setCategory(_categories[nextIndex]);
+        _topics = _topicsProvider.getFilteredTopics();
       });
       
-      // Animate first, then update category
-      _slideController.forward(from: 0).then((_) {
-        _onCategorySelected(_categories[newIndex]);
-        setState(() {
-          _isSliding = false;
-        });
-        _slideController.reset();
+      // Delay the category scroll animation
+      Future.delayed(Duration(milliseconds: 500), () {
+        _scrollToCategory(nextIndex);
       });
     }
   }
 
+  void _scrollToCategory(int index) {
+    final buttonWidth = 120.0;
+    final padding = 4.0;
+    final targetScroll = (buttonWidth + (padding * 2)) * index;
+    
+    _categoriesScrollController.animateTo(
+      targetScroll.clamp(
+        0.0,
+        _categoriesScrollController.position.maxScrollExtent
+      ),
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _onCategorySelected(String category) {
+    final oldIndex = _categories.indexOf(_topicsProvider.selectedCategory);
+    final newIndex = _categories.indexOf(category);
+    setState(() {
+      _slideDirection = newIndex > oldIndex ? 1 : -1;
+      _topicsProvider.setCategory(category);
+      _topics = _topicsProvider.getFilteredTopics();
+    });
+    
+    // Delay the category scroll animation
+    Future.delayed(Duration(milliseconds: 500), () {
+      _scrollToCategory(newIndex);
+    });
+  }
+
   Widget _buildTopicsList() {
     return AnimatedSwitcher(
-      duration: Duration(milliseconds: 300),
+      duration: Duration(milliseconds: 400),
       transitionBuilder: (Widget child, Animation<double> animation) {
         return SlideTransition(
           position: Tween(
@@ -382,9 +393,21 @@ class _TopicsListViewState extends State<TopicsListView>
             end: Offset.zero,
           ).animate(CurvedAnimation(
             parent: animation,
-            curve: Curves.easeInOut,
+            curve: Interval(
+              0.0, 1.0,
+              curve: Curves.easeOutCubic,
+            ),
           )),
-          child: child,
+          child: FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Interval(
+                0.3, 1.0,
+                curve: Curves.easeInOut,
+              ),
+            ),
+            child: child,
+          ),
         );
       },
       child: ListView.builder(
@@ -407,23 +430,18 @@ class _TopicsListViewState extends State<TopicsListView>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-    
     return GestureDetector(
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity == null) return;
-        
         if (details.primaryVelocity! > 0) {
-          // Swiped right
-          _onCategoryChange(-1);
+          _onCategoryChange(-1);  // Swipe right
         } else if (details.primaryVelocity! < 0) {
-          // Swiped left
-          _onCategoryChange(1);
+          _onCategoryChange(1);   // Swipe left
         }
       },
       child: Stack(
         children: [
-          _buildTopicsList(),  // Replace the direct ListView with our animated version
+          _buildTopicsList(),
           Positioned(
             top: 40,
             left: 0,
@@ -449,6 +467,7 @@ class _TopicsListViewState extends State<TopicsListView>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              
               Container(
                 height: 60,
                 padding: EdgeInsets.only(
@@ -473,26 +492,39 @@ class _TopicsListViewState extends State<TopicsListView>
                   ),
                 ),
               ),
-              Container(
-                height: 50,
-                color: baseColor,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  children: _categories.map((category) {
-                    final isSelected = category == _topicsProvider.selectedCategory;
-                    return Container(
-                      margin: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                      child: GlassButton(
-                        text: category,
-                        variant: isSelected ? GlassButtonVariant.outlined : GlassButtonVariant.text,
-                        size: GlassButtonSize.xsmall,
-                        textColor: isSelected ? Colors.white : Colors.white70,
-                        borderColor: Colors.white,
-                        onPressed: () => _onCategorySelected(category),
-                      ),
-                    );
-                  }).toList(),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  height: 50,
+                  color: baseColor,
+                  child: ListView(
+                    controller: _categoriesScrollController,
+                    scrollDirection: Axis.horizontal,
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    children: _categories.map((category) {
+                      final isSelected = category == _topicsProvider.selectedCategory;
+                      return Container(
+                        margin: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                        child: ClayButton(
+                          text: category,
+                          color: baseColor,
+                          parentColor: baseColor,
+                          variant: isSelected ? ClayButtonVariant.outlined : ClayButtonVariant.text,
+                          size: ClayButtonSize.xsmall,
+                          textColor: Colors.white,
+                          spread: isSelected ? 3 : 2,
+                          depth: isSelected ? 20 : 20,
+                          curveType: isSelected ? CurveType.convex : CurveType.concave,
+                          onPressed: () => _onCategorySelected(category),
+                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          width: 120,
+                          height: 34,
+                          borderRadius: 17,
+                          emboss: isSelected,
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ],
@@ -504,6 +536,7 @@ class _TopicsListViewState extends State<TopicsListView>
 
   @override
   void dispose() {
+    _categoriesScrollController.dispose();
     _slideController.dispose();
     _scrollController.dispose();
     super.dispose();
