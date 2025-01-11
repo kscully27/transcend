@@ -4,6 +4,7 @@ import 'package:clay_containers/theme/clay_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:trancend/src/pages/home.dart';
 
 import 'topics/sample_item_details_view.dart';
 import 'topics/topics_list_view.dart';
@@ -90,9 +91,10 @@ class MyApp extends StatelessWidget {
                     case SampleItemDetailsView.routeName:
                       return const SampleItemDetailsView();
                     case TopicsListView.routeName:
-                      return TopicsListView();
+                      return HomePage();
+                      // return TopicsListView();
                     default:
-                      return TopicsListView();
+                      return HomePage();
                   }
                 },
               );
