@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:trancend/src/ui/blurry_container/container.dart';
 import 'package:trancend/src/ui/blurry_container/extension.dart';
 
 import 'settings_controller.dart';

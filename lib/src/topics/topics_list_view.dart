@@ -1,15 +1,13 @@
 import 'dart:ui';
 
 import 'package:clay_containers/clay_containers.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_ui_firestore/firebase_ui_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/topic.model.dart';
-import 'package:trancend/src/services/firestore.service.dart';
+import 'package:trancend/src/providers/topics_provider.dart';
 import 'package:trancend/src/ui/glass_button.dart';
 import 'package:trancend/src/ui/glass_icon_button.dart';
 
@@ -310,44 +308,129 @@ class TopicsListView extends StatefulWidget {
 }
 
 class _TopicsListViewState extends State<TopicsListView>
-    with TickerProviderStateMixin {
-  final FirestoreService _firestoreService = locator<FirestoreService>();
-  late Query collection;
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+  final TopicsProvider _topicsProvider = locator<TopicsProvider>();
   final ScrollController _scrollController = ScrollController();
+  List<Topic> _topics = [];
+  List<String> _categories = ['All'];
+
+  // Add animation controller for slide transitions
+  late AnimationController _slideController;
+  bool _isSliding = false;
+  int _slideDirection = 0;  // -1 for left, 1 for right
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTopics();
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+  }
+
+  Future<void> _loadTopics() async {
+    if (_topics.isEmpty) {
+      final topics = await _topicsProvider.getTopics();  // Wait for topics to load
+      if (mounted) {
+        setState(() {
+          _topics = _topicsProvider.getFilteredTopics();
+          _categories = _topicsProvider.getCategories();
+        });
+      }
+    }
+  }
+
+  void _onCategorySelected(String category) {
+    _topicsProvider.setCategory(category);
+    setState(() {
+      _topics = _topicsProvider.getFilteredTopics();
+    });
+  }
+
+  void _onCategoryChange(int direction) {
+    final currentIndex = _categories.indexOf(_topicsProvider.selectedCategory);
+    int newIndex = currentIndex + direction;
+    
+    if (newIndex >= 0 && newIndex < _categories.length) {
+      setState(() {
+        _isSliding = true;
+        _slideDirection = direction;
+      });
+      
+      // Animate first, then update category
+      _slideController.forward(from: 0).then((_) {
+        _onCategorySelected(_categories[newIndex]);
+        setState(() {
+          _isSliding = false;
+        });
+        _slideController.reset();
+      });
+    }
+  }
+
+  Widget _buildTopicsList() {
+    return AnimatedSwitcher(
+      duration: Duration(milliseconds: 300),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return SlideTransition(
+          position: Tween(
+            begin: Offset(-_slideDirection.toDouble(), 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOut,
+          )),
+          child: child,
+        );
+      },
+      child: ListView.builder(
+        key: ValueKey<String>(_topicsProvider.selectedCategory),
+        controller: _scrollController,
+        padding: EdgeInsets.only(
+          left: 8.0,
+          right: 8.0,
+          top: 120.0,
+          bottom: 96.0
+        ),
+        itemCount: _topics.length,
+        itemBuilder: (context, index) {
+          final topic = _topics[index];
+          return TopicItem(topic: topic);
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    collection = _firestoreService.getTopicQuery();
+    super.build(context);
     
-    return Stack(
-      children: [
-        FirestoreListView(
-          controller: _scrollController,
-          query: collection,
-          padding: EdgeInsets.only(
-            left: 8.0,
-            right: 8.0,
-            top: 80.0,
-            bottom: 96.0
-          ),
-          itemBuilder: (context, snapshot) {
-            final topic = snapshot.data() as Topic;
-            return TopicItem(topic: topic);
-          },
-        ),
-        AnimatedBuilder(
-          animation: _scrollController,
-          builder: (context, child) {
-            return Container(
-              height: 80,
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: 10,
-              ),
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity == null) return;
+        
+        if (details.primaryVelocity! > 0) {
+          // Swiped right
+          _onCategoryChange(-1);
+        } else if (details.primaryVelocity! < 0) {
+          // Swiped left
+          _onCategoryChange(1);
+        }
+      },
+      child: Stack(
+        children: [
+          _buildTopicsList(),  // Replace the direct ListView with our animated version
+          Positioned(
+            top: 40,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 100,
               decoration: BoxDecoration(
-                color: baseColor,
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -355,34 +438,73 @@ class _TopicsListViewState extends State<TopicsListView>
                     baseColor,
                     baseColor,
                     baseColor,
-                    baseColor.withOpacity(0.9),
-                    baseColor.withOpacity(0),
+                    baseColor.withAlpha((0.9 * 255).round()),
+                    baseColor.withAlpha(0),
                   ],
                 ),
               ),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: ClayText(
-                  "Goals",
-                  emboss: false,
-                  size: 36,
-                  parentColor: baseColor,
-                  textColor: titleColor.withOpacity(0.8),
-                  color: baseColor,
-                  depth: 9,
-                  spread: 3,
-                  style: TextStyle(fontWeight: FontWeight.w300),
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 60,
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 20,
+                  bottom: 0,
+                ),
+                color: baseColor,
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: ClayText(
+                    "Goals",
+                    emboss: false,
+                    size: 36,
+                    parentColor: baseColor,
+                    textColor: titleColor.withAlpha((0.8 * 255).round()),
+                    color: baseColor,
+                    depth: 9,
+                    spread: 3,
+                    style: TextStyle(fontWeight: FontWeight.w300),
+                  ),
                 ),
               ),
-            );
-          },
-        ),
-      ],
+              Container(
+                height: 50,
+                color: baseColor,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  children: _categories.map((category) {
+                    final isSelected = category == _topicsProvider.selectedCategory;
+                    return Container(
+                      margin: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                      child: GlassButton(
+                        text: category,
+                        variant: isSelected ? GlassButtonVariant.outlined : GlassButtonVariant.text,
+                        size: GlassButtonSize.xsmall,
+                        textColor: isSelected ? Colors.white : Colors.white70,
+                        borderColor: Colors.white,
+                        onPressed: () => _onCategorySelected(category),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   @override
   void dispose() {
+    _slideController.dispose();
     _scrollController.dispose();
     super.dispose();
   }

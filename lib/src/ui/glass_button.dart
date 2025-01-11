@@ -177,44 +177,36 @@ class GlassButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(borderRadius),
             ),
             child: Row(
-              mainAxisSize: MainAxisSize.max,
+              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: _mainAxisAlignment,
               crossAxisAlignment: crossAxisAlignment,
               children: [
-                if (align == GlassButtonAlign.right) 
-                  Spacer(),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (icon != null) ...[
-                      Icon(
-                        icon,
-                        color: textColor,
-                        size: _iconSize,
-                      ),
-                      SizedBox(width: _iconSpacing),
-                    ],
-                    Flexible(
-                      child: AutoSizeText(
-                        text,
-                        style: TextStyle(
-                          fontSize: _fontSize,
-                          fontWeight: _fontWeight,
-                          color: textColor,
-                          height: 1.2,
-                        ),
-                        maxLines: wrapText ? 2 : maxLines,
-                        minFontSize: minFontSize,
-                        overflow: overflow,
-                        textAlign: _textAlign,
-                        stepGranularity: 0.5,
-                        wrapWords: true,
-                      ),
+                if (icon != null) ...[
+                  Icon(
+                    icon,
+                    color: textColor,
+                    size: _iconSize,
+                  ),
+                  SizedBox(width: _iconSpacing),
+                ],
+                Flexible(
+                  fit: FlexFit.loose,
+                  child: AutoSizeText(
+                    text,
+                    style: TextStyle(
+                      fontSize: _fontSize,
+                      fontWeight: _fontWeight,
+                      color: textColor,
+                      height: 1.2,
                     ),
-                  ],
+                    maxLines: wrapText ? 2 : maxLines,
+                    minFontSize: minFontSize,
+                    overflow: overflow,
+                    textAlign: _textAlign,
+                    stepGranularity: 0.5,
+                    wrapWords: true,
+                  ),
                 ),
-                if (align == GlassButtonAlign.left) 
-                  Spacer(),
               ],
             ),
           ),

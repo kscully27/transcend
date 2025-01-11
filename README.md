@@ -16,6 +16,8 @@ To do list:
 - [ ] Create Trance Player
 - [ ] Store Trance Sessions
 - [ ] Add Firebase Analytics
+- [ ] Add Firebase Messaging
+- [ ] Add Firebase Storage
 - [ ] Add Firebase Crashlytics
 - [ ] Add Firebase Remote Config
 - [ ] Add Firebase Performance Monitoring
