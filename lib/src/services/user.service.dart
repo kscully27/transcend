@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:trancend/src/models/user.model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserService extends GetxController {
   static UserService get to => Get.find();
@@ -32,5 +33,20 @@ class UserService extends GetxController {
       });
       _currentUser.value = updatedUser;
     }
+  }
+
+  Future<void> saveEmailForSignIn(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('emailForSignIn', email);
+  }
+
+  Future<String?> getEmailForSignIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('emailForSignIn');
+  }
+
+  Future<void> clearEmailForSignIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('emailForSignIn');
   }
 } 

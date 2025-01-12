@@ -2,21 +2,17 @@
 
 import 'dart:async';
 
-// import 'package:apple_sign_in_safety/apple_sign_in_safety.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/goal.model.dart';
 import 'package:trancend/src/models/settings.model.dart';
 import 'package:trancend/src/models/user.model.dart' as user_model;
 import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/services/user.service.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
-// import 'firestore_service.dart';
-
-enum DataType { Document, Collection }
 
 class AuthResult {
   final bool success;
@@ -31,7 +27,7 @@ abstract class AuthenticationService {
   Stream<user_model.User> get onAuthStateChanged;
   Future<user_model.User> get getUser;
   Future<user_model.User> get getUserWithoutSignout;
-  Stream<auth.User> get user;
+  Stream<auth.User?> get user;
   user_model.User get currentUser;
   Goal get defaultGoal;
   UserSettings get userSettings;
@@ -54,13 +50,15 @@ abstract class AuthenticationService {
     required String email,
     required String password,
   });
-  Future<void> sendSignInLinkToEmail(email, {isPremium = false});
+  Future<void> sendSignInLinkToEmail(String email, {bool isPremium = false});
   Future<AuthResult> signInWithEmailAndLink(
       {required String email, required String emailLink});
   Future<AuthResult> signUpWithEmail({
     required user_model.User user,
     required String password,
   });
+  Future<void> signinAnonymously();
+  Future<void> sendVerificationEmail();
   // Future getUserProperties;
 }
 
@@ -74,8 +72,7 @@ class AuthenticationServiceAdapter implements AuthenticationService {
   Goal? _defaultGoal;
   UserSettings? _userSettings;
 
-  Future<user_model.User?> _populateCurrentUser(auth.User user,
-      {required user_model.SigninMethod signinMethod}) async {
+  Future<user_model.User?> _populateCurrentUser(auth.User user) async {
     try {
       // Get the user from firebase
       _currentUser = await _firestoreService.getUser(user.uid);
@@ -227,12 +224,11 @@ class AuthenticationServiceAdapter implements AuthenticationService {
     if (user == null) {
       throw Exception('No authenticated user!');
     }
-    return (await _populateCurrentUser(user,
-        signinMethod: user_model.SigninMethod.None))!;
+    return (await _populateCurrentUser(user))!;
   }
 
   @override
-  Stream<auth.User> get user => throw UnimplementedError();
+  Stream<auth.User?> get user => _firebaseAuth.authStateChanges();
 
   @override
   Goal get defaultGoal =>
@@ -253,8 +249,15 @@ class AuthenticationServiceAdapter implements AuthenticationService {
   @override
   set currentUser(user_model.User data) => throw UnimplementedError();
 
+  // @override
+  // Future<bool> isUserLoggedIn() => throw UnimplementedError();
+
   @override
-  Future<bool> isUserLoggedIn() => throw UnimplementedError();
+  Future<bool> isUserLoggedIn() async {
+    var user = _firebaseAuth.currentUser;
+    if (user != null) await _populateCurrentUser(user);
+    return user != null;
+  }
 
   @override
   Future<AuthResult> appleLogin({user_model.User? user}) async {
@@ -476,16 +479,244 @@ class AuthenticationServiceAdapter implements AuthenticationService {
   }
 
   @override
-  Future<void> sendSignInLinkToEmail(email, {isPremium = false}) =>
-      throw UnimplementedError();
+  Future<void> sendSignInLinkToEmail(String email,
+      {bool isPremium = false}) async {
+    try {
+      _userService.setLoading(true);
+
+      if (email.isEmpty) {
+        throw Exception('Email is required');
+      }
+
+      // Configure the email link sign-in settings
+      final actionCodeSettings = auth.ActionCodeSettings(
+        url:
+            'https://trancend.page.link/email-signin', // Replace with your dynamic link domain
+        handleCodeInApp: true,
+        androidPackageName:
+            'com.trancend.app', // Replace with your Android package name
+        androidMinimumVersion: '1',
+        androidInstallApp: true,
+        iOSBundleId: 'com.trancend.app', // Replace with your iOS bundle ID
+      );
+
+      // Send the sign-in link to the user's email
+      await _firebaseAuth.sendSignInLinkToEmail(
+        email: email,
+        actionCodeSettings: actionCodeSettings,
+      );
+
+      // Store the email locally to verify it when completing sign in
+      await _userService.saveEmailForSignIn(email);
+    } on auth.FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'invalid-email':
+          errorMessage = 'The email address is invalid.';
+          break;
+        case 'invalid-continue-uri':
+          errorMessage = 'The continue URL provided is invalid.';
+          break;
+        case 'unauthorized-continue-uri':
+          errorMessage = 'The continue URL domain is not authorized.';
+          break;
+        default:
+          errorMessage = 'An error occurred: ${e.message}';
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      throw Exception('Failed to send sign-in link: ${e.toString()}');
+    } finally {
+      _userService.setLoading(false);
+    }
+  }
 
   @override
-  Future<AuthResult> signInWithEmailAndLink(
-          {required String email, required String emailLink}) =>
-      throw UnimplementedError();
+  Future<AuthResult> signInWithEmailAndLink({
+    required String email,
+    required String emailLink,
+  }) async {
+    try {
+      _userService.setLoading(true);
+
+      // Verify if the link is a sign-in with email link
+      if (!_firebaseAuth.isSignInWithEmailLink(emailLink)) {
+        throw Exception('Invalid sign-in link');
+      }
+
+      // Get the email from storage if not provided
+      final storedEmail = await _userService.getEmailForSignIn();
+      final signInEmail = email.isNotEmpty ? email : storedEmail;
+
+      if (signInEmail == null || signInEmail.isEmpty) {
+        throw Exception('Email is required for sign-in');
+      }
+
+      // Sign in with email link
+      final userCredential = await _firebaseAuth.signInWithEmailLink(
+        email: signInEmail,
+        emailLink: emailLink,
+      );
+
+      final firebaseUser = userCredential.user;
+      if (firebaseUser == null) {
+        throw Exception('Firebase user is null after email link sign in');
+      }
+
+      // Handle new user creation
+      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        final newUser = user_model.User(
+          uid: firebaseUser.uid,
+          email: firebaseUser.email ?? signInEmail,
+          displayName: firebaseUser.displayName ?? '',
+          photoUrl: firebaseUser.photoURL ?? '',
+        );
+
+        await _firestoreService.createUser(newUser);
+        _userService.setUser(newUser);
+      } else {
+        final existingUser = await _firestoreService.getUser(firebaseUser.uid);
+        _userService.setUser(existingUser);
+      }
+
+      // Clear the stored email after successful sign-in
+      await _userService.clearEmailForSignIn();
+
+      return AuthResult(
+        success: true,
+        error: false,
+        errorMessage: '',
+      );
+    } on auth.FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'invalid-email':
+          errorMessage = 'The email address is invalid.';
+          break;
+        case 'invalid-action-code':
+          errorMessage = 'The sign-in link is invalid or has expired.';
+          break;
+        case 'expired-action-code':
+          errorMessage = 'The sign-in link has expired.';
+          break;
+        case 'user-disabled':
+          errorMessage = 'This user account has been disabled.';
+          break;
+        default:
+          errorMessage = 'An error occurred during sign in: ${e.message}';
+      }
+      return AuthResult(
+        success: false,
+        error: true,
+        errorMessage: errorMessage,
+      );
+    } catch (e) {
+      return AuthResult(
+        success: false,
+        error: true,
+        errorMessage: 'Failed to sign in with email link: ${e.toString()}',
+      );
+    } finally {
+      _userService.setLoading(false);
+    }
+  }
 
   @override
-  Future<AuthResult> signUpWithEmail(
-          {required user_model.User user, required String password}) =>
-      throw UnimplementedError();
+  Future<AuthResult> signUpWithEmail({
+    required user_model.User user,
+    required String password,
+  }) async {
+    try {
+      _userService.setLoading(true);
+
+      if (user.email.isEmpty) {
+        throw Exception('Email is required');
+      }
+      if (password.isEmpty) {
+        throw Exception('Password is required');
+      }
+
+      // Create user with email and password in Firebase Auth
+      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: user.email,
+        password: password,
+      );
+
+      final firebaseUser = userCredential.user;
+      if (firebaseUser == null) {
+        throw Exception('Firebase user is null after email sign up');
+      }
+
+      // Update the user's display name if provided
+      if (user.displayName.isNotEmpty) {
+        await firebaseUser.updateDisplayName(user.displayName);
+      }
+
+      // Update the user's photo URL if provided
+      if (user.photoUrl.isNotEmpty) {
+        await firebaseUser.updatePhotoURL(user.photoUrl);
+      }
+
+      // Create the user document in Firestore
+      final newUser = user_model.User(
+        uid: firebaseUser.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoUrl: user.photoUrl,
+        // Add any additional fields from the user parameter
+      );
+
+      await _firestoreService.createUser(newUser);
+      _userService.setUser(newUser);
+
+      return AuthResult(
+        success: true,
+        error: false,
+        errorMessage: '',
+      );
+    } on auth.FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'weak-password':
+          errorMessage = 'The password provided is too weak.';
+          break;
+        case 'email-already-in-use':
+          errorMessage = 'An account already exists for this email.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'The email address is invalid.';
+          break;
+        case 'operation-not-allowed':
+          errorMessage = 'Email/password accounts are not enabled.';
+          break;
+        default:
+          errorMessage = 'An error occurred during sign up: ${e.message}';
+      }
+      return AuthResult(
+        success: false,
+        error: true,
+        errorMessage: errorMessage,
+      );
+    } catch (e) {
+      return AuthResult(
+        success: false,
+        error: true,
+        errorMessage: 'Failed to sign up: ${e.toString()}',
+      );
+    } finally {
+      _userService.setLoading(false);
+    }
+  }
+
+  @override
+  Future<void> sendVerificationEmail() async {
+    await _firebaseAuth.currentUser?.sendEmailVerification();
+  }
+
+  @override
+  Future<void> signinAnonymously() async {
+    await _firebaseAuth.signInAnonymously();
+  }
+
+    
 }
