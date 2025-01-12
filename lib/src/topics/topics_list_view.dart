@@ -130,13 +130,23 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
 
   void _toggleFavorite(String topicId) async {
     final user = ref.read(userProvider).value;
-    print('User: $user');
-    if (user == null) return;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please sign in to favorite topics'))
+      );
+      return;
+    }
     
     try {
       final firestoreService = locator<FirestoreService>();
       await firestoreService.toggleTopicFavorite(user.uid, topicId);
+      
+      // Force a refresh of the userTopics provider
+      ref.invalidate(userTopicsProvider);
     } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating favorite: ${e.toString()}'))
+      );
       print('Error toggling favorite: $e');
     }
   }

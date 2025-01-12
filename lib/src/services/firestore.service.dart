@@ -270,9 +270,20 @@ class FirestoreServiceAdapter extends FirestoreService {
   Future<void> toggleTopicFavorite(String uid, String topicId) async {
     final userTopicRef = _userDataRef(uid).doc('topics').collection('topics').doc(topicId);
     final userTopic = await userTopicRef.get();
+    
     if (userTopic.exists) {
       final data = userTopic.data() as Map<String, dynamic>;
       await userTopicRef.update({'isFavorite': !(data['isFavorite'] ?? false)});
+    } else {
+      // Create new UserTopic document if it doesn't exist
+      await userTopicRef.set({
+        'id': topicId,
+        'uid': uid,
+        'topicId': topicId,
+        'isFavorite': true,
+        'lastAccessed': DateTime.now().toIso8601String(),
+        'accessCount': 0
+      });
     }
   }
 

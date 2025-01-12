@@ -133,7 +133,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                   align: GlassButtonAlign.center,
                   onPressed: () {
                     widget.onFavoritePressed();
-                    // Navigator.pop(context);
+                    Navigator.pop(context);
                   },
                 ),
                 const Divider(
