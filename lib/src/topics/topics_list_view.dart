@@ -1,15 +1,10 @@
 import 'package:clay_containers/clay_containers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:remixicon/remixicon.dart';
-import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/providers/topics_provider.dart';
-import 'package:trancend/src/ui/clay_button.dart';
-import 'package:trancend/src/ui/glass_bottom_sheet.dart';
-import 'package:trancend/src/ui/glass_button.dart';
 import 'package:trancend/src/topics/topic_item.dart';
+import 'package:trancend/src/ui/clay_button.dart';
 
 Color baseColor = const Color(0xFFD59074);
 Color baseColor2 = const Color(0xFFC67E60);
@@ -37,6 +32,8 @@ class _TopicsListViewState extends State<TopicsListView> with SingleTickerProvid
   List<Topic> _topics = [];
   List<String> _categories = [];
   int _slideDirection = 1;
+  String _previousCategory = 'All';
+  bool _hasAnimation = true;
 
   @override
   void initState() {
@@ -53,6 +50,15 @@ class _TopicsListViewState extends State<TopicsListView> with SingleTickerProvid
     setState(() {
       _topics = _topicsProvider.getFilteredTopics();
       _categories = _topicsProvider.getCategories();
+      _hasAnimation = true;
+    });
+    
+    Future.delayed(Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _hasAnimation = false;
+        });
+      }
     });
   }
 
@@ -67,7 +73,6 @@ class _TopicsListViewState extends State<TopicsListView> with SingleTickerProvid
         _topics = _topicsProvider.getFilteredTopics();
       });
       
-      // Delay the category scroll animation
       Future.delayed(Duration(milliseconds: 500), () {
         _scrollToCategory(nextIndex);
       });
@@ -94,13 +99,22 @@ class _TopicsListViewState extends State<TopicsListView> with SingleTickerProvid
     final newIndex = _categories.indexOf(category);
     setState(() {
       _slideDirection = newIndex > oldIndex ? 1 : -1;
+      _previousCategory = _topicsProvider.selectedCategory;
       _topicsProvider.setCategory(category);
       _topics = _topicsProvider.getFilteredTopics();
+      _hasAnimation = true;
     });
     
-    // Delay the category scroll animation
     Future.delayed(Duration(milliseconds: 500), () {
       _scrollToCategory(newIndex);
+    });
+
+    Future.delayed(Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _hasAnimation = false;
+        });
+      }
     });
   }
 
@@ -143,7 +157,11 @@ class _TopicsListViewState extends State<TopicsListView> with SingleTickerProvid
         itemCount: _topics.length,
         itemBuilder: (context, index) {
           final topic = _topics[index];
-          return TopicItem(topic: topic);
+          return TopicItem(
+            topic: topic,
+            index: index,
+            shouldAnimate: _hasAnimation,
+          );
         },
       ),
     );

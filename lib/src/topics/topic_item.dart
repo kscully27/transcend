@@ -11,8 +11,16 @@ import 'package:trancend/src/ui/glass_button.dart';
 Color baseColor = const Color(0xFFD59074);
 
 class TopicItem extends StatefulWidget {
-  const TopicItem({super.key, required this.topic});
+  const TopicItem({
+    super.key, 
+    required this.topic,
+    required this.index,
+    required this.shouldAnimate,
+  });
+  
   final Topic topic;
+  final int index;
+  final bool shouldAnimate;
 
   @override
   State<TopicItem> createState() => _TopicItemState();
@@ -20,36 +28,63 @@ class TopicItem extends StatefulWidget {
 
 class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
   late AnimationController _animationController;
-  late AnimationController _opacityController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _opacityAnimation;
   
   @override
   void initState() {
     super.initState();
-    _opacityController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-      value: 0,
-    )..addListener(() {
-        setState(() {});
-      });
+    
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
-      value: 0,
-    )..addListener(() {
-        setState(() {});
-        if (_animationController.value == 1) {
-          _opacityController.forward();
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutBack,
+    ));
+
+    _opacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Interval(0.3, 1.0, curve: Curves.easeInOut),
+    ));
+
+    if (widget.shouldAnimate) {
+      Future.delayed(Duration(milliseconds: widget.index * 200), () {
+        if (mounted) {
+          _animationController.forward();
         }
       });
+    } else {
+      _animationController.value = 1.0;  // Immediately show at final position
+    }
+  }
 
-    _animationController.forward();
+  @override
+  void didUpdateWidget(TopicItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Reset animation if shouldAnimate changes to true
+    if (widget.shouldAnimate && !oldWidget.shouldAnimate) {
+      _animationController.reset();
+      Future.delayed(Duration(milliseconds: widget.index * 200), () {
+        if (mounted) {
+          _animationController.forward();
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
     _animationController.dispose();
-    _opacityController.dispose();
     super.dispose();
   }
 
@@ -120,103 +155,87 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     double _width = MediaQuery.of(context).size.width;
     double _fullWidth = _width > 70 ? 70 : _width;
-
-    double? stagger(double value, double progress, double delay) {
-      var newProgress = progress - (1 - delay);
-      if (newProgress < 0) newProgress = 0;
-      return value * (newProgress / delay);
-    }
-
-    final calculatedFirstDepth = stagger(15, _animationController.value, 0.25)!;
-    final calculatedThirdDepth = stagger(1, _opacityController.value, 0.75)!;
-    final calculatedFourthDepth = stagger(1, _opacityController.value, 1)!;
-
     final topic = widget.topic;
 
-    return GestureDetector(
-      onTap: () => _handleButtonPressed(topic),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        child: ClayContainer(
-          color: baseColor,
-          borderRadius: 20,
-          height: 120,
-          width: 400,
-          curveType: CurveType.concave,
-          spread: 5,
-          depth: calculatedFirstDepth.toInt(),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              AnimatedOpacity(
-                opacity: calculatedThirdDepth,
-                duration: _opacityController.duration!,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 20),
-                  child: SizedBox(
-                    width: 180,
-                    child: ClayText(
-                      topic.title,
-                      emboss: true,
-                      size: 24,
-                      parentColor: baseColor,
-                      textColor: Colors.white,
-                      color: baseColor,
-                      spread: 2,
-                      style: TextStyle(fontWeight: FontWeight.w200),
-                    ),
-                  ),
-                ),
-              ),
-              AnimatedOpacity(
-                opacity: calculatedFourthDepth,
-                duration: _opacityController.duration!,
-                child: Padding(
-                  padding: const EdgeInsets.all(0),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Stack(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(0),
-                          child: ClayContainer(
-                            surfaceColor: AppColors.light(topic.appColor),
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: Opacity(
+            opacity: _opacityAnimation.value,
+            child: GestureDetector(
+              onTap: () => _handleButtonPressed(topic),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                child: ClayContainer(
+                  color: baseColor,
+                  borderRadius: 20,
+                  height: 120,
+                  width: 400,
+                  curveType: CurveType.concave,
+                  spread: 5,
+                  depth: 15,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20),
+                        child: SizedBox(
+                          width: 180,
+                          child: ClayText(
+                            topic.title,
+                            emboss: true,
+                            size: 24,
                             parentColor: baseColor,
-                            emboss: false,
-                            spread: 8,
-                            depth: 8,
-                            curveType: CurveType.concave,
-                            width: 100,
-                            height: double.infinity,
-                            customBorderRadius: BorderRadius.only(
-                              topLeft: Radius.elliptical(0, 0),
-                              bottomLeft: Radius.elliptical(0, 0),
-                              topRight: Radius.elliptical(16, 16),
-                              bottomRight: Radius.elliptical(16, 16),
-                            ),
+                            textColor: Colors.white,
+                            color: baseColor,
+                            spread: 2,
+                            style: TextStyle(fontWeight: FontWeight.w200),
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.only(left: 14),
-                          child: Center(
-                            child: SvgPicture.network(
-                              topic.svg,
-                              fit: BoxFit.cover,
-                              alignment: Alignment.bottomCenter,
-                              color: AppColors.flat(topic.appColor),
-                              width: _fullWidth,
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Stack(
+                          children: [
+                            ClayContainer(
+                              surfaceColor: AppColors.light(topic.appColor),
+                              parentColor: baseColor,
+                              emboss: false,
+                              spread: 8,
+                              depth: 8,
+                              curveType: CurveType.concave,
+                              width: 100,
+                              height: double.infinity,
+                              customBorderRadius: BorderRadius.only(
+                                topRight: Radius.elliptical(16, 16),
+                                bottomRight: Radius.elliptical(16, 16),
+                              ),
                             ),
-                          ),
+                            Container(
+                              padding: const EdgeInsets.only(left: 14),
+                              child: Center(
+                                child: SvgPicture.network(
+                                  topic.svg,
+                                  fit: BoxFit.cover,
+                                  alignment: Alignment.bottomCenter,
+                                  color: AppColors.flat(topic.appColor),
+                                  width: _fullWidth,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 } 

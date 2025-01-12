@@ -83,19 +83,25 @@ class GlassBottomSheet extends StatelessWidget {
                   ),
                 ),
                 if (hasCloseButton)
-                  Stack(
-                    children: [
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: GlassIconButton(
-                          icon: Icons.close,
-                          iconColor: Colors.black,
-                          onPressed: () => Navigator.pop(context),
+                  Container(
+                    width: double.infinity,
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: GlassIconButton(
+                            icon: Icons.close,
+                            iconColor: Colors.black,
+                            onPressed: () => Navigator.pop(context),
+                          ),
                         ),
-                      ),
-                      content,
-                    ],
+                        Padding(
+                          padding: const EdgeInsets.only(top: 48),
+                          child: content,
+                        ),
+                      ],
+                    ),
                   )
                 else
                   content,
