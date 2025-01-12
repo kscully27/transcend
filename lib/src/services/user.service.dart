@@ -1,37 +1,48 @@
-import 'package:get/get.dart';
-import 'package:trancend/src/models/user.model.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trancend/src/models/user.model.dart';
 
-class UserService extends GetxController {
-  static UserService get to => Get.find();
-  
-  final Rx<User?> _currentUser = Rx<User?>(null);
-  final RxBool _isLoading = false.obs;
+part 'user.service.g.dart';
 
-  bool get isLoading => _isLoading.value;
-  User? get currentUser => _currentUser.value;
-  bool get isLoggedIn => _currentUser.value != null;
+@Riverpod(keepAlive: true)
+class UserService extends _$UserService {
+  User? _currentUser;
+  bool _isLoading = false;
+
+  @override
+  Future<User?> build() async {
+    return _currentUser;
+  }
+
+  bool get isLoading => _isLoading;
+  User? get currentUser => _currentUser;
+  bool get isLoggedIn => _currentUser != null;
 
   void setUser(User? user) {
-    _currentUser.value = user;
+    _currentUser = user;
+    state = AsyncValue.data(user);
   }
 
   void setLoading(bool loading) {
-    _isLoading.value = loading;
+    _isLoading = loading;
+    // Notify listeners if needed
+    state = AsyncValue.data(_currentUser);
   }
 
   void clearUser() {
-    _currentUser.value = null;
+    _currentUser = null;
+    state = const AsyncValue.data(null);
   }
 
   // Helper method to update specific user fields
   void updateUser(Map<String, dynamic> updates) {
-    if (_currentUser.value != null) {
-      final updatedUser = User.fromMap({
-        ..._currentUser.value!.toJson(),
+    if (_currentUser != null) {
+      final updatedUser = User.fromJson({
+        ..._currentUser!.toJson(),
         ...updates,
       });
-      _currentUser.value = updatedUser;
+      _currentUser = updatedUser;
+      state = AsyncValue.data(updatedUser);
     }
   }
 
@@ -49,4 +60,10 @@ class UserService extends GetxController {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('emailForSignIn');
   }
+}
+
+// Global provider to access the UserService instance
+@Riverpod(keepAlive: true)
+UserService userServiceInstance(UserServiceInstanceRef ref) {
+  return ref.watch(userServiceProvider.notifier);
 } 

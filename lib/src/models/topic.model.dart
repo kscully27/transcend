@@ -1,109 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:trancend/src/constants/app_colors.dart';
 
-class Topic {
-  final String id;
-  final String title;
-  final String description;
-  final String icon;
-  final String image;
-  final String svg;
-  final String group;
-  final String goal;
-  final String activeVerb;
-  final double totalDuration;
-  final int totalFileSize;
-  final int totalTracks;
-  final bool isDefault;
-  final bool isPremium;
-  final bool isMentalHealth;
-  final bool isPriority;
-  final double price;
-  bool isLocked;
-  double strength;
+part 'topic.model.freezed.dart';
+part 'topic.model.g.dart';
 
-  Topic({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.image,
-    required this.icon,
-    required this.svg,
-    required this.group,
-    required this.goal,
-    required this.totalDuration,
-    required this.totalFileSize,
-    required this.totalTracks,
-    required this.activeVerb,
-    required this.price,
-    required this.isDefault,
-    required this.isPremium,
-    required this.isMentalHealth,
-    required this.strength,
-    required this.isPriority,
-    required this.isLocked,
-  });
+@freezed
+class Topic with _$Topic {
+  const Topic._();
+  
+  const factory Topic({
+    required String id,
+    required String title,
+    required String description,
+    required String icon,
+    required String image,
+    required String svg,
+    required String group,
+    required String goal,
+    required String activeVerb,
+    required double totalDuration,
+    required int totalFileSize,
+    required int totalTracks,
+    @Default(false) bool isDefault,
+    @Default(false) bool isPremium,
+    @Default(false) bool isMentalHealth,
+    @Default(false) bool isPriority,
+    @Default(false) bool isLocked,
+    @Default(0.0) double price,
+    @Default(0.0) double strength,
+  }) = _Topic;
+
+  factory Topic.fromJson(Map<String, dynamic> json) => _$TopicFromJson(json);
 
   String get appColor => AppColors.getColorName(group);
   Color get flat => AppColors.flat(AppColors.getColorName(group));
   Color get light => AppColors.light(AppColors.getColorName(group));
   Color get dark => AppColors.dark(AppColors.getColorName(group));
-  Color get highlight => AppColors.highlight(AppColors.getColorName(group));
-  Color get shadow => AppColors.shadow(AppColors.getColorName(group));
-
-  factory Topic.fromMap(Map data) {
-    return Topic(
-      id: data['id'],
-      title: data['title'],
-      description: data['description'],
-      image: data['image'] ?? '',
-      icon: data['icon'] ?? '',
-      svg: data['svg'] ?? '',
-      goal: data['goal'] ?? '',
-      group: data['group'] ?? '',
-      activeVerb: data['activeVerb'] ?? '',
-      price: data['price'] ?? 0,
-      totalTracks: data['totalTracks'] ?? 0,
-      isPremium: data['isPremium'] ?? false,
-      isDefault: data['isDefault'] ?? false,
-      isMentalHealth: data['isMentalHealth'] ?? false,
-      isPriority: data['isPriority'] ?? false,
-      strength: data['strength'] ?? 0,
-      totalDuration: data['totalDuration'] != null 
-          ? (data['totalDuration'] is int 
-              ? (data['totalDuration'] as int).toDouble()
-              : double.tryParse(data['totalDuration'].toString()) ?? 0.0)
-          : 0.0,
-      totalFileSize: data['totalFileSize'] != null 
-          ? int.tryParse(data['totalFileSize'].toString()) ?? 0 
-          : 0,
-      isLocked: data['isLocked'] ?? false,
-    );
-  }
-  // bool fromUser(User user) {
-  //   return isLocked = user.isPremium ? false : isPremium;
-  // }
-
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {
-      'id': id,
-      'title': title,
-      'description': description,
-      'totalDuration': totalDuration,
-      'totalFileSize': totalFileSize,
-      'totalTracks': totalTracks,
-      'isMentalHealth': isMentalHealth,
-      'isPremium': isPremium,
-      'activeVerb': activeVerb,
-      'isDefault': isDefault,
-      'image': image,
-      'svg': svg,
-      'goal': goal,
-      'price': price,
-      'strength': strength,
-      "group": group,
-    };
-    result.removeWhere((String key, dynamic value) => value == null);
-    return result;
-  }
 }

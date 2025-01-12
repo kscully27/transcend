@@ -15,12 +15,15 @@ class TopicItem extends StatefulWidget {
     required this.topic,
     required this.index,
     required this.shouldAnimate,
-  });
+    required this.isFavorite,
+    required this.onFavoritePressed,
+  }); 
   
   final Topic topic;
   final int index;
   final bool shouldAnimate;
-
+  final bool isFavorite;
+  final Function() onFavoritePressed;
   @override
   State<TopicItem> createState() => _TopicItemState();
 }
@@ -122,14 +125,15 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 12),
                 GlassButton(
-                  text: "Add to Favorites",
-                  icon: Remix.heart_line,
+                  text: widget.isFavorite ? "Remove from Favorites" : "Add to Favorites",
+                  icon: widget.isFavorite ? Remix.heart_fill : Remix.heart_line,
                   width: double.infinity,
                   variant: GlassButtonVariant.text,
                   size: GlassButtonSize.xsmall,
                   align: GlassButtonAlign.center,
                   onPressed: () {
-                    // Add favorite logic here
+                    widget.onFavoritePressed();
+                    // Navigator.pop(context);
                   },
                 ),
                 const Divider(

@@ -4,7 +4,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:trancend/src/locator.dart';
@@ -63,10 +63,20 @@ abstract class AuthenticationService {
 }
 
 class AuthenticationServiceAdapter implements AuthenticationService {
+  AuthenticationServiceAdapter(this._ref);
+  
+  final Ref _ref;
   final auth.FirebaseAuth _firebaseAuth = auth.FirebaseAuth.instance;
   final FirestoreService _firestoreService = locator<FirestoreService>();
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final UserService _userService = Get.put(UserService());
+
+  UserService get _userService => _ref.read(userServiceInstanceProvider);
+
+  static AuthenticationService _instance = AuthenticationServiceAdapter(locator<Ref>());
+
+  static Future<AuthenticationService> getInstance() async {
+    return _instance;
+  }
 
   user_model.User? _currentUser;
   Goal? _defaultGoal;
@@ -76,36 +86,70 @@ class AuthenticationServiceAdapter implements AuthenticationService {
     try {
       // Get the user from firebase
       _currentUser = await _firestoreService.getUser(user.uid);
-      print('_currentUser.value ${_currentUser}');
+      print('_currentUser.value2 ${_currentUser?.toJson()}');
 
       if (_currentUser != null) {
-        if (_currentUser?.uid != null) _getSettings(_currentUser!);
-        if (_currentUser?.primaryGoalId != null) {
-          _getDefaultGoal(_currentUser!.primaryGoalId);
+        if (_currentUser!.uid.isNotEmpty) {
+          await _getSettings(_currentUser!);
+          if (_currentUser!.primaryGoalId.isNotEmpty) {
+            await _getDefaultGoal(_currentUser!.primaryGoalId);
+          }
         }
       }
       return _currentUser;
     } catch (e) {
       print("error populating user --> $e");
-      throw e;
+      // Create a default user if we can't get one from Firestore
+      _currentUser = user_model.User(
+        uid: user.uid,
+        email: user.email ?? '',
+        displayName: user.displayName ?? 'Anonymous User',
+        photoUrl: user.photoURL ?? '',
+        isAnonymous: user.isAnonymous,
+      );
+      return _currentUser;
     }
   }
 
   Future<UserSettings> _getSettings(user_model.User user) async {
     try {
-      if (user != null && user.uid != null) {
-        // Get the settings from firebase
-        _userSettings = await _firestoreService.getSettings(user.uid);
-        if (_userSettings == null) {
-          UserSettings __userSettings = UserSettings.fromMap({"uid": user.uid});
-          _userSettings =
-              await _firestoreService.createSettings(__userSettings);
-        }
+      if (user.uid.isEmpty) {
+        throw Exception('User ID is required to get settings');
       }
+
+      // Get the settings from firebase
+      _userSettings = await _firestoreService.getSettings(user.uid);
+      
+      if (_userSettings == null) {
+        // Create default settings for new user
+        final defaultSettings = UserSettings(
+          uid: user.uid,
+          statsStartDate: DateTime.now().millisecondsSinceEpoch,
+          statsEndDate: DateTime.now().millisecondsSinceEpoch,
+          delaySeconds: 4,
+          maxHours: 8,
+          useCellularData: true,
+          usesDeepening: false,
+          usesOwnDeepening: false,
+        );
+
+        _userSettings = await _firestoreService.createSettings(defaultSettings);
+      }
+
       return _userSettings!;
     } catch (e) {
       print("error populating settings --> $e");
-      throw e;
+      // Instead of throwing, return default settings
+      return UserSettings(
+        uid: user.uid,
+        statsStartDate: DateTime.now().millisecondsSinceEpoch,
+        statsEndDate: DateTime.now().millisecondsSinceEpoch,
+        delaySeconds: 4,
+        maxHours: 8,
+        useCellularData: true,
+        usesDeepening: false,
+        usesOwnDeepening: false,
+      );
     }
   }
 
@@ -120,6 +164,22 @@ class AuthenticationServiceAdapter implements AuthenticationService {
     }
   }
 
+  Future<void> initializeAuth() async {
+    try {
+      final currentUser = _firebaseAuth.currentUser;
+      if (currentUser == null) {
+        await signinAnonymously();
+      } else {
+        // If there is a user, populate the current user data
+        await _populateCurrentUser(currentUser);
+      }
+    } catch (e) {
+      print('Error initializing auth: $e');
+      // If anything fails, try anonymous sign in as fallback
+      await signinAnonymously();
+    }
+  }
+
   @override
   String get uid => _firebaseAuth.currentUser?.uid ?? '';
 
@@ -127,7 +187,12 @@ class AuthenticationServiceAdapter implements AuthenticationService {
   Stream<user_model.User> get onAuthStateChanged =>
       _firebaseAuth.authStateChanges().map((user) {
         if (user == null) throw Exception('No authenticated user!');
-        return _currentUser ?? user_model.User(uid: user.uid);
+        return _currentUser ?? user_model.User(
+          uid: user.uid,
+          email: user.email ?? '',
+          displayName: user.displayName ?? 'Anonymous User',
+          photoUrl: user.photoURL ?? '',
+        );
       });
 
   @override
@@ -715,7 +780,37 @@ class AuthenticationServiceAdapter implements AuthenticationService {
 
   @override
   Future<void> signinAnonymously() async {
-    await _firebaseAuth.signInAnonymously();
+    try {
+      _userService.setLoading(true);
+      
+      final userCredential = await _firebaseAuth.signInAnonymously();
+      final firebaseUser = userCredential.user;
+      if (firebaseUser == null) {
+        throw Exception('Firebase user is null after anonymous sign in');
+      }
+
+      // Create an anonymous user in Firestore if they're new
+      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        final newUser = user_model.User(
+          uid: firebaseUser.uid,
+          email: '',
+          displayName: 'Anonymous User',
+          photoUrl: '',
+          isAnonymous: true,
+        );
+
+        await _firestoreService.createUser(newUser);
+        _userService.setUser(newUser);
+      } else {
+        final existingUser = await _firestoreService.getUser(firebaseUser.uid);
+        _userService.setUser(existingUser);
+      }
+    } catch (e) {
+      print('Error during anonymous sign in: $e');
+      throw Exception('Failed to sign in anonymously: ${e.toString()}');
+    } finally {
+      _userService.setLoading(false);
+    }
   }
 
     

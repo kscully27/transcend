@@ -1,82 +1,37 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/services/firestore.service.dart';
-import 'package:trancend/src/locator.dart';
 
-class TopicsProvider {
-  static final TopicsProvider _instance = TopicsProvider._internal();
-  final FirestoreService _firestoreService = locator<FirestoreService>();
-  
-  List<Topic>? _topics;
-  bool _isLoading = false;
+part 'topics_provider.g.dart';
+
+@Riverpod(keepAlive: true)
+class Topics extends _$Topics {
   String _selectedCategory = 'All';
-
-  factory TopicsProvider() {
-    return _instance;
-  }
-
-  TopicsProvider._internal();
-
-  String get selectedCategory => _selectedCategory;
+  List<Topic> _allTopics = [];
   
-  void setCategory(String group) {
-    _selectedCategory = group;
+  @override
+  Future<List<Topic>> build() async {
+    final firestoreService = locator<FirestoreService>();
+    _allTopics = await firestoreService.getTopics();
+    return getFilteredTopics();
   }
 
   List<String> getCategories() {
-    if (_topics == null) return ['All'];
-    
-    final categories = _topics!
-        .map((topic) => toTitleCase(topic.group))
-        .toSet()
-        .toList();
-    
-    categories.sort();
-    return ['All', ...categories];
-  }
-
-  String toTitleCase(String text) {
-    if (text.isEmpty) return text;
-    
-    return text.split(' ')
-        .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
-        .join(' ');
+    final categories = _allTopics.map((t) => t.group).toSet().toList();
+    categories.insert(0, 'All');
+    return categories;
   }
 
   List<Topic> getFilteredTopics() {
-    if (_topics == null) return [];
-    if (_selectedCategory == 'All') return _topics!;
-    
-    return _topics!
-        .where((topic) => toTitleCase(topic.group) == _selectedCategory)
-        .toList();
+    if (_selectedCategory == 'All') return _allTopics;
+    return _allTopics.where((t) => t.group == _selectedCategory).toList();
   }
 
-  Future<List<Topic>> getTopics() async {
-    if (_topics != null) {
-      return _topics!;
-    }
-
-    if (_isLoading) {
-      // Wait until the first load completes
-      while (_isLoading) {
-        await Future.delayed(Duration(milliseconds: 100));
-      }
-      return _topics ?? [];
-    }
-
-    _isLoading = true;
-    try {
-      final QuerySnapshot snapshot = await _firestoreService.getTopicQuery().get();
-      _topics = snapshot.docs.map((doc) => doc.data() as Topic).toList();
-      return _topics!;
-    } catch (e) {
-      print('Error loading topics: $e');
-      return [];
-    } finally {
-      _isLoading = false;
-    }
+  void setCategory(String category) {
+    _selectedCategory = category;
+    state = AsyncValue.data(getFilteredTopics());
   }
 
-  List<Topic>? get topics => _topics;
+  String get selectedCategory => _selectedCategory;
 } 
