@@ -30,6 +30,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
+  bool _isEmbossed = false;
   
   @override
   void initState() {
@@ -89,6 +90,10 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
   }
 
   void _handleButtonPressed(Topic topic) {
+    setState(() {
+      _isEmbossed = !_isEmbossed;
+    });
+    
     GlassBottomSheet.show(
       context: context,
       content: Column(
@@ -148,7 +153,13 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
           ),
         ],
       ),
-    );
+    ).then((_) {
+      if (mounted) {
+        setState(() {
+          _isEmbossed = !_isEmbossed;
+        });
+      }
+    });
   }
 
   @override
@@ -176,6 +187,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                   curveType: CurveType.concave,
                   spread: 5,
                   depth: 15,
+                  emboss: _isEmbossed,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -185,7 +197,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                           width: 180,
                           child: ClayText(
                             topic.title,
-                            emboss: true,
+                            emboss: _isEmbossed,
                             size: 24,
                             parentColor: baseColor,
                             textColor: Colors.white,
@@ -202,7 +214,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                             ClayContainer(
                               surfaceColor: AppColors.light(topic.appColor),
                               parentColor: baseColor,
-                              emboss: false,
+                              emboss: _isEmbossed,
                               spread: 8,
                               depth: 8,
                               curveType: CurveType.concave,

@@ -20,24 +20,52 @@ class GlassBottomSheet extends StatelessWidget {
     bool hasCloseButton = true,
     double heightPercent = 0.8,
   }) {
-    return showModalBottomSheet<T>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.transparent,
-      isDismissible: true,
-      isScrollControlled: true,
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * heightPercent,
-      ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+    return Future.delayed(
+      const Duration(milliseconds: 360),  // Initial 2 second delay
+      () => showModalBottomSheet<T>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        barrierColor: Colors.transparent,
+        isDismissible: true,
+        isScrollControlled: true,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * heightPercent,
         ),
-        child: GlassBottomSheet(
-          content: content,
-          hasCloseButton: hasCloseButton,
-          heightPercent: heightPercent,
-        ),
+        builder: (context) {
+          return AnimatedBuilder(
+            animation: ModalRoute.of(context)!.animation!,
+            builder: (context, child) {
+              final delayedAnimation = CurvedAnimation(
+                parent: ModalRoute.of(context)!.animation!,
+                curve: const Interval(
+                  0.0,
+                  1.0,
+                  curve: Curves.easeOutBack,
+                ),
+              );
+              
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(delayedAnimation),
+                child: FadeTransition(
+                  opacity: delayedAnimation,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    child: GlassBottomSheet(
+                      content: content,
+                      hasCloseButton: hasCloseButton,
+                      heightPercent: heightPercent,
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
