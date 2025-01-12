@@ -26,8 +26,8 @@ class _HomePageState extends State<HomePage> {
 
     Color baseColor = const Color(0xFFD59074);
     Color baseColor2 = const Color(0xFFC67E60);
-    // Color navColor2 = const Color(0xFFC6846A);
-    Color navColor = theme.colorScheme.secondary;
+    Color navColor = const Color(0xFFC6846A);
+    // Color navColor = theme.colorScheme.secondary;
     Color textColor = const Color(0xFF883912);
     // Color titleColor = const Color(0xFFFBF3D8);
     Color iconColor = const Color(0xFFE2BFAF);
@@ -92,7 +92,7 @@ class _HomePageState extends State<HomePage> {
               },
               initialSelectedIndex: _index,
               sheet: Sheet(),
-              sheetOpenIcon: Remix.menu_4_line,
+              sheetOpenIcon: Remix.play_large_line,
               sheetCloseIcon: Remix.add_line,
               // sheetCloseIconBoxColor: Colors.white,
               sheetCloseIconColor: theme.colorScheme.secondary,

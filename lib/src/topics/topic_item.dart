@@ -4,7 +4,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/models/topic.model.dart';
-import 'package:trancend/src/providers/topics_provider.dart';
 import 'package:trancend/src/ui/glass_bottom_sheet.dart';
 import 'package:trancend/src/ui/glass_button.dart';
 
@@ -184,9 +183,9 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                   borderRadius: 20,
                   height: 120,
                   width: 400,
-                  curveType: CurveType.concave,
-                  spread: 5,
-                  depth: 15,
+                  curveType: !_isEmbossed ? CurveType.concave : CurveType.none,
+                  spread: _isEmbossed ? 3 : 5,
+                  depth: _isEmbossed ? 30 :15,
                   emboss: _isEmbossed,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -200,7 +199,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                             emboss: _isEmbossed,
                             size: 24,
                             parentColor: baseColor,
-                            textColor: Colors.white,
+                            textColor: !_isEmbossed ? Colors.white : AppColors.shadow(topic.appColor),
                             color: baseColor,
                             spread: 2,
                             style: TextStyle(fontWeight: FontWeight.w200),
@@ -212,7 +211,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                         child: Stack(
                           children: [
                             ClayContainer(
-                              surfaceColor: AppColors.light(topic.appColor),
+                              surfaceColor: _isEmbossed ?  AppColors.dark(topic.appColor) : AppColors.light(topic.appColor),
                               parentColor: baseColor,
                               emboss: _isEmbossed,
                               spread: 8,

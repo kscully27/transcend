@@ -125,7 +125,7 @@ class GlassBottomSheet extends StatelessWidget {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(top: 48),
+                          padding: const EdgeInsets.only(top: 2),
                           child: content,
                         ),
                       ],
