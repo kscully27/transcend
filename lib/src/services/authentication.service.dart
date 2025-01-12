@@ -13,6 +13,7 @@ import 'package:trancend/src/models/user.model.dart' as user_model;
 import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/services/user.service.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 // import 'firestore_service.dart';
 
 enum DataType { Document, Collection }
@@ -50,8 +51,8 @@ abstract class AuthenticationService {
   Future forgotPassword(String email);
   Future<void> signOut();
   Future<AuthResult> loginWithEmail({
-    String? email,
-    String? password,
+    required String email,
+    required String password,
   });
   Future<void> sendSignInLinkToEmail(email, {isPremium = false});
   Future<AuthResult> signInWithEmailAndLink(
@@ -275,7 +276,8 @@ class AuthenticationServiceAdapter implements AuthenticationService {
       );
 
       // Sign in to Firebase with the Apple OAuth credential
-      final userCredential = await _firebaseAuth.signInWithCredential(oauthCredential);
+      final userCredential =
+          await _firebaseAuth.signInWithCredential(oauthCredential);
       final firebaseUser = userCredential.user;
 
       if (firebaseUser == null) {
@@ -287,7 +289,9 @@ class AuthenticationServiceAdapter implements AuthenticationService {
         // Combine given name and family name if available
         String? displayName;
         if (credential.givenName != null || credential.familyName != null) {
-          displayName = '${credential.givenName ?? ''} ${credential.familyName ?? ''}'.trim();
+          displayName =
+              '${credential.givenName ?? ''} ${credential.familyName ?? ''}'
+                  .trim();
         }
 
         final newUser = user_model.User(
@@ -322,19 +326,153 @@ class AuthenticationServiceAdapter implements AuthenticationService {
   }
 
   @override
-  Future<AuthResult> facebookLogin({user_model.User? user}) =>
-      throw UnimplementedError();
+  Future<AuthResult> facebookLogin({user_model.User? user}) async {
+    try {
+      _userService.setLoading(true);
+
+      // Trigger the Facebook sign-in flow
+      final LoginResult loginResult = await FacebookAuth.instance.login(
+        permissions: ['email', 'public_profile'],
+      );
+
+      if (loginResult.status != LoginStatus.success) {
+        throw Exception('Facebook login failed: ${loginResult.message}');
+      }
+
+      // Get the access token
+      final AccessToken? accessToken = loginResult.accessToken;
+      if (accessToken == null) {
+        throw Exception('Facebook access token is null');
+      }
+
+      // Create a Facebook credential for Firebase
+      final auth.OAuthCredential credential =
+          auth.FacebookAuthProvider.credential(
+        accessToken.token,
+      );
+
+      // Sign in to Firebase with the Facebook credential
+      final userCredential =
+          await _firebaseAuth.signInWithCredential(credential);
+      final firebaseUser = userCredential.user;
+
+      if (firebaseUser == null) {
+        throw Exception('Firebase user is null after Facebook sign in');
+      }
+
+      // Get additional user data from Facebook
+      final userData = await FacebookAuth.instance.getUserData();
+
+      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        final newUser = user_model.User(
+          uid: firebaseUser.uid,
+          email: firebaseUser.email ?? userData['email'] ?? '',
+          displayName: firebaseUser.displayName ?? userData['name'] ?? '',
+          photoUrl:
+              firebaseUser.photoURL ?? userData['picture']['data']['url'] ?? '',
+        );
+
+        await _firestoreService.createUser(newUser);
+        _userService.setUser(newUser);
+      } else {
+        final existingUser = await _firestoreService.getUser(firebaseUser.uid);
+        _userService.setUser(existingUser);
+      }
+
+      return AuthResult(
+        success: true,
+        error: false,
+        errorMessage: '',
+      );
+    } catch (e) {
+      print('Error during Facebook sign in: $e');
+      return AuthResult(
+        success: false,
+        error: true,
+        errorMessage: e.toString(),
+      );
+    } finally {
+      _userService.setLoading(false);
+    }
+  }
 
   @override
-  Future forgotPassword(String email) => throw UnimplementedError();
+  Future forgotPassword(String email) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+      return true;
+    } catch (e) {
+      return e.toString();
+    }
+  }
 
   @override
   Future<AuthResult> loginWithEmail({
-    String? email,
-    String? password,
-  }) {
-    // Implementation goes here
-    throw UnimplementedError();
+    required String email,
+    required String password,
+  }) async {
+    try {
+      _userService.setLoading(true);
+
+      if (email == null || email.isEmpty) {
+        throw Exception('Email is required');
+      }
+      if (password == null || password.isEmpty) {
+        throw Exception('Password is required');
+      }
+
+      // Sign in with email and password
+      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final firebaseUser = userCredential.user;
+      if (firebaseUser == null) {
+        throw Exception('Firebase user is null after email sign in');
+      }
+
+      // Get the user from Firestore
+      final existingUser = await _firestoreService.getUser(firebaseUser.uid);
+      _userService.setUser(existingUser);
+
+      return AuthResult(
+        success: true,
+        error: false,
+        errorMessage: '',
+      );
+    } on auth.FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'No user found with this email.';
+          break;
+        case 'wrong-password':
+          errorMessage = 'Wrong password provided.';
+          break;
+        case 'user-disabled':
+          errorMessage = 'This user account has been disabled.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'The email address is invalid.';
+          break;
+        default:
+          errorMessage = 'An error occurred during sign in: ${e.message}';
+      }
+      return AuthResult(
+        success: false,
+        error: true,
+        errorMessage: errorMessage,
+      );
+    } catch (e) {
+      return AuthResult(
+        success: false,
+        error: true,
+        errorMessage: e.toString(),
+      );
+    } finally {
+      _userService.setLoading(false);
+    }
   }
 
   @override
