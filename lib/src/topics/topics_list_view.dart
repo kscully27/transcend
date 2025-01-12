@@ -1,5 +1,6 @@
 import 'package:clay_containers/clay_containers.dart';
 import 'package:flutter/material.dart';
+import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/providers/topics_provider.dart';
@@ -246,13 +247,16 @@ class _TopicsListViewState extends State<TopicsListView> with SingleTickerProvid
                         margin: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                         child: ClayButton(
                           text: category,
-                          color: baseColor,
+                          color: isSelected && category != 'All' ? AppColors.flat(AppColors.getColorName(category.toLowerCase())) : baseColor,
+                          // borderColor: AppColors.highlight(AppColors.getColorName(category.toLowerCase())),
+                          // textColor: AppColors.highlight(AppColors.getColorName(category.toLowerCase())),
+                          // borderWidth: 1.2,
                           parentColor: baseColor,
                           variant: isSelected ? ClayButtonVariant.outlined : ClayButtonVariant.text,
                           size: ClayButtonSize.xsmall,
                           textColor: Colors.white,
                           spread: isSelected ? 3 : 2,
-                          depth: isSelected ? 20 : 20,
+                          depth: isSelected ? 10 : 6,
                           curveType: isSelected ? CurveType.convex : CurveType.concave,
                           onPressed: () => _onCategorySelected(category),
                           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),

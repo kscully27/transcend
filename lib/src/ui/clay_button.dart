@@ -27,6 +27,8 @@ class ClayButton extends StatelessWidget {
   final Color textColor;
   final Color color;
   final Color? parentColor;
+  final Color? borderColor;
+  final double borderWidth;
   final double spread;
   final int depth;
   final CurveType? curveType;
@@ -52,6 +54,8 @@ class ClayButton extends StatelessWidget {
     required this.onPressed,
     required this.color,
     this.parentColor,
+    this.borderColor,
+    this.borderWidth = 0.5,
     this.icon,
     this.textColor = Colors.black,
     this.spread = 6,
@@ -186,6 +190,13 @@ class ClayButton extends StatelessWidget {
               width: width,
               height: height,
               alignment: Alignment.center,
+              decoration: borderColor != null ? BoxDecoration(
+                border: Border.all(
+                  color: borderColor!,
+                  width: borderWidth,
+                ),
+                borderRadius: BorderRadius.circular(borderRadius),
+              ) : null,
               child: Text(
                 text,
                 style: TextStyle(
