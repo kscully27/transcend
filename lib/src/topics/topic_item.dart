@@ -4,8 +4,12 @@ import 'package:flutter_svg/svg.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/models/topic.model.dart';
+import 'package:trancend/src/models/user.model.dart';
+import 'package:trancend/src/models/session.model.dart' as session;
+import 'package:trancend/src/models/trance.model.dart';
 import 'package:trancend/src/ui/glass_bottom_sheet.dart';
 import 'package:trancend/src/ui/glass_button.dart';
+import 'package:trancend/src/trance/trance_player.dart';
 
 Color baseColor = const Color(0xFFD59074);
 
@@ -148,7 +152,29 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                   width: double.infinity,
                   margin: const EdgeInsets.only(bottom: 12),
                   onPressed: () {
-                    // Add session start logic here
+                    Navigator.pop(context); // Close the bottom sheet first
+                    Future.microtask(() {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) => TrancePlayer(
+                            topic: widget.topic,
+                            tranceMethod: session.TranceMethod.Hypnotherapy,
+                          ),
+                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(0.0, 1.0);
+                            const end = Offset.zero;
+                            const curve = Curves.easeOutCubic;
+                            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                            return SlideTransition(
+                              position: animation.drive(tween),
+                              child: child,
+                            );
+                          },
+                          transitionDuration: const Duration(milliseconds: 500),
+                        ),
+                      );
+                    });
                   },
                 ),
               ],

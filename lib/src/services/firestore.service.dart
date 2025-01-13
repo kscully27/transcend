@@ -8,6 +8,10 @@ import 'package:trancend/src/models/settings.model.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/user.model.dart';
 import 'package:trancend/src/models/user_topic.model.dart';
+import 'package:trancend/src/models/trance.model.dart';
+import 'package:trancend/src/models/session.model.dart';
+import 'package:trancend/src/models/played_track.model.dart';
+import 'package:trancend/src/models/track.model.dart';
 
 abstract class FirestoreService {
   late FirebaseFirestore db;
@@ -28,6 +32,23 @@ abstract class FirestoreService {
   Future<List<UserTopic>> getUserTopics(String uid);
   Future<void> updateUserTopic(String uid, UserTopic userTopic);
   Future<UserSettings> createSettings(UserSettings settings);
+  Future<List<UserInduction>> getUserInductions(String uid);
+  Future<UserInduction> createUserInduction(UserInduction userInduction);
+  Future<void> updateUserInduction(UserInduction userInduction);
+  Future<List<UserAwakening>> getUserAwakenings(String uid);
+  Future<UserAwakening> createUserAwakening(UserAwakening userAwakening);
+  Future<void> updateUserAwakening(UserAwakening userAwakening);
+  Future<List<UserDeepening>> getUserDeepenings(String uid);
+  Future<UserDeepening> createUserDeepening(UserDeepening userDeepening);
+  Future<void> updateUserDeepening(UserDeepening userDeepening);
+  Future<Session> getSession(String id);
+  Future<List<Session>> getSessions(String uid, {DateTime? startDate, DateTime? endDate});
+  Future<Session> createSession(Session session);
+  Future<void> updateSession(Session session);
+  Future<void> removeSession(String id);
+  Future<void> savePlayedTrack(PlayedTrack playedTrack);
+  Future<List<PlayedTrack>> getPlayedTracks(String uid, {DateTime? startDate, DateTime? endDate});
+  Future<List<Track>> getTracksFromTopic(Topic topic);
 }
 
 class FirestoreServiceAdapter extends FirestoreService {
@@ -103,7 +124,7 @@ class FirestoreServiceAdapter extends FirestoreService {
 
   @override
   Future<List<Topic>> getTopics() async {
-    var topicsData = await db.collection('topics').get();
+    var topicsData = await db.collection('topics').where('totalTracks', isGreaterThan: 8).get();
     try {
       return topicsData.docs.map((doc) {
         final data = doc.data();
@@ -324,5 +345,153 @@ class FirestoreServiceAdapter extends FirestoreService {
     final docRef = _userDataRef(settings.uid).doc('settings');
     await docRef.set(settings.toJson());
     return settings;
+  }
+
+  @override
+  Future<List<UserInduction>> getUserInductions(String uid) async {
+    QuerySnapshot _snap = await db
+        .collection("userInductions")
+        .where("uid", isEqualTo: uid)
+        .get();
+    return _snap.docs.map((doc) => UserInduction.fromMap(doc.data() as Map<String, dynamic>)).toList();
+  }
+
+  @override
+  Future<UserInduction> createUserInduction(UserInduction userInduction) async {
+    var data = userInduction.toJson();
+    DocumentReference _ref = await db.collection("userInductions").add(data);
+    await db.collection("userInductions").doc(_ref.id).update({"id": _ref.id});
+    DocumentSnapshot doc = await _ref.get();
+    return UserInduction.fromMap(doc.data() as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> updateUserInduction(UserInduction userInduction) async {
+    var data = userInduction.toJson();
+    await db.collection("userInductions").doc(userInduction.id).update(data);
+  }
+
+  @override
+  Future<List<UserAwakening>> getUserAwakenings(String uid) async {
+    QuerySnapshot _snap = await db
+        .collection("userAwakenings")
+        .where("uid", isEqualTo: uid)
+        .get();
+    return _snap.docs.map((doc) => UserAwakening.fromMap(doc.data() as Map<String, dynamic>)).toList();
+  }
+
+  @override
+  Future<UserAwakening> createUserAwakening(UserAwakening userAwakening) async {
+    var data = userAwakening.toJson();
+    DocumentReference _ref = await db.collection("userAwakenings").add(data);
+    await db.collection("userAwakenings").doc(_ref.id).update({"id": _ref.id});
+    DocumentSnapshot doc = await _ref.get();
+    return UserAwakening.fromMap(doc.data() as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> updateUserAwakening(UserAwakening userAwakening) async {
+    var data = userAwakening.toJson();
+    await db.collection("userAwakenings").doc(userAwakening.id).update(data);
+  }
+
+  @override
+  Future<List<UserDeepening>> getUserDeepenings(String uid) async {
+    QuerySnapshot _snap = await db
+        .collection("userDeepenings")
+        .where("uid", isEqualTo: uid)
+        .get();
+    return _snap.docs.map((doc) => UserDeepening.fromMap(doc.data() as Map<String, dynamic>)).toList();
+  }
+
+  @override
+  Future<UserDeepening> createUserDeepening(UserDeepening userDeepening) async {
+    var data = userDeepening.toJson();
+    DocumentReference _ref = await db.collection("userDeepenings").add(data);
+    await db.collection("userDeepenings").doc(_ref.id).update({"id": _ref.id});
+    DocumentSnapshot doc = await _ref.get();
+    return UserDeepening.fromMap(doc.data() as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> updateUserDeepening(UserDeepening userDeepening) async {
+    var data = userDeepening.toJson();
+    await db.collection("userDeepenings").doc(userDeepening.id).update(data);
+  }
+
+  @override
+  Future<Session> getSession(String id) async {
+    var snapshot = await db.collection("sessions").doc(id).get();
+    return Session.fromMap(snapshot.data() as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<Session>> getSessions(String uid, {DateTime? startDate, DateTime? endDate}) async {
+    endDate ??= DateTime.now();
+
+    QuerySnapshot _snap = await db
+        .collection("sessions")
+        .where("uid", isEqualTo: uid)
+        .where("finishedTime", isGreaterThan: startDate?.millisecondsSinceEpoch)
+        .where("finishedTime", isLessThan: endDate.millisecondsSinceEpoch)
+        .get();
+    return _snap.docs.map((doc) => Session.fromMap(doc.data() as Map<String, dynamic>)).toList();
+  }
+
+  @override
+  Future<Session> createSession(Session session) async {
+    var data = session.toJson();
+    DocumentReference _sessionReference = await db.collection("sessions").add(data);
+    await db.collection("sessions").doc(_sessionReference.id).update({"id": _sessionReference.id});
+    return getSession(_sessionReference.id);
+  }
+
+  @override
+  Future<void> updateSession(Session session) async {
+    await db.collection("sessions").doc(session.id).set(session.toJson(), SetOptions(merge: true));
+  }
+
+  @override
+  Future<void> removeSession(String id) async {
+    DocumentReference _session = db.collection('sessions').doc(id);
+    DocumentSnapshot session = await _session.get();
+    if (session.exists) {
+      await _session.delete();
+    }
+  }
+
+  @override
+  Future<void> savePlayedTrack(PlayedTrack playedTrack) async {
+    await db.collection("playedTracks").add(playedTrack.toJson());
+  }
+
+  @override
+  Future<List<PlayedTrack>> getPlayedTracks(String uid, {DateTime? startDate, DateTime? endDate}) async {
+    endDate ??= DateTime.now();
+
+    QuerySnapshot _snap = await db
+        .collection("playedTracks")
+        .where("uid", isEqualTo: uid)
+        .where("created", isGreaterThan: startDate?.millisecondsSinceEpoch)
+        .where("created", isLessThan: endDate.millisecondsSinceEpoch)
+        .get();
+    return _snap.docs.map((doc) => PlayedTrack.fromMap(doc.data() as Map<String, dynamic>)).toList();
+  }
+
+  @override
+  Future<List<Track>> getTracksFromTopic(Topic topic) async {
+    List<Track> _tracks = [];
+    print('Getting tracks from topic: ${topic.id}');
+    QuerySnapshot _snap = await db
+        .collection("tracks")
+        .where("topic", isEqualTo: topic.id)
+        // .where("approved", isEqualTo: true)
+        .get();
+    print('Tracks: ${_snap.docs.length}');
+    if (_snap.docs.isNotEmpty) {
+      _tracks = _snap.docs.map((doc) => Track.fromMap(doc.data() as Map<String, dynamic>)).toList();
+      print('Tracks: ${_tracks.length}');
+    }
+    return _tracks;
   }
 }

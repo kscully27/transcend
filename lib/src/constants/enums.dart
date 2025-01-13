@@ -1,5 +1,12 @@
+enum RecordingType { Phrases, Instruction, Suggestion }
 
-String enumToString(Object o) => o.toString().split('.').last;
+String enumToString(dynamic enumValue) => enumValue.toString().split('.').last;
 
-T enumFromString<T>(String key, List<T> values) =>
-    values.where((v) => key == enumToString(v!)).firstOrNull as T;
+extension RecordingTypeX on RecordingType {
+  String get string => toString().split('.').last;
+}
+
+T enumFromString<T>(String key, List<T> values) => values.firstWhere(
+      (v) => v.toString().split('.').last == key,
+      orElse: () => values.first,
+    );

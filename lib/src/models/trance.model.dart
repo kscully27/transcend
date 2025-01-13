@@ -1,151 +1,205 @@
+import 'package:trancend/src/constants/enums.dart';
 
-// // ignore_for_file: constant_identifier_names
+class UserInduction {
+  String? id;
+  String? uid;
+  String? name;
+  String? category;
+  String? instructionId;
+  List<String>? trackIds;
+  int? totalSeconds;
+  int? delayInSeconds;
+  bool? isComplete;
+  RecordingType? recordingType;
 
-// import 'package:flutter/material.dart';
-// import 'package:trancend/src/constants/app_colors.dart';
+  UserInduction({
+    this.id,
+    this.uid,
+    this.name,
+    this.category,
+    this.instructionId,
+    this.trackIds,
+    this.totalSeconds,
+    this.delayInSeconds,
+    this.isComplete,
+    this.recordingType,
+  });
 
-// enum HasTranceOption { Yes, No, Optional }
+  factory UserInduction.fromMap(Map? data) {
+    if (data == null) return UserInduction();
+    
+    List<String> _phrases = [];
+    if (data['trackIds'] != null && data['trackIds'].isNotEmpty) {
+      data['trackIds'].forEach((s) {
+        _phrases.add(s);
+      });
+    }
 
-// class TranceDetails {
-//   String name;
-//   IconData icon;
-//   CategoryColor color;
-//   String longName;
-//   String description;
-//   String reason;
-//   // SliderGroup onboarding;
+    return UserInduction(
+      id: data['id'],
+      uid: data['uid'],
+      name: data['name'],
+      trackIds: _phrases,
+      instructionId: data['instructionId'],
+      category: data['category'],
+      totalSeconds: data['totalSeconds'] ?? 0,
+      delayInSeconds: data['delayInSeconds'] ?? 4,
+      recordingType:
+          enumFromString(data['recordingType'], RecordingType.values),
+      isComplete: data['isComplete'] ?? false,
+    );
+  }
 
-//   final HasTranceOption hasInduction;
-//   final HasTranceOption hasDeepening;
-//   final HasTranceOption hasAwakening;
-//   final HasTranceOption hasSuggestions;
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {
+      'id': id,
+      'uid': uid,
+      'name': name,
+      'instructionId': instructionId,
+      'trackIds': trackIds,
+      "totalSeconds": totalSeconds,
+      "category": category,
+      "delayInSeconds": delayInSeconds,
+      "isComplete": isComplete,
+      "recordingType": recordingType?.string,
+    };
+    result.removeWhere((String key, dynamic value) => value == null);
+    return result;
+  }
+}
 
-//   TranceDetails(
-//       {required this.name,
-//       required this.icon,
-//       required this.color,
-//       required this.longName,
-//       required this.description,
-//       required this.hasInduction,
-//       required this.hasDeepening,
-//       required this.hasAwakening,
-//       required this.hasSuggestions,
-//       // required this.onboarding,
-//       required this.reason});
-// }
+class UserAwakening {
+  String? id;
+  String? uid;
+  String? name;
+  String? category;
+  String? instructionId;
+  List<String>? trackIds;
+  int? totalSeconds;
+  int? delayInSeconds;
+  bool? isComplete;
+  RecordingType? recordingType;
 
-// enum TranceMethod { Hypnotherapy, Meditation, Breathing, Active, Sleep }
+  UserAwakening({
+    this.id,
+    this.uid,
+    this.name,
+    this.category,
+    this.instructionId,
+    this.trackIds,
+    this.totalSeconds,
+    this.delayInSeconds,
+    this.isComplete,
+    this.recordingType,
+  });
 
-// final Map<TranceMethod, TranceDetails> tranceMethod = {
-//   TranceMethod.Hypnotherapy: TranceDetails(
-//     name: "Hypnotherapy",
-//     icon: Icons.airline_seat_flat_angled,
-//     color: CategoryColor.Blue,
-//     longName: "Relaxed Hypnotherapy",
-//     description: "Guided hypnosis session",
-//     reason:
-//         "Regular hypnotherapy sessions will produce lasting change in your brain",
-//     hasInduction: HasTranceOption.Yes,
-//     hasDeepening: HasTranceOption.Optional,
-//     hasSuggestions: HasTranceOption.Yes,
-//     hasAwakening: HasTranceOption.Yes,
-//     onboarding: SliderGroup(
-//       folder: "hypnotherapy",
-//       slides: [
-//         Slide(
-//           title: "Relax and settle in",
-//           subtitle: "Find a peaceful, quiet place",
-//           subtitle2: "for you to lay down",
-//         ),
-//         Slide(
-//           title: "Close your eyes",
-//           subtitle: "Find a peaceful, quiet place",
-//           subtitle2: "for you to lay down",
-//         ),
-//       ],
-//     ),
-//   ),
-//   TranceMethod.Meditation: TranceDetails(
-//     name: "Meditation",
-//     icon: AppIcons.meditate,
-//     color: CategoryColor.Orange,
-//     longName: "Affirmation Meditation",
-//     description: "A form of light hypnosis grounded in mindful meditation",
-//     reason: "Focus on mindfulness while you program your subconscious",
-//     hasInduction: HasTranceOption.No,
-//     hasDeepening: HasTranceOption.No,
-//     hasSuggestions: HasTranceOption.Yes,
-//     hasAwakening: HasTranceOption.No,
-//     onboarding: SliderGroup(
-//       folder: "meditation",
-//       slides: [],
-//     ),
-//   ),
-//   TranceMethod.Breathing: TranceDetails(
-//     name: "Breathwork",
-//     icon: AppIcons.lungs,
-//     color: CategoryColor.Red,
-//     longName: "Suggestive Breathing",
-//     reason: "Changing your breathing helps to change patterns in your brain",
-//     description: "Breathing exercises combined with hypnotherapy suggestions",
-//     hasInduction: HasTranceOption.No,
-//     hasDeepening: HasTranceOption.No,
-//     hasSuggestions: HasTranceOption.Yes,
-//     hasAwakening: HasTranceOption.No,
-//     onboarding: SliderGroup(
-//       folder: "breathwork",
-//       slides: [],
-//     ),
-//   ),
-//   TranceMethod.Active: TranceDetails(
-//     name: "Active",
-//     icon: Icons.directions_bike,
-//     color: CategoryColor.Green,
-//     longName: "Active-State Hypnosis",
-//     description: "Work out while under hypnosis",
-//     reason: "Focus on an active state, allowing patterns to take hold",
-//     hasInduction: HasTranceOption.Yes,
-//     hasDeepening: HasTranceOption.Optional,
-//     hasSuggestions: HasTranceOption.Yes,
-//     hasAwakening: HasTranceOption.Yes,
-//     onboarding: SliderGroup(
-//       folder: "active",
-//       slides: [],
-//     ),
-//   ),
-//   TranceMethod.Sleep: TranceDetails(
-//     name: "Sleep",
-//     icon: AppIcons.bed,
-//     color: CategoryColor.Purple,
-//     longName: "Sleep Programming",
-//     reason: "Plant desired behaviors deep in your brain while you sleep",
-//     description:
-//         "Suggestions are played lightly while you sleep, anchoring change in your dreams",
-//     hasInduction: HasTranceOption.Optional,
-//     hasDeepening: HasTranceOption.Optional,
-//     hasSuggestions: HasTranceOption.Yes,
-//     hasAwakening: HasTranceOption.No,
-//     onboarding: SliderGroup(
-//       folder: "sleep",
-//       slides: [],
-//     ),
-//   ),
-// };
+  factory UserAwakening.fromMap(Map? data) {
+    if (data == null) return UserAwakening();
+    
+    List<String> _phrases = [];
+    if (data['trackIds'] != null && data['trackIds'].isNotEmpty) {
+      data['trackIds'].forEach((s) {
+        _phrases.add(s);
+      });
+    }
 
-// extension TranceMethodX on TranceMethod {
-//   TranceMethod fromString(String string) =>
-//       enumFromString(string, TranceMethod.values);
-//   String get string => enumToString(this);
-//   String get id => enumToString(this).toLowerCase();
-//   String get name => tranceMethod[this]?.name ?? '';
-//   String get longName => tranceMethod[this]?.longName ?? '';
-//   String get reason => tranceMethod[this]?.reason ?? '';
-//   String get description => tranceMethod[this]?.description ?? '';
-//   IconData get icon => tranceMethod[this]?.icon ?? AppIcons.none;
-//   CategoryColor get color => tranceMethod[this]?.color ?? CategoryColor.Blue;
-//   HasTranceOption get hasInduction =>
-//       tranceMethod[this]?.hasInduction ?? HasTranceOption.No;
-//   HasTranceOption get hasDeepening => tranceMethod[this]?.hasDeepening ?? HasTranceOption.No;
-//   HasTranceOption get hasSuggestions => tranceMethod[this]?.hasSuggestions ?? HasTranceOption.No;
-//   HasTranceOption get hasAwakening => tranceMethod[this]?.hasAwakening ?? HasTranceOption.No;
-// }
+    return UserAwakening(
+      id: data['id'],
+      uid: data['uid'],
+      name: data['name'],
+      trackIds: _phrases,
+      instructionId: data['instructionId'],
+      category: data['category'],
+      totalSeconds: data['totalSeconds'] ?? 0,
+      delayInSeconds: data['delayInSeconds'] ?? 4,
+      recordingType:
+          enumFromString(data['recordingType'], RecordingType.values),
+      isComplete: data['isComplete'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {
+      'id': id,
+      'uid': uid,
+      'name': name,
+      'instructionId': instructionId,
+      'trackIds': trackIds,
+      "totalSeconds": totalSeconds,
+      "category": category,
+      "delayInSeconds": delayInSeconds,
+      "isComplete": isComplete,
+      "recordingType": recordingType?.string,
+    };
+    result.removeWhere((String key, dynamic value) => value == null);
+    return result;
+  }
+}
+
+class UserDeepening {
+  String? id;
+  String? uid;
+  String? name;
+  String? category;
+  String? instructionId;
+  List<String>? trackIds;
+  int? totalSeconds;
+  int? delayInSeconds;
+  bool? isComplete;
+  RecordingType? recordingType;
+
+  UserDeepening({
+    this.id,
+    this.uid,
+    this.name,
+    this.category,
+    this.instructionId,
+    this.trackIds,
+    this.totalSeconds,
+    this.delayInSeconds,
+    this.isComplete,
+    this.recordingType,
+  });
+
+  factory UserDeepening.fromMap(Map? data) {
+    if (data == null) return UserDeepening();
+    
+    List<String> _phrases = [];
+    if (data['trackIds'] != null && data['trackIds'].isNotEmpty) {
+      data['trackIds'].forEach((s) {
+        _phrases.add(s);
+      });
+    }
+
+    return UserDeepening(
+      id: data['id'],
+      uid: data['uid'],
+      name: data['name'],
+      trackIds: _phrases,
+      instructionId: data['instructionId'],
+      category: data['category'],
+      totalSeconds: data['totalSeconds'] ?? 0,
+      delayInSeconds: data['delayInSeconds'] ?? 4,
+      recordingType:
+          enumFromString(data['recordingType'], RecordingType.values),
+      isComplete: data['isComplete'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {
+      'id': id,
+      'uid': uid,
+      'name': name,
+      'instructionId': instructionId,
+      'trackIds': trackIds,
+      "totalSeconds": totalSeconds,
+      "category": category,
+      "delayInSeconds": delayInSeconds,
+      "isComplete": isComplete,
+      "recordingType": recordingType?.string,
+    };
+    result.removeWhere((String key, dynamic value) => value == null);
+    return result;
+  }
+}
