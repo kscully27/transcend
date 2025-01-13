@@ -34,6 +34,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   int _cumulativeMilliseconds = 0;
   int _previousTracksDuration = 0;
   DateTime? _lastTrackStartTime;
+  DateTime? _sessionStartTime;
   List<Track> _tracks = [];
   int _currentTrackIndex = 0;
   Topic? _currentTopic;
@@ -88,8 +89,9 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
 
   Future<void> _playNextTrack() async {
     if (_tracks.isEmpty || _currentTrackIndex >= _tracks.length) {
-      _isPlaying = false;
-      if (!mounted) return;
+      _currentTrackIndex = 0;
+      // _isPlaying = false;
+      // if (!mounted) return;
       state = AsyncValue.data(state.value);
       return;
     }
@@ -147,17 +149,14 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       if (!mounted || state.value == null) return;
       
       try {
-        // Calculate current position regardless of play state
-        if (_isLoadingAudio && _lastTrackStartTime != null) {
-          // During loading, use system clock
-          final elapsedSinceLastTrack = DateTime.now().difference(_lastTrackStartTime!).inMilliseconds;
-          _currentMillisecond = elapsedSinceLastTrack;
-        } else {
-          _currentMillisecond = _audioPlayer.position.inMilliseconds;
+        if (_isPlaying) {
+          if (_sessionStartTime == null) {
+            _sessionStartTime = DateTime.now();
+          }
+          
+          final now = DateTime.now();
+          _cumulativeMilliseconds = now.difference(_sessionStartTime!).inMilliseconds;
         }
-        
-        // Always update cumulative time
-        _cumulativeMilliseconds = _previousTracksDuration + _currentMillisecond;
         
         // Update state to refresh UI
         state = AsyncValue.data(state.value!);
@@ -172,11 +171,17 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     
     try {
       _isPlaying = true;
-      _lastTrackStartTime = DateTime.now();
+      
+      // Adjust session start time based on accumulated time
+      if (_sessionStartTime == null) {
+        _sessionStartTime = DateTime.now();
+      } else {
+        _sessionStartTime = DateTime.now().subtract(Duration(milliseconds: _cumulativeMilliseconds));
+      }
       
       // Ensure timer is running
       _ensureTimerIsRunning();
-      
+
       if (_audioPlayer.processingState == ProcessingState.completed) {
         await _playNextTrack();
       } else {
@@ -199,6 +204,12 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     try {
       await _audioPlayer.pause();
       _isPlaying = false;
+      // Store current progress before pausing
+      if (_sessionStartTime != null) {
+        final pauseTime = DateTime.now();
+        final elapsed = pauseTime.difference(_sessionStartTime!).inMilliseconds;
+        _cumulativeMilliseconds = elapsed;
+      }
       state = AsyncValue.data(state.value);
     } catch (e) {
       print('Error pausing audio: $e');
