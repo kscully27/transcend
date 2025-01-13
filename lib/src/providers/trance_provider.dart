@@ -90,8 +90,6 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   Future<void> _playNextTrack() async {
     if (_tracks.isEmpty || _currentTrackIndex >= _tracks.length) {
       _currentTrackIndex = 0;
-      // _isPlaying = false;
-      // if (!mounted) return;
       state = AsyncValue.data(state.value);
       return;
     }
@@ -100,6 +98,12 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       // Store the previous track duration before loading the next track
       if (_currentTrackIndex > 0) {
         _previousTracksDuration += _audioPlayer.duration?.inMilliseconds ?? 0;
+        
+        // Add delay between tracks
+        _isLoadingAudio = true;
+        state = AsyncValue.data(state.value);
+        await Future.delayed(const Duration(seconds: 4));
+        if (!_isPlaying) return;  // Don't continue if paused during delay
       }
       
       _isLoadingAudio = true;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:clay_containers/clay_containers.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/session.model.dart';
 import 'package:trancend/src/providers/background_sound_provider.dart';
@@ -116,6 +117,26 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with SingleTickerPr
                 child: IconButton(
                   icon: const Icon(Icons.close, color: Colors.white70),
                   onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ),
+            
+            // Topic Title
+            Positioned(
+              top: 60,
+              left: 0,
+              right: 0,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: AutoSizeText(
+                  widget.topic.title,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
