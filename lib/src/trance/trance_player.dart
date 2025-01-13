@@ -137,7 +137,22 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with SingleTickerPr
                           width: outerSize,
                           borderRadius: outerSize / 2,
                           depth: 30,
-                          spread: 20,
+                          spread: 30,
+                        ),
+                      ),
+                      
+                      // Progress indicator
+                      ScaleTransition(
+                        scale: _scaleAnimation1,
+                        child: SizedBox(
+                          height: outerSize * 0.85,
+                          width: outerSize * 0.85,
+                          child: CircularProgressIndicator(
+                            value: tranceState.currentMillisecond / (TranceState.DEFAULT_SESSION_MINUTES * 60 * 1000),
+                            strokeWidth: 40,
+                            color: Colors.white70,
+                            backgroundColor: Colors.white10,
+                          ),
                         ),
                       ),
                       
@@ -149,8 +164,8 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with SingleTickerPr
                           height: innerSize,
                           width: innerSize,
                           borderRadius: innerSize / 2,
-                          depth: 15,
-                          spread: 10,
+                          depth: 25,
+                          spread: 8,
                           child: IconButton(
                             iconSize: innerSize * 0.4,
                             icon: sessionState.isLoading 
@@ -172,29 +187,6 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with SingleTickerPr
                   
                   // Progress indicator
                   if (!isLoading) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: ClayContainer(
-                        color: const Color(0xFFD59074),
-                        height: 4,
-                        borderRadius: 2,
-                        depth: -20,
-                        spread: 2,
-                        child: Stack(
-                          children: [
-                            FractionallySizedBox(
-                              widthFactor: tranceState.currentMillisecond / (TranceState.DEFAULT_SESSION_MINUTES * 60 * 1000),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white70,
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                     
                     const SizedBox(height: 8),
                     
@@ -258,65 +250,6 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with SingleTickerPr
     tranceState.dispose();
   }
 
-  Widget _buildProgressIndicator(AsyncValue<Session> sessionState) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Column(
-        children: [
-          // Progress bar
-          ClayContainer(
-            color: const Color(0xFFD59074),
-            height: 4,
-            depth: -20,
-            spread: 2,
-            borderRadius: 2,
-            child: Stack(
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                Container(
-                  width: MediaQuery.of(context).size.width * 
-                    (_currentMillisecond / (sessionState.value?.totalSeconds ?? 1) / 1000),
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white70,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Time indicators
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                _formatDuration(_currentMillisecond),
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                ),
-              ),
-              Text(
-                _formatDuration((sessionState.value?.totalSeconds ?? 0) * 1000),
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
   String _formatDuration(int milliseconds) {
     final seconds = (milliseconds / 1000).floor();
