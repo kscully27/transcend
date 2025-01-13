@@ -66,6 +66,20 @@ class Session {
     this.isComplete,
   });
 
+  Session copyWith({
+    String? uid,
+    String? topicId,
+    int? startTime,
+    bool? isComplete,
+  }) {
+    return Session(
+      uid: uid ?? this.uid,
+      topicId: topicId ?? this.topicId,
+      startTime: startTime ?? this.startTime,
+      isComplete: isComplete ?? this.isComplete,
+    );
+  }
+
   factory Session.fromMap(Map? data) {
     if (data == null) return Session();
     return Session(

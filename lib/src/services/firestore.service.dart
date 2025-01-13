@@ -49,6 +49,8 @@ abstract class FirestoreService {
   Future<void> savePlayedTrack(PlayedTrack playedTrack);
   Future<List<PlayedTrack>> getPlayedTracks(String uid, {DateTime? startDate, DateTime? endDate});
   Future<List<Track>> getTracksFromTopic(Topic topic);
+  Future<UserSettings?> getUserSettings(String uid);
+  Stream<UserSettings?> getUserSettingsStream(String uid);
 }
 
 class FirestoreServiceAdapter extends FirestoreService {
@@ -493,5 +495,40 @@ class FirestoreServiceAdapter extends FirestoreService {
       print('Tracks: ${_tracks.length}');
     }
     return _tracks;
+  }
+
+  @override
+  Future<UserSettings?> getUserSettings(String uid) async {
+    try {
+      final doc = await db.collection('userSettings').doc(uid).get();
+      if (!doc.exists) {
+        // Create default settings if none exist
+        final defaultSettings = UserSettings(
+          uid: uid,
+          statsStartDate: DateTime.now().millisecondsSinceEpoch,
+          statsEndDate: DateTime.now().add(const Duration(days: 7)).millisecondsSinceEpoch,
+          delaySeconds: 3,
+          maxHours: 8,
+          useCellularData: true,
+          usesDeepening: false,
+          usesOwnDeepening: false,
+        );
+        await db.collection('userSettings').doc(uid).set(defaultSettings.toJson());
+        return defaultSettings;
+      }
+      return UserSettings.fromJson(doc.data() as Map<String, dynamic>);
+    } catch (e) {
+      print('Error getting user settings: $e');
+      return null;
+    }
+  }
+
+  @override
+  Stream<UserSettings?> getUserSettingsStream(String uid) {
+    return db
+        .collection('userSettings')
+        .doc(uid)
+        .snapshots()
+        .map((doc) => doc.exists ? UserSettings.fromJson(doc.data() as Map<String, dynamic>) : null);
   }
 }

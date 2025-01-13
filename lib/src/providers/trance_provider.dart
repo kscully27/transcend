@@ -1,163 +1,233 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:trancend/src/models/session.model.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/track.model.dart';
-import 'package:trancend/src/models/trance.model.dart';
-import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
+import 'package:trancend/src/services/firestore.service.dart';
 
 // Provide the FirestoreService instance
 final firestoreServiceProvider = Provider<FirestoreService>((ref) {
   return FirestoreServiceAdapter();
 });
 
-final tranceStateProvider = StateNotifierProvider<TranceState, AsyncValue<Session>>((ref) {
-  final auth = ref.watch(userProvider);
-  final user = auth.value;
-  return TranceState(ref.watch(firestoreServiceProvider), user?.uid);
-});
+final tranceStateProvider = StateNotifierProvider<TranceState, AsyncValue<Session?>>(
+  (ref) {
+    final auth = ref.watch(userProvider);
+    final user = auth.value;
+    return TranceState(ref.watch(firestoreServiceProvider), user?.uid);
+  },
+);
 
-class TranceState extends StateNotifier<AsyncValue<Session>> {
+class TranceState extends StateNotifier<AsyncValue<Session?>> {
+  static const DEFAULT_SESSION_MINUTES = 20;
+  
   final FirestoreService _firestoreService;
   final String? _uid;
-  final _audioPlayer = AudioPlayer();
+  final AudioPlayer _audioPlayer = AudioPlayer();
   Timer? _timer;
   bool _isPlaying = false;
+  bool _isLoadingAudio = false;
   int _currentMillisecond = 0;
-  Track? _currentTrack;
-  List<String> _trackIds = [];
+  int _cumulativeMilliseconds = 0;
+  int _previousTracksDuration = 0;
+  DateTime? _lastTrackStartTime;
+  List<Track> _tracks = [];
+  int _currentTrackIndex = 0;
   Topic? _currentTopic;
 
-  TranceState(this._firestoreService, this._uid) : super(const AsyncValue.loading());
+  TranceState(this._firestoreService, this._uid) : super(AsyncValue<Session?>.data(null));
 
   bool get isPlaying => _isPlaying;
-  int get currentMillisecond => _currentMillisecond;
-  Track? get currentTrack => _currentTrack;
+  bool get isLoadingAudio => _isLoadingAudio;
+  Stream<Duration> get positionStream => _audioPlayer.positionStream;
+  int get currentMillisecond => _cumulativeMilliseconds;
 
   Future<void> startTranceSession({
     required Topic topic,
     required TranceMethod tranceMethod,
   }) async {
-    print('Starting trance session');
-    if (_uid == null) {
-      print('User not authenticated');
-      state = AsyncValue.error('User not authenticated', StackTrace.current);
+    if (!mounted) return;
+    
+    try {
+      if (_uid == null) {
+        if (!mounted) return;
+        state = AsyncValue.error('User not authenticated', StackTrace.current);
+        return;
+      }
+
+      if (!mounted) return;
+      state = const AsyncValue.loading();
+
+      // Create initial session
+      final createdSession = Session(
+        uid: _uid,
+        topicId: topic.id,
+        startTime: DateTime.now().millisecondsSinceEpoch,
+        isComplete: false,
+      );
+
+      if (!mounted) return;
+      state = AsyncValue.data(createdSession);
+
+      // Load tracks if needed
+      await _loadTracks(topic);
+      
+      // Play first track
+      if (_tracks.isNotEmpty) {
+        await _playNextTrack();
+      }
+
+    } catch (e, st) {
+      if (!mounted) return;
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> _playNextTrack() async {
+    if (_tracks.isEmpty || _currentTrackIndex >= _tracks.length) {
+      _isPlaying = false;
+      if (!mounted) return;
+      state = AsyncValue.data(state.value);
       return;
     }
 
     try {
-      state = const AsyncValue.loading();
-      _currentTopic = topic;
+      // Store the previous track duration before loading the next track
+      if (_currentTrackIndex > 0) {
+        _previousTracksDuration += _audioPlayer.duration?.inMilliseconds ?? 0;
+      }
       
-      final session = Session(
-        id: null,
-        uid: _uid,
-        topicId: topic.id,
-        startTime: DateTime.now().millisecondsSinceEpoch,
-        isComplete: false
-      );
-      print('Session: ${session}');
-      final createdSession = await _firestoreService.createSession(session);
-      print('Created session: ${createdSession.toJson()}');
+      _isLoadingAudio = true;
+      _isPlaying = true;
+      _lastTrackStartTime = DateTime.now();
+      
+      // Ensure timer is running
+      _ensureTimerIsRunning();
+      
+      if (!mounted) return;
+      state = AsyncValue.data(state.value);
+
+      final track = _tracks[_currentTrackIndex];
+      await _audioPlayer.setUrl(track.url!);
+      await _audioPlayer.play();
+      
+      _isLoadingAudio = false;
+      _currentTrackIndex++;
+
+      if (!mounted) return;
+      state = AsyncValue.data(state.value);
+
+      // Set up listener for track completion
+      _audioPlayer.playerStateStream.listen((playerState) {
+        if (playerState.processingState == ProcessingState.completed) {
+          _playNextTrack();
+        }
+      });
+
+    } catch (e) {
+      print('Error playing track: $e');
+      _isLoadingAudio = false;
+      if (!mounted) return;
+      state = AsyncValue.data(state.value);
+    }
+  }
+
+  void _ensureTimerIsRunning() {
+    if (_timer?.isActive != true) {
       _startTimer();
-      state = AsyncValue.data(createdSession);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
     }
   }
 
   void _startTimer() {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      _currentMillisecond = _audioPlayer.position.inMilliseconds;
-      // print('Current millisecond: ${_currentMillisecond}');
-      state.whenData((session) {
-        // print('Updating session: ${session}');
-        state = AsyncValue.data(session);
-      });
+      if (!mounted || state.value == null) return;
+      
+      try {
+        // Calculate current position regardless of play state
+        if (_isLoadingAudio && _lastTrackStartTime != null) {
+          // During loading, use system clock
+          final elapsedSinceLastTrack = DateTime.now().difference(_lastTrackStartTime!).inMilliseconds;
+          _currentMillisecond = elapsedSinceLastTrack;
+        } else {
+          _currentMillisecond = _audioPlayer.position.inMilliseconds;
+        }
+        
+        // Always update cumulative time
+        _cumulativeMilliseconds = _previousTracksDuration + _currentMillisecond;
+        
+        // Update state to refresh UI
+        state = AsyncValue.data(state.value!);
+      } catch (e) {
+        print('Error updating timer: $e');
+      }
     });
   }
 
-  Future<void> _playNextTrack() async {
-    print('Playing next track');
+  Future<void> playCombinedAudio() async {
+    if (!mounted) return;
+    
     try {
       _isPlaying = true;
+      _lastTrackStartTime = DateTime.now();
       
-      if (_trackIds.isEmpty && _currentTopic != null) {
-        // Get tracks for current topic
-        final tracks = await _firestoreService.getTracksFromTopic(_currentTopic!);
-        _trackIds = tracks.map((t) => t.id!).toList();
+      // Ensure timer is running
+      _ensureTimerIsRunning();
+      
+      if (_audioPlayer.processingState == ProcessingState.completed) {
+        await _playNextTrack();
+      } else {
+        await _audioPlayer.play();
       }
 
-      if (_trackIds.isNotEmpty) {
-        // Get random track
-        final trackId = _trackIds.removeAt(0);
-        final tracks = await _firestoreService.getTracksFromTopic(_currentTopic!);
-        _currentTrack = tracks.firstWhere((t) => t.id == trackId);
-        
-        if (_currentTrack?.url != null) {
-          await _audioPlayer.setUrl(_currentTrack!.url!);
-          await _audioPlayer.play();
-        }
-      }
-      
+      if (!mounted) return;
+      state = AsyncValue.data(state.value);
     } catch (e) {
-      print('Error playing next track: $e');
+      print('Error playing audio: $e');
+      _isPlaying = false;
+      if (!mounted) return;
+      state = AsyncValue.data(state.value);
+    }
+  }
+
+  Future<void> pauseCombinedAudio() async {
+    if (!mounted) return;
+    
+    try {
+      await _audioPlayer.pause();
+      _isPlaying = false;
+      state = AsyncValue.data(state.value);
+    } catch (e) {
+      print('Error pausing audio: $e');
+    }
+  }
+
+  Future<void> _loadTracks(Topic topic) async {
+    // Only reload tracks if topic changed or no tracks loaded
+    if (_currentTopic?.id != topic.id || _tracks.isEmpty) {
+      _currentTopic = topic;
+      _tracks = await _firestoreService.getTracksFromTopic(topic);
+      _tracks.shuffle();
+      _currentTrackIndex = 0;
     }
   }
 
   Future<void> togglePlayPause() async {
-    print('Toggling play/pause from: $_isPlaying');
-    try {
-      if (_isPlaying) {
-        await _audioPlayer.pause();
-        _isPlaying = false;
-        _timer?.cancel();
-      } else {
-        await _audioPlayer.play();
-        _isPlaying = true;
-        _startTimer();
-      }
-      // Force a state update to trigger UI refresh
-      state = AsyncValue.data(state.value!);
-    } catch (e) {
-      print('Error toggling play/pause: $e');
-    }
-  }
-
-  Future<void> loadPreTrance({
-    required Topic topic,
-    required TranceMethod tranceMethod,
-  }) async {
-    try {
-      print('Loading pre-trance');
-      state = const AsyncValue.loading();
-      _currentTopic = topic;
-      print('Current topic: ${_currentTopic}');
-      // Get tracks for current topic
-      final tracks = await _firestoreService.getTracksFromTopic(topic);
-      // print('Tracks: ${tracks.length}');
-      _trackIds = tracks.map((t) => t.id!).toList();
-      print('Tracks: ${_trackIds.length}');
-      if (_trackIds.isNotEmpty) {
-        await _playNextTrack();
-      }
-      
-      state = AsyncValue.data(Session(
-        topicId: topic.id,
-        startTime: DateTime.now().millisecondsSinceEpoch,
-        isComplete: false
-      ));
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+    if (_isPlaying) {
+      await pauseCombinedAudio();
+    } else {
+      await playCombinedAudio();
     }
   }
 
   @override
   void dispose() {
+    print('Disposing trance state');
     _timer?.cancel();
+    _audioPlayer.stop();
     _audioPlayer.dispose();
     super.dispose();
   }
