@@ -32,7 +32,7 @@ class _NeoBottomNavItem extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _NeoBottomNavItem({
-    Key? key,
+    super.key,
     required this.icon,
     // required this.label,
     this.padding,
@@ -44,7 +44,7 @@ class _NeoBottomNavItem extends StatelessWidget {
     this.selectedItemGradient,
     this.unselectedItemColor,
     this.unselectedItemGradient,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

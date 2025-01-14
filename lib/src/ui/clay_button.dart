@@ -49,7 +49,7 @@ class ClayButton extends StatelessWidget {
   final bool emboss;
 
   const ClayButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     required this.color,
@@ -76,7 +76,7 @@ class ClayButton extends StatelessWidget {
     this.align = ClayButtonAlign.left,
     this.wrapText = true,
     this.emboss = true,
-  }) : super(key: key);
+  });
 
   double get _fontSize {
     switch (size) {

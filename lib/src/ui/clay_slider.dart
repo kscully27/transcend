@@ -10,14 +10,14 @@ class ClaySlider extends StatelessWidget {
   final bool hasKnob;
   
   const ClaySlider({
-    Key? key,
+    super.key,
     required this.value,
     required this.onChanged,
     required this.parentColor,
     required this.activeSliderColor,
     this.inactiveSliderColor,
     this.hasKnob = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

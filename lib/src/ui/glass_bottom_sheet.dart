@@ -8,11 +8,11 @@ class GlassBottomSheet extends StatelessWidget {
   final double heightPercent;
 
   const GlassBottomSheet({
-    Key? key,
+    super.key,
     required this.content,
     this.hasCloseButton = true,
     this.heightPercent = 0.8,
-  }) : super(key: key);
+  });
 
   static Future<T?> show<T>({
     required BuildContext context,
@@ -111,7 +111,7 @@ class GlassBottomSheet extends StatelessWidget {
                   ),
                 ),
                 if (hasCloseButton)
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: Stack(
                       children: [

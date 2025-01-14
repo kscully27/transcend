@@ -23,14 +23,14 @@ class AudioCombinerService {
         final path = await _downloadTrack(track);
         print('Adding track to file list: $path');
         final escapedPath = path.replaceAll("'", "'\\''");
-        await fileList.writeAsString("file '${escapedPath}'\n", mode: FileMode.append);
+        await fileList.writeAsString("file '$escapedPath'\n", mode: FileMode.append);
         
         // Add silence between tracks if delay is specified
         if (delaySeconds > 0 && track != tracks.last) {
           final silenceFile = await _createSilenceFile(delaySeconds);
           print('Adding silence file: $silenceFile');
           final escapedSilencePath = silenceFile.replaceAll("'", "'\\''");
-          await fileList.writeAsString("file '${escapedSilencePath}'\n", mode: FileMode.append);
+          await fileList.writeAsString("file '$escapedSilencePath'\n", mode: FileMode.append);
         }
       }
       
@@ -64,7 +64,7 @@ class AudioCombinerService {
       return outputFile;
     } catch (e) {
       print('Error combining tracks: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -95,7 +95,7 @@ class AudioCombinerService {
       return file.path;
     } catch (e) {
       print('Error downloading track: $e');
-      throw e;
+      rethrow;
     }
   }
 

@@ -1,6 +1,6 @@
 // ignore_for_file: constant_identifier_names
 
-library appcolors;
+library;
 
 import 'package:flutter/material.dart';
 import 'package:trancend/src/constants/enums.dart';
@@ -153,11 +153,15 @@ const defaultStops = [0.3, 0.7];
 class AppGradient extends LinearGradient {
   final String colorName;
   final GradientType type;
+  @override
   final AlignmentGeometry begin;
+  @override
   final AlignmentGeometry end;
+  @override
   final List<double> stops;
+  @override
   final List<Color> colors;
-  AppGradient({
+  const AppGradient({
     this.colorName = "blue",
     this.type = GradientType.Flat,
     this.begin = Alignment.topCenter,

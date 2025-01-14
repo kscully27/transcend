@@ -9,6 +9,7 @@ part 'topics_provider.g.dart';
 class Topics extends _$Topics {
   String _selectedCategory = 'All';
   List<Topic> _allTopics = [];
+  final Map<String, String> _categoryDisplayMap = {};
   
   @override
   Future<List<Topic>> build() async {
@@ -17,10 +18,23 @@ class Topics extends _$Topics {
     return getFilteredTopics();
   }
 
+  String _toTitleCase(String text) {
+    return text.split(' ').map((word) => 
+      word[0].toUpperCase() + word.substring(1).toLowerCase()
+    ).join(' ');
+  }
+
   List<String> getCategories() {
     final categories = _allTopics.map((t) => t.group).toSet().toList();
     categories.insert(0, 'All');
     return categories;
+  }
+
+  String getDisplayCategory(String category) {
+    if (category == 'All') return 'All';
+    return category.split(' ').map((word) => 
+      word[0].toUpperCase() + word.substring(1).toLowerCase()
+    ).join(' ');
   }
 
   List<Topic> getFilteredTopics() {

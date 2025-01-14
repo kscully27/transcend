@@ -72,7 +72,7 @@ class AuthenticationServiceAdapter implements AuthenticationService {
 
   UserService get _userService => _ref.read(userServiceInstanceProvider);
 
-  static AuthenticationService _instance = AuthenticationServiceAdapter(locator<Ref>());
+  static final AuthenticationService _instance = AuthenticationServiceAdapter(locator<Ref>());
 
   static Future<AuthenticationService> getInstance() async {
     return _instance;
@@ -160,7 +160,7 @@ class AuthenticationServiceAdapter implements AuthenticationService {
       return _defaultGoal!;
     } catch (e) {
       print("error populating goal --> $e");
-      throw e;
+      rethrow;
     }
   }
 

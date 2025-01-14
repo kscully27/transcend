@@ -30,7 +30,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   Timer? _timer;
   bool _isPlaying = false;
   bool _isLoadingAudio = false;
-  int _currentMillisecond = 0;
+  final int _currentMillisecond = 0;
   int _cumulativeMilliseconds = 0;
   int _previousTracksDuration = 0;
   DateTime? _lastTrackStartTime;
@@ -154,9 +154,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       
       try {
         if (_isPlaying) {
-          if (_sessionStartTime == null) {
-            _sessionStartTime = DateTime.now();
-          }
+          _sessionStartTime ??= DateTime.now();
           
           final now = DateTime.now();
           _cumulativeMilliseconds = now.difference(_sessionStartTime!).inMilliseconds;

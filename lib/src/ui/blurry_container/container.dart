@@ -44,7 +44,7 @@ class BlurryContainer extends StatelessWidget {
   final BorderRadius borderRadius;
 
   const BlurryContainer({
-    Key? key,
+    super.key,
     required this.child,
     this.height,
     this.width,
@@ -54,11 +54,11 @@ class BlurryContainer extends StatelessWidget {
     this.color = Colors.transparent,
     this.shadowColor = Colors.black26,
     this.borderRadius = const BorderRadius.all(Radius.circular(20)),
-  }) : super(key: key);
+  });
 
   /// Creates a blurry container whose [width] and [height] are equal.
   const BlurryContainer.square({
-    Key? key,
+    super.key,
     required this.child,
     double? dimension,
     this.blur = 5,
@@ -68,12 +68,11 @@ class BlurryContainer extends StatelessWidget {
     this.shadowColor = Colors.black26,
     this.borderRadius = const BorderRadius.all(Radius.circular(20)),
   })  : width = dimension,
-        height = dimension,
-        super(key: key);
+        height = dimension;
 
   /// Creates a blurry container whose [width] and [height] are equal.
   const BlurryContainer.expand({
-    Key? key,
+    super.key,
     required this.child,
     this.blur = 5,
     this.elevation = 0,
@@ -82,8 +81,7 @@ class BlurryContainer extends StatelessWidget {
     this.shadowColor = Colors.black26,
     this.borderRadius = BorderRadius.zero,
   })  : width = double.infinity,
-        height = double.infinity,
-        super(key: key);
+        height = double.infinity;
 
   @override
   Widget build(BuildContext context) {

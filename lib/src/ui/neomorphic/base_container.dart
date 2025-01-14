@@ -9,16 +9,15 @@ class BaseContainer extends StatelessWidget {
   final double width;
   final double height;
   final String gradientType;
-  BaseContainer(
-      { Key? key,
+  const BaseContainer(
+      { super.key,
       this.gradientType = 'flat',
       this.width = double.infinity,
       this.height = double.infinity,
       required this.child,
       this.group = "default",
       this.padding = 0,
-      this.appColor = 'light'})
-      : super(key: key);
+      this.appColor = 'light'});
 
   @override
   Widget build(BuildContext context) {

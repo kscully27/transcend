@@ -1,4 +1,4 @@
-library neo_bottom_nav;
+library;
 
 import 'dart:math' show max, pi, sqrt;
 
@@ -20,11 +20,11 @@ class ClipShadowPath extends StatelessWidget {
   final Widget child;
 
   const ClipShadowPath({
-    Key? key,
+    super.key,
     required this.shadow,
     required this.clipper,
     required this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,7 @@ class ClipShadowPath extends StatelessWidget {
         clipper: clipper,
         shadow: shadow,
       ),
-      child: ClipPath(child: child, clipper: clipper),
+      child: ClipPath(clipper: clipper, child: child),
     );
   }
 }
@@ -47,7 +47,7 @@ class _ClipShadowShadowPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     var paint = Paint();
-    shadow.forEach((s) {
+    for (var s in shadow) {
       paint
         ..color = s.color
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, sqrt(s.blurRadius));
@@ -58,7 +58,7 @@ class _ClipShadowShadowPainter extends CustomPainter {
       // We want to avoid Canvas.drawShadow for neumorphism design,
       // as it draws a greyed shadow !
       //canvas.drawShadow(shape, s.color, sqrt(s.blurRadius), false);
-    });
+    }
     var clipPath = clipper.getClip(size);
     canvas.drawPath(clipPath, paint);
   }
@@ -143,7 +143,7 @@ class NeoBottomNavNSheet extends StatefulWidget {
   final bool emboss;
 
   const NeoBottomNavNSheet({
-    Key? key,
+    super.key,
     required this.items,
     this.onTap,
     this.initialSelectedIndex,
@@ -173,8 +173,7 @@ class NeoBottomNavNSheet extends StatefulWidget {
         assert(
           (items.length % 2 == 0 && sheet != null) || sheet == null,
           "Please add either 2 or 4 items with sheet!",
-        ),
-        super(key: key);
+        );
 
   @override
   State<NeoBottomNavNSheet> createState() => _NeoBottomNavNSheetState();

@@ -179,7 +179,7 @@ class FirestoreServiceAdapter extends FirestoreService {
         });
       }).toList();
     } catch (e) {
-      print("ERROR--->>${e}");
+      print("ERROR--->>$e");
       return [];
     }
   }
@@ -282,7 +282,7 @@ class FirestoreServiceAdapter extends FirestoreService {
         .collection('topics')
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {
-              final data = Map<String, dynamic>.from(doc.data() as Map<String, dynamic>);
+              final data = Map<String, dynamic>.from(doc.data());
               data['id'] = doc.id;
               data['uid'] = uid;
               return UserTopic.fromJson(data);

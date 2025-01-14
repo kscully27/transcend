@@ -30,8 +30,8 @@ class Playlist {
     this.lastDuration = 0,
     int? created,
   }) : 
-    this.lastPlayed = lastPlayed ?? DateTime.now().millisecondsSinceEpoch,
-    this.created = created ?? DateTime.now().millisecondsSinceEpoch;
+    lastPlayed = lastPlayed ?? DateTime.now().millisecondsSinceEpoch,
+    created = created ?? DateTime.now().millisecondsSinceEpoch;
 
   factory Playlist.fromMap(Map<String, dynamic> data) {
     try {

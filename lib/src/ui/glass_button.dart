@@ -43,7 +43,7 @@ class GlassButton extends StatelessWidget {
   final bool wrapText;
 
   const GlassButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.icon,
@@ -64,7 +64,7 @@ class GlassButton extends StatelessWidget {
     this.size = GlassButtonSize.medium,
     this.align = GlassButtonAlign.left,
     this.wrapText = true,
-  }) : super(key: key);
+  });
 
   double get _fontSize {
     switch (size) {

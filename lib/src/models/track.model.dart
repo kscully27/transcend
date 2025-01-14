@@ -22,7 +22,7 @@ class Track {
   });
 
   factory Track.fromMap(Map? data) {
-    print('Track data: ${data}');
+    print('Track data: $data');
     if (data == null) return Track();
     try {
       // Handle duration conversion from double to int

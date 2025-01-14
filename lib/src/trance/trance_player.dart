@@ -8,22 +8,25 @@ import 'package:trancend/src/providers/background_sound_provider.dart';
 import 'package:trancend/src/providers/trance_provider.dart';
 import 'package:trancend/src/ui/clay_slider.dart';
 
+Color baseColor = const Color(0xFFD59074);
+
 class TrancePlayer extends ConsumerStatefulWidget {
   final Topic topic;
   final TranceMethod tranceMethod;
 
   const TrancePlayer({
-    Key? key,
+    super.key,
     required this.topic,
     required this.tranceMethod,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<TrancePlayer> createState() => _TrancePlayerState();
 }
 
-class _TrancePlayerState extends ConsumerState<TrancePlayer> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProviderStateMixin {
+  late AnimationController _animationController1;
+  late AnimationController _animationController2;
   late Animation<double> _scaleAnimation1;
   late Animation<double> _scaleAnimation2;
   double backgroundVolume = 0.4;
@@ -32,32 +35,48 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with SingleTickerPr
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    
+    _animationController1 = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 3000),
     );
 
-    _scaleAnimation1 = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
+    _animationController2 = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3000),
     );
 
-    _scaleAnimation2 = Tween<double>(begin: 0.9, end: 1.1).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
-    );
+    _scaleAnimation1 = Tween<double>(
+      begin: 0.9,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController1,
+      curve: Curves.easeInOut,
+    ));
 
-    _controller.repeat(reverse: true);
+    _scaleAnimation2 = Tween<double>(
+      begin: 0.95,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController2,
+      curve: Curves.easeInOut,
+    ));
+
+    // Start animations with a slight offset
+    _animationController1.repeat(reverse: true);
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        _animationController2.repeat(reverse: true);
+      }
+    });
 
     // Start listening to audio position
     ref.read(tranceStateProvider.notifier).positionStream.listen((position) {
-      setState(() {
-        _currentMillisecond = position.inMilliseconds;
-      });
+      if (mounted) {
+        setState(() {
+          _currentMillisecond = position.inMilliseconds;
+        });
+      }
     });
 
     // Start the trance session
@@ -77,10 +96,10 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with SingleTickerPr
     final isPlaying = tranceState.isPlaying;
     
     // Control animation based on play state
-    if (isPlaying && !_controller.isAnimating) {
-      _controller.repeat(reverse: true);
-    } else if (!isPlaying && _controller.isAnimating) {
-      _controller.stop();
+    if (isPlaying && !_animationController1.isAnimating) {
+      _animationController1.repeat(reverse: true);
+    } else if (!isPlaying && _animationController1.isAnimating) {
+      _animationController1.stop();
     }
     
     final size = MediaQuery.of(context).size;
@@ -121,23 +140,33 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with SingleTickerPr
               ),
             ),
             
-            // Topic Title
+            // Session Type Title
             Positioned(
-              top: 60,
-              left: 0,
-              right: 0,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: AutoSizeText(
-                  widget.topic.title,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w500,
+              top: 24,
+              left: 24,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClayText(
+                    widget.tranceMethod.name,
+                    emboss: false,
+                    size: 32,
+                    parentColor: baseColor,
+                    textColor: Colors.white70,
+                    color: baseColor,
+                    spread: 2,
+                    style: TextStyle(fontWeight: FontWeight.w500),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.topic.title,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w300,
+                    ),
+                  ),
+                ],
               ),
             ),
             
@@ -146,6 +175,7 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with SingleTickerPr
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const SizedBox(height: 120), // Increased spacing to move content down more
                   Stack(
                     alignment: Alignment.center,
                     children: [
@@ -195,7 +225,7 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with SingleTickerPr
                                   isPlaying ? Icons.pause : Icons.play_arrow,
                                   color: Colors.white70,
                                 ),
-                            onPressed: sessionState.isLoading 
+                            onPressed: sessionState.isLoading || tranceState.isLoadingAudio 
                               ? null 
                               : () => tranceState.togglePlayPause(),
                           ),
@@ -258,17 +288,9 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with SingleTickerPr
 
   @override
   void dispose() {
-    // First, stop the animation controller
-    _controller.dispose();
-    
-    // Get the trance state before super.dispose()
-    final tranceState = ref.read(tranceStateProvider.notifier);
-    
-    // Call super.dispose() before disposing tranceState
+    _animationController1.dispose();
+    _animationController2.dispose();
     super.dispose();
-    
-    // Finally dispose the trance state
-    tranceState.dispose();
   }
 
 

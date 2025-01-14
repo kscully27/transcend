@@ -4,9 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/models/topic.model.dart';
-import 'package:trancend/src/models/user.model.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
-import 'package:trancend/src/models/trance.model.dart';
 import 'package:trancend/src/ui/glass_bottom_sheet.dart';
 import 'package:trancend/src/ui/glass_button.dart';
 import 'package:trancend/src/trance/trance_player.dart';
@@ -215,7 +213,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                   width: 400,
                   curveType: !_isEmbossed ? CurveType.concave : CurveType.none,
                   spread: _isEmbossed ? 3 : 5,
-                  depth: _isEmbossed ? 30 :15,
+                  depth: _isEmbossed ? 10 :15,
                   emboss: _isEmbossed,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -227,9 +225,9 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                           child: ClayText(
                             topic.title,
                             emboss: _isEmbossed,
-                            size: 24,
+                            size: 20,
                             parentColor: baseColor,
-                            textColor: !_isEmbossed ? Colors.white : AppColors.shadow(topic.appColor),
+                            textColor: !_isEmbossed ? Colors.white : AppColors.highlight(topic.appColor),
                             color: baseColor,
                             spread: 2,
                             style: TextStyle(fontWeight: FontWeight.w200),
@@ -241,7 +239,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                         child: Stack(
                           children: [
                             ClayContainer(
-                              surfaceColor: _isEmbossed ?  AppColors.dark(topic.appColor) : AppColors.light(topic.appColor),
+                              surfaceColor: AppColors.light(topic.appColor),
                               parentColor: baseColor,
                               emboss: _isEmbossed,
                               spread: 8,
@@ -261,8 +259,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                                   topic.svg,
                                   fit: BoxFit.cover,
                                   alignment: Alignment.bottomCenter,
-                                  color: AppColors.flat(topic.appColor),
-                                  width: _fullWidth,
+                                  color: AppColors.flat(topic.appColor),                                  width: _fullWidth,
                                 ),
                               ),
                             ),

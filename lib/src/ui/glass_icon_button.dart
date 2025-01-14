@@ -10,7 +10,7 @@ class GlassIconButton extends StatelessWidget {
   final AlignmentGeometry alignment;
 
   const GlassIconButton({
-    Key? key,
+    super.key,
     required this.icon,
     this.iconSize = 32,
     this.iconColor = Colors.black,
@@ -18,7 +18,7 @@ class GlassIconButton extends StatelessWidget {
     this.padding = const EdgeInsets.all(0),
     this.margin = const EdgeInsets.all(0),
     this.alignment = Alignment.center,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

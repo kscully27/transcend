@@ -1,5 +1,3 @@
-import 'package:trancend/src/constants/enums.dart';
-import 'package:trancend/src/models/breath.model.dart';
 
 enum SessionType {
   Active,
