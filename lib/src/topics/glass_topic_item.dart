@@ -5,8 +5,8 @@ import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
-import 'package:trancend/src/ui/clay_bottom_sheet.dart';
-import 'package:trancend/src/ui/clay_button.dart';
+import 'package:trancend/src/ui/glass_bottom_sheet.dart';
+import 'package:trancend/src/ui/glass_button.dart';
 import 'package:trancend/src/trance/trance_player.dart';
 
 Color baseColor = const Color(0xFFD59074);
@@ -98,21 +98,14 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
       _isEmbossed = !_isEmbossed;
     });
     
-    ClayBottomSheet.show(
+    GlassBottomSheet.show(
       context: context,
-      color: const Color(0xFF883912),
-      parentColor: const Color(0xFFD59074),
-      borderRadius: 20,
-      spread: 6,
-      depth: 10,
-      curveType: CurveType.none,
-      emboss: true,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -121,7 +114,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w400,
-                    color: Colors.white,
+                    color: Colors.black87,
                   ),
                 ),
                 Text(
@@ -129,22 +122,17 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w300,
-                    color: Colors.white70,
+                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 12),
-                ClayButton(
+                GlassButton(
                   text: widget.isFavorite ? "Remove from Favorites" : "Add to Favorites",
                   icon: widget.isFavorite ? Remix.heart_fill : Remix.heart_line,
-                  color: const Color(0xFF883912),
-                  textColor: Colors.white,
-                  parentColor: const Color(0xFF883912),
                   width: double.infinity,
-                  height: 40,
-                  emboss: false,
-                  depth: 12,
-                  variant: ClayButtonVariant.outlined,
-                  size: ClayButtonSize.xsmall,
+                  variant: GlassButtonVariant.text,
+                  size: GlassButtonSize.xsmall,
+                  align: GlassButtonAlign.center,
                   onPressed: () {
                     widget.onFavoritePressed();
                     Navigator.pop(context);
@@ -153,17 +141,12 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                 const Divider(
                   height: 32,
                   thickness: 1,
-                  color: Colors.white12,
+                  color: Colors.black26,
                 ),
-                ClayButton(
+                GlassButton(
                   text: "Start Session",
                   height: 80,
-                  emboss: false,
-                  depth: 12,
                   icon: Remix.play_fill,
-                  color: const Color(0xFF883912),
-                  parentColor: const Color(0xFF883912),
-                  textColor: Colors.white,
                   width: double.infinity,
                   margin: const EdgeInsets.only(bottom: 12),
                   onPressed: () {

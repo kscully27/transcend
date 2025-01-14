@@ -10,7 +10,6 @@ import 'package:trancend/src/providers/user_topics_provider.dart';
 import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/topics/topic_item.dart';
 import 'package:trancend/src/ui/clay_button.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 
 Color baseColor = const Color(0xFFD59074);
 Color baseColor2 = const Color(0xFFC67E60);

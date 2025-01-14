@@ -10,8 +10,7 @@ class _SheetToggleButton extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _SheetToggleButton(
-      {super.key,
-      this.decoration,
+      {this.decoration,
       this.backgroundColor,
       this.parentColor,
       this.foregroundColor,

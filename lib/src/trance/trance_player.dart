@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:clay_containers/clay_containers.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/session.model.dart';
-import 'package:trancend/src/providers/background_sound_provider.dart';
 import 'package:trancend/src/providers/trance_provider.dart';
 import 'package:trancend/src/ui/clay_slider.dart';
 

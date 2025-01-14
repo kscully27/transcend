@@ -113,71 +113,62 @@ class Sheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
+      minChildSize: 0.5,
+      initialChildSize: 0.75,
       builder: (context, controller) {
-        return Padding(
-          padding: EdgeInsets.zero,
-          child: Container(
-            child: ClipRRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: 20.0,
-                  sigmaY: 20.0,
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white38,
-                    border: Border.all(
-                      color: Colors.black26,
-                      width: 0.5,
-                    ),
+        return Container(
+          margin: const EdgeInsets.all(8),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.all(Radius.circular(20)),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: 20.0,
+                sigmaY: 20.0,
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white38,
+                  borderRadius: const BorderRadius.all(Radius.circular(20)),
+                  border: Border.all(
+                    color: Colors.black26,
+                    width: 0.5,
                   ),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Center(
-                          child: FractionallySizedBox(
-                            widthFactor: 0.25,
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(
-                                vertical: 8,
-                              ),
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(
-                                  color: Colors.black12,
-                                  width: 0.5,
-                                ),
-                              ),
+                ),
+                child: Column(
+                  children: [
+                    // Handle
+                    Center(
+                      child: FractionallySizedBox(
+                        widthFactor: 0.25,
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(2),
+                            border: Border.all(
+                              color: Colors.black12,
+                              width: 0.5,
                             ),
                           ),
                         ),
-                        Stack(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                      spacing: 12,
-                                children: const [],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                    // Scrollable content
+                    Expanded(
+                      child: ListView(
+                        controller: controller,
+                        padding: const EdgeInsets.all(20),
+                        children: const [],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
         );
       },
-      
-      minChildSize: 0.5,
-      initialChildSize: 0.75,
     );
   }
 }

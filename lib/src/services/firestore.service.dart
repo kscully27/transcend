@@ -67,7 +67,6 @@ class FirestoreServiceAdapter extends FirestoreService {
   @override
   Future<User> getUser(String uid) async {
     var userData = await _userRef.doc(uid).get();
-    print('userData ${userData.exists} ${userData.data()}');
     if (!userData.exists || userData.data() == null) {
       throw Exception('User not found');
     }
@@ -313,18 +312,15 @@ class FirestoreServiceAdapter extends FirestoreService {
   @override
   Future<List<UserTopic>> getUserTopics(String uid) async {
     try {
-      print("Getting user topics for uid: $uid");
       final snapshot = await _userDataRef(uid)
           .doc('topics')
           .collection('topics')
           .get();
       
-      print("User topics snapshot: ${snapshot.docs.length} documents");
       return snapshot.docs.map((doc) {
         final data = Map<String, dynamic>.from(doc.data());
         data['id'] = doc.id;
         data['uid'] = uid;
-        print("User topic data: $data");
         return UserTopic.fromJson(data);
       }).toList();
     } catch (e, st) {
@@ -483,16 +479,13 @@ class FirestoreServiceAdapter extends FirestoreService {
   @override
   Future<List<Track>> getTracksFromTopic(Topic topic) async {
     List<Track> _tracks = [];
-    print('Getting tracks from topic: ${topic.id}');
     QuerySnapshot _snap = await db
         .collection("tracks")
         .where("topic", isEqualTo: topic.id)
         // .where("approved", isEqualTo: true)
         .get();
-    print('Tracks: ${_snap.docs.length}');
     if (_snap.docs.isNotEmpty) {
       _tracks = _snap.docs.map((doc) => Track.fromMap(doc.data() as Map<String, dynamic>)).toList();
-      print('Tracks: ${_tracks.length}');
     }
     return _tracks;
   }

@@ -32,7 +32,6 @@ class _NeoBottomNavItem extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _NeoBottomNavItem({
-    super.key,
     required this.icon,
     // required this.label,
     this.padding,

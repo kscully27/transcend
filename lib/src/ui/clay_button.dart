@@ -14,74 +14,54 @@ enum ClayButtonSize {
   xlarge
 }
 
-enum ClayButtonAlign {
-  left,
-  center,
-  right
-}
-
 class ClayButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
   final IconData? icon;
-  final Color textColor;
   final Color color;
   final Color? parentColor;
+  final Color textColor;
   final Color? borderColor;
   final double borderWidth;
-  final double spread;
-  final int depth;
-  final CurveType? curveType;
   final EdgeInsets? padding;
   final EdgeInsets margin;
   final double borderRadius;
   final double? width;
   final double? height;
-  final MainAxisSize mainAxisSize;
-  final CrossAxisAlignment crossAxisAlignment;
-  final int maxLines;
-  final double minFontSize;
-  final TextOverflow overflow;
+  final double spread;
+  final int depth;
+  final CurveType? curveType;
+  final bool emboss;
   final ClayButtonVariant variant;
   final ClayButtonSize size;
-  final ClayButtonAlign align;
-  final bool wrapText;
-  final bool emboss;
 
   const ClayButton({
     super.key,
     required this.text,
     required this.onPressed,
+    this.icon,
     required this.color,
     this.parentColor,
-    this.borderColor,
-    this.borderWidth = 0.5,
-    this.icon,
     this.textColor = Colors.black,
-    this.spread = 6,
-    this.depth = 40,
-    this.curveType,
+    this.borderColor,
+    this.borderWidth = 0.8,
     this.padding,
     this.margin = const EdgeInsets.all(0),
     this.borderRadius = 30,
     this.width,
     this.height,
-    this.mainAxisSize = MainAxisSize.min,
-    this.crossAxisAlignment = CrossAxisAlignment.center,
-    this.maxLines = 1,
-    this.minFontSize = 12,
-    this.overflow = TextOverflow.ellipsis,
+    this.spread = 2,
+    this.depth = 40,
+    this.curveType = CurveType.concave,
+    this.emboss = false,
     this.variant = ClayButtonVariant.outlined,
     this.size = ClayButtonSize.medium,
-    this.align = ClayButtonAlign.left,
-    this.wrapText = true,
-    this.emboss = true,
   });
 
   double get _fontSize {
     switch (size) {
       case ClayButtonSize.xsmall:
-        return 12;
+        return 16;
       case ClayButtonSize.small:
         return 24;
       case ClayButtonSize.medium:
@@ -129,28 +109,6 @@ class ClayButton extends StatelessWidget {
         : FontWeight.w200;
   }
 
-  MainAxisAlignment get _mainAxisAlignment {
-    switch (align) {
-      case ClayButtonAlign.left:
-        return MainAxisAlignment.start;
-      case ClayButtonAlign.center:
-        return MainAxisAlignment.center;
-      case ClayButtonAlign.right:
-        return MainAxisAlignment.end;
-    }
-  }
-
-  TextAlign get _textAlign {
-    switch (align) {
-      case ClayButtonAlign.left:
-        return TextAlign.left;
-      case ClayButtonAlign.center:
-        return TextAlign.center;
-      case ClayButtonAlign.right:
-        return TextAlign.right;
-    }
-  }
-
   double get _iconSpacing {
     switch (size) {
       case ClayButtonSize.xsmall:
@@ -182,7 +140,7 @@ class ClayButton extends StatelessWidget {
             parentColor: parentColor ?? color,
             spread: spread,
             depth: depth,
-            curveType: curveType,
+            curveType: curveType ?? CurveType.concave,
             borderRadius: borderRadius,
             emboss: emboss,
             child: Container(
@@ -197,15 +155,29 @@ class ClayButton extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(borderRadius),
               ) : null,
-              child: Text(
-                text,
-                style: TextStyle(
-                  fontSize: 14.0,
-                  fontWeight: FontWeight.w500,
-                  color: textColor,
-                  height: 1.2,
-                ),
-                textAlign: TextAlign.center,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (icon != null) ...[
+                    Icon(
+                      icon,
+                      color: textColor,
+                      size: _iconSize,
+                    ),
+                    SizedBox(width: _iconSpacing),
+                  ],
+                  Text(
+                    text,
+                    style: TextStyle(
+                      fontSize: _fontSize,
+                      fontWeight: _fontWeight,
+                      color: textColor,
+                      height: 1.2,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           ),
