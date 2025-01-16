@@ -120,8 +120,8 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                         // index: index,
                         // shouldAnimate: _isAnimating,
                         topic: topic,
-                        // isFavorite: favoriteMap[topic.id] ?? false,
-                        // onFavoritePressed: () => _toggleFavorite(topic.id),
+                        isFavorite: favoriteMap[topic.id] ?? false,
+                        onFavoritePressed: () => _toggleFavorite(topic.id),
                       );
               },
               loading: () => const CircularProgressIndicator(),
@@ -252,7 +252,20 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                 left: 0,
                 right: 0,
                 child: GlassContainer(
-                    backgroundColor: theme.colorScheme.surface.withOpacity(0.5),
+                    backgroundColor: theme.colorScheme.surfaceTint.withOpacity(0.5),
+                    fade: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        // const Color(0xFFF7966E).withOpacity(1),
+                        const Color.fromARGB(255, 224, 167, 102).withOpacity(.9),
+                        const Color(0xFFF7966E).withOpacity(0),
+                        // Colors.transparent,
+                      ],
+                      stops: const [0.0, 1.0],
+                    ),
+                    // border: Border.all( width: 0),
+                    // borderRadius: BorderRadius.circular(10),
                     child: Container(
                       height: 180,
                       width: MediaQuery.of(context).size.width,
@@ -279,14 +292,14 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                           child: ClayText(
                             "Goals",
                             emboss: false,
-                            size: 36,
+                            size: 40,
                             parentColor: theme.colorScheme.surface,
                             textColor:
                                 theme.colorScheme.onSurface.withOpacity(0.8),
                             color: theme.colorScheme.surface,
                             depth: 9,
                             spread: 3,
-                            style: const TextStyle(fontWeight: FontWeight.w300),
+                            style: const TextStyle(fontWeight: FontWeight.w800),
                           ),
                         ),
                       ],
@@ -309,24 +322,24 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                         final isSelected = category ==
                             ref.read(topicsProvider.notifier).selectedCategory;
                         return Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 4, vertical: 8),
+                          margin: const EdgeInsets.only(
+                              left: 4, top: 8, bottom: 8),
                           child: GlassButton(
                             borderRadius: 17,
-                            borderWidth: 1,
-                            borderColor: Colors.white,
+                            borderWidth: 1.5,
+                            borderColor: Colors.white38,
                             text: ref
                                 .read(topicsProvider.notifier)
                                 .getDisplayCategory(category),
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
-                            height: 34,
-                            glassColor: Colors.white.withOpacity(0.1),
+                            // height: 34,
+                            glassColor: Colors.white12,
                             textColor: Colors.white,
                             glowAmount: isSelected ? GlowAmount.heavy : GlowAmount.none,
                             // icon: Icons.girl,
                             hasDivider: true,
-                            size: GlassButtonSize.xsmall,
+                            size: GlassButtonSize.small,
                             onPressed: () {
                               ref
                                   .read(topicsProvider.notifier)

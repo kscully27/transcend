@@ -4,60 +4,46 @@ import 'package:flutter/material.dart';
 class GlassContainer extends StatelessWidget {
   final Widget child;
   final Color backgroundColor;
-  final BorderRadius? borderRadius;
-  final EdgeInsets margin;
-  final double blurX;
-  final double blurY;
+  final double blur;
+  final double opacity;
+  final Gradient? fade;
   final Border? border;
-  final List<BoxShadow>? boxShadow;
+  final BorderRadius? borderRadius;
   final double? width;
   final double? height;
-  final EdgeInsets? padding;
-  final Decoration? decoration;
 
   const GlassContainer({
     super.key,
     required this.child,
-    this.backgroundColor = Colors.white38,
-    this.borderRadius,
-    this.margin = EdgeInsets.zero,
-    this.blurX = 20.0,
-    this.blurY = 20.0,
+    this.backgroundColor = Colors.white,
+    this.blur = 20.0,
+    this.opacity = 0.3,
+    this.fade,
     this.border,
-    this.boxShadow,
+    this.borderRadius = const BorderRadius.all(Radius.circular(20)),
     this.width,
     this.height,
-    this.padding,
-    this.decoration,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: margin,
-      width: width,
-      height: height,
-      padding: padding,
-      decoration: decoration,
-      child: ClipRRect(
-        borderRadius: borderRadius ?? BorderRadius.zero,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: blurX,
-            sigmaY: blurY,
+    return ClipRRect(
+      borderRadius: borderRadius ?? BorderRadius.zero,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: blur,
+          sigmaY: blur,
+        ),
+        child: Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: backgroundColor.withOpacity(opacity),
+            borderRadius: borderRadius,
+            border: border,
+            gradient: fade,
           ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: borderRadius,
-              border: border ?? Border.all(
-                color: Colors.black26,
-                width: 0.5,
-              ),
-              boxShadow: boxShadow,
-            ),
-            child: child,
-          ),
+          child: child,
         ),
       ),
     );

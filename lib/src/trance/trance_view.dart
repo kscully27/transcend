@@ -189,6 +189,8 @@ class _TranceViewState extends ConsumerState<TranceView> {
                           icon: Remix.settings_3_line,
                           variant: GlassButtonVariant.text,
                           size: GlassButtonSize.small,
+                          textColor: Colors.white70,
+                          glassColor: Colors.white12,
                           onPressed: () {
                             // TODO: Implement advanced settings
                           },
@@ -203,6 +205,7 @@ class _TranceViewState extends ConsumerState<TranceView> {
                           width: double.infinity,
                           height: 60,
                           textColor: tranceState.isLoading ? Colors.grey : Colors.black,
+                          glassColor: Colors.white24,
                           onPressed: _handleStartSession,
                         ),
                       ],
