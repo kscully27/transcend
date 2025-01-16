@@ -95,7 +95,6 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
     setState(() {
       _isEmbossed = !_isEmbossed;
     });
-
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -109,6 +108,8 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
           // minChildSize: 0.5,
           // maxChildSize: 0.95,
           builder: (context, scrollController) {
+            var itemColor = Theme.of(context).colorScheme.surfaceTint;
+
             return Container(
               margin: const EdgeInsets.only(
                 left: 8,
@@ -119,8 +120,8 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                 // color: const Color(0xFFD59074),
                 padding: const EdgeInsets.only(top: 20),
                 child: ClayContainer(
-                  color: const Color(0xFF883912),
-                  parentColor: const Color(0xFFD59074),
+                  color: itemColor,
+                  parentColor: Theme.of(context).colorScheme.surface,
                   depth: 12,
                   spread: 5,
                   curveType: CurveType.convex,
@@ -135,7 +136,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                         top: 16,
                         right: 16,
                         child: ClayContainer(
-                          color: const Color.fromRGBO(136, 57, 18, 1),
+                          color: itemColor,
                           height: 40,
                           width: 40,
                           borderRadius: 20,
@@ -189,9 +190,9 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                                   icon: widget.isFavorite
                                       ? Remix.heart_fill
                                       : Remix.heart_line,
-                                  color: const Color(0xFF883912),
+                                  color: itemColor,
                                   textColor: Colors.white,
-                                  parentColor: const Color(0xFF883912),
+                                  parentColor: itemColor,
                                   width: double.infinity,
                                   height: 40,
                                   emboss: false,
@@ -214,8 +215,8 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                                   emboss: false,
                                   depth: 12,
                                   icon: Remix.play_fill,
-                                  color: const Color(0xFF883912),
-                                  parentColor: const Color(0xFF883912),
+                                  color: itemColor,
+                                  parentColor: itemColor,
                                   textColor: Colors.white,
                                   width: double.infinity,
                                   margin: const EdgeInsets.only(bottom: 12),

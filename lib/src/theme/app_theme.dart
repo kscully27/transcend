@@ -14,7 +14,7 @@ class AppTheme {
       colorScheme: ColorScheme(
         brightness: Brightness.light,
         primary: AppColors.flat('khaki'),
-        onPrimary: AppColors.dark('khaki'),
+        onPrimary: AppColors.shadow('khaki'),
         secondary: AppColors.flat('orange'),
         onSecondary: AppColors.dark('orange'),
         error: AppColors.flat('red'),
@@ -23,7 +23,21 @@ class AppTheme {
         onBackground: AppColors.dark('light'),
         surface: AppColors.flat('khaki'),
         onSurface: AppColors.highlight('khaki'),
-        surfaceTint: AppColors.light('khaki'),
+        surfaceTint: AppColors.dark('khaki'),
+        inversePrimary: AppColors.flat('khaki'),
+        inverseSurface: AppColors.dark('khaki'),
+        onInverseSurface: AppColors.flat('khaki'),
+        onErrorContainer: AppColors.flat('red'),
+        onPrimaryContainer: AppColors.flat('khaki'),
+        onSecondaryContainer: AppColors.flat('orange'),
+        onTertiaryContainer: AppColors.flat('purple'),
+        onSecondaryFixed: AppColors.flat('orange'),
+        onTertiaryFixed: AppColors.flat('purple'),
+        onPrimaryFixed: AppColors.flat('khaki'),
+        outline: Colors.white,
+        shadow: Colors.black,
+        
+        
       ),
 
       // Scaffold background color
@@ -103,6 +117,19 @@ class AppTheme {
         surface: AppColors.dark('dark'),
         onSurface: AppColors.light('dark'),
         surfaceTint: AppColors.dark('khaki'),
+        inversePrimary: AppColors.flat('khaki'),
+        inverseSurface: AppColors.light('khaki'),
+        onInverseSurface: AppColors.dark('khaki'),
+        onErrorContainer: AppColors.dark('red'),
+        onPrimaryContainer: AppColors.dark('khaki'),
+        onSecondaryContainer: AppColors.dark('orange'),
+        onTertiaryContainer: AppColors.dark('purple'),
+        onSecondaryFixed: AppColors.dark('orange'),
+        onTertiaryFixed: AppColors.dark('purple'),
+        onPrimaryFixed: AppColors.dark('khaki'),
+        outline: Colors.white,
+        shadow: Colors.black,
+
       ),
 
       // Scaffold background color

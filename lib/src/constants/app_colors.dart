@@ -317,28 +317,32 @@ class AppColorMaker {
 }
 
 class AppColors {
-  static Color flat(String color) {
-    return Color(ColorGroup.fromMap(colors[color]).flat);
+  static Color flat(String name) => _getColor(name, 'flat');
+  static Color light(String name) => _getColor(name, 'light');
+  static Color dark(String name) => _getColor(name, 'dark');
+  static Color highlight(String name) => _getColor(name, 'highlight');
+  static Color shadow(String name) => _getColor(name, 'shadow');
+
+  static Color themed(String name, String lightMode, [String? darkMode]) {
+    final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    final mode = brightness == Brightness.light ? lightMode : (darkMode ?? lightMode);
+    return _getColor(name, mode);
   }
 
-  static Color light(String color) {
-    return Color(ColorGroup.fromMap(colors[color]).light);
+  static Color _getColor(String name, String mode) {
+    final colorData = colors[name];
+    if (colorData == null) {
+      throw ArgumentError("Invalid color name: $name");
+    }
+    final colorModeData = colorData[mode];
+    if (colorModeData == null) {
+      throw ArgumentError("Invalid color mode: $mode");
+    }
+    return Color(colorModeData);
   }
 
   static Color disabled(String color) {
     return Color(ColorGroup.fromMap(colors[color]).light).withOpacity(.2);
-  }
-
-  static Color dark(String color) {
-    return Color(ColorGroup.fromMap(colors[color]).dark);
-  }
-
-  static Color shadow(String color) {
-    return Color(ColorGroup.fromMap(colors[color]).shadow);
-  }
-
-  static Color highlight(String color) {
-    return Color(ColorGroup.fromMap(colors[color]).highlight);
   }
 
   static Gradient gradient(String color) {

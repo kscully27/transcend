@@ -53,12 +53,12 @@ class _HomePageState extends ConsumerState<HomePage> {
               theme.colorScheme.primary,
               theme.colorScheme.primary.withOpacity(0.2),
             ],
-            selectedItemColor: theme.colorScheme.primary,
+            selectedItemColor: theme.colorScheme.onSurface,
             unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.6),
             sheetOpenIconBoxColor: theme.colorScheme.primary,
             sheetOpenIconColor: theme.colorScheme.onPrimary,
             sheetCloseIconBoxColor: theme.colorScheme.surface,
-            sheetCloseIconColor: theme.colorScheme.primary,
+            sheetCloseIconColor: theme.colorScheme.onSurfaceVariant,
             initialSelectedIndex: _index,
             onTap: (index) {
               setState(() {

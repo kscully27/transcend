@@ -48,7 +48,7 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
 
   Widget _buildTopicsList() {
     final topicsAsync = ref.watch(topicsProvider);
-    
+
     return Stack(
       children: [
         // Current list
@@ -60,10 +60,10 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
         if (_swipeProgress != 0)
           Transform.translate(
             offset: Offset(
-              (_swipeProgress > 0 ? -1 : 1) * MediaQuery.of(context).size.width +
-              (_swipeProgress * MediaQuery.of(context).size.width),
-              0
-            ),
+                (_swipeProgress > 0 ? -1 : 1) *
+                        MediaQuery.of(context).size.width +
+                    (_swipeProgress * MediaQuery.of(context).size.width),
+                0),
             child: _buildList(topicsAsync, true),
           ),
       ],
@@ -74,54 +74,53 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
     return topicsAsync.when(
       data: (topics) {
         final categories = ref.read(topicsProvider.notifier).getCategories();
-        final currentCategory = ref.read(topicsProvider.notifier).selectedCategory;
+        final currentCategory =
+            ref.read(topicsProvider.notifier).selectedCategory;
         final currentIndex = categories.indexOf(currentCategory);
-        
+
         // Determine which category to show
         final targetIndex = currentIndex + (_swipeProgress > 0 ? 1 : -1);
-        final targetCategory = isNext && targetIndex >= 0 && targetIndex < categories.length
-            ? categories[targetIndex]
-            : currentCategory;
+        final targetCategory =
+            isNext && targetIndex >= 0 && targetIndex < categories.length
+                ? categories[targetIndex]
+                : currentCategory;
 
-        final filteredTopics = topics.where((t) => 
-          targetCategory == 'All' || t.group == targetCategory
-        ).toList();
+        final filteredTopics = topics
+            .where((t) => targetCategory == 'All' || t.group == targetCategory)
+            .toList();
 
         return ListView.builder(
-          key: ValueKey<String>('${targetCategory}_${isNext ? 'next' : 'current'}'),
+          key: ValueKey<String>(
+              '${targetCategory}_${isNext ? 'next' : 'current'}'),
           controller: _scrollController,
-          padding: EdgeInsets.only(
-            left: 8.0,
-            right: 8.0,
-            top: 200.0,
-            bottom: 96.0
-          ),
+          padding:
+              EdgeInsets.only(left: 8.0, right: 8.0, top: 200.0, bottom: 96.0),
           itemCount: filteredTopics.length,
           itemBuilder: (context, index) {
             final topic = filteredTopics[index];
             final userTopicsAsync = ref.watch(userTopicsProvider);
-            
+
             return userTopicsAsync.when(
               data: (userTopics) {
                 final favoriteMap = {
                   for (var ut in userTopics) ut.topicId: ut.isFavorite
                 };
-                
+
                 return _useGlassItems
-                  ? GlassTopicItem(
-                      index: index,
-                      shouldAnimate: _isAnimating,
-                      topic: topic,
-                      isFavorite: favoriteMap[topic.id] ?? false,
-                      onFavoritePressed: () => _toggleFavorite(topic.id),
-                    )
-                  : TopicItem(
-                      index: index,
-                      shouldAnimate: _isAnimating,
-                      topic: topic,
-                      isFavorite: favoriteMap[topic.id] ?? false,
-                      onFavoritePressed: () => _toggleFavorite(topic.id),
-                    );
+                    ? GlassTopicItem(
+                        index: index,
+                        shouldAnimate: _isAnimating,
+                        topic: topic,
+                        isFavorite: favoriteMap[topic.id] ?? false,
+                        onFavoritePressed: () => _toggleFavorite(topic.id),
+                      )
+                    : TopicItem(
+                        index: index,
+                        shouldAnimate: _isAnimating,
+                        topic: topic,
+                        isFavorite: favoriteMap[topic.id] ?? false,
+                        onFavoritePressed: () => _toggleFavorite(topic.id),
+                      );
               },
               loading: () => const CircularProgressIndicator(),
               error: (error, stack) => Text('Error: $error'),
@@ -138,21 +137,19 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
     final user = ref.read(userProvider).value;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please sign in to favorite topics'))
-      );
+          const SnackBar(content: Text('Please sign in to favorite topics')));
       return;
     }
-    
+
     try {
       final firestoreService = locator<FirestoreService>();
       await firestoreService.toggleTopicFavorite(user.uid, topicId);
-      
+
       // Force a refresh of the userTopics provider
       ref.invalidate(userTopicsProvider);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating favorite: ${e.toString()}'))
-      );
+          SnackBar(content: Text('Error updating favorite: ${e.toString()}')));
       print('Error toggling favorite: $e');
     }
   }
@@ -172,13 +169,14 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
 
   void _onCategorySelected(String category) {
     if (_isAnimating) return;
-    
+
     final categories = ref.read(topicsProvider.notifier).getCategories();
-    final oldIndex = categories.indexOf(ref.read(topicsProvider.notifier).selectedCategory);
+    final oldIndex =
+        categories.indexOf(ref.read(topicsProvider.notifier).selectedCategory);
     final newIndex = categories.indexOf(category);
-    
+
     if (oldIndex == newIndex) return;
-    
+
     setState(() {
       _swipeProgress = oldIndex < newIndex ? -1 : 1;
     });
@@ -190,26 +188,26 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
     final theme = Theme.of(context);
-    
+
     return user.when(
       data: (user) => GestureDetector(
         onHorizontalDragUpdate: (details) {
           if (_isAnimating) return;
-          
+
           // Get current category index
           final categories = ref.read(topicsProvider.notifier).getCategories();
-          final currentIndex = categories.indexOf(
-            ref.read(topicsProvider.notifier).selectedCategory
-          );
-          
+          final currentIndex = categories
+              .indexOf(ref.read(topicsProvider.notifier).selectedCategory);
+
           // Prevent swiping left on first item or right on last item
-          if ((currentIndex == 0 && details.delta.dx > 0) || 
+          if ((currentIndex == 0 && details.delta.dx > 0) ||
               (currentIndex == categories.length - 1 && details.delta.dx < 0)) {
             return;
           }
 
           setState(() {
-            _swipeProgress += details.delta.dx / MediaQuery.of(context).size.width;
+            _swipeProgress +=
+                details.delta.dx / MediaQuery.of(context).size.width;
             // Clamp the progress to prevent over-swiping
             _swipeProgress = _swipeProgress.clamp(-1.0, 1.0);
           });
@@ -217,22 +215,22 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
         onHorizontalDragEnd: (details) {
           if (_isAnimating) return;
           final velocity = details.primaryVelocity ?? 0;
-          
+
           // Get current category index
           final categories = ref.read(topicsProvider.notifier).getCategories();
-          final currentIndex = categories.indexOf(
-            ref.read(topicsProvider.notifier).selectedCategory
-          );
-          
+          final currentIndex = categories
+              .indexOf(ref.read(topicsProvider.notifier).selectedCategory);
+
           // Prevent completing swipe in invalid directions
-          if ((currentIndex == 0 && velocity > 0) || 
+          if ((currentIndex == 0 && velocity > 0) ||
               (currentIndex == categories.length - 1 && velocity < 0)) {
             _cancelSwipe();
             return;
           }
 
           // Determine if we should complete the swipe
-          final shouldComplete = velocity.abs() > 300 || _swipeProgress.abs() > 0.5;
+          final shouldComplete =
+              velocity.abs() > 300 || _swipeProgress.abs() > 0.5;
           final direction = _swipeProgress > 0 ? -1 : 1;
 
           if (shouldComplete) {
@@ -292,7 +290,8 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                             emboss: false,
                             size: 36,
                             parentColor: theme.colorScheme.surface,
-                            textColor: theme.colorScheme.onSurface.withOpacity(0.8),
+                            textColor:
+                                theme.colorScheme.onSurface.withOpacity(0.8),
                             color: theme.colorScheme.surface,
                             depth: 9,
                             spread: 3,
@@ -304,7 +303,8 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                             Text(
                               "Glass Style",
                               style: TextStyle(
-                                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                color: theme.colorScheme.onSurface
+                                    .withOpacity(0.7),
                                 fontSize: 16,
                               ),
                             ),
@@ -332,38 +332,57 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                       controller: _categoriesScrollController,
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      children: ref.read(topicsProvider.notifier).getCategories().map((category) {
-                        final isSelected =
-                            category == ref.read(topicsProvider.notifier).selectedCategory;
+                      children: ref
+                          .read(topicsProvider.notifier)
+                          .getCategories()
+                          .map((category) {
+                        final isSelected = category ==
+                            ref.read(topicsProvider.notifier).selectedCategory;
                         return Container(
-                          margin:
-                              const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 8),
                           child: ClayButton(
-                            text: ref.read(topicsProvider.notifier).getDisplayCategory(category),
+                            text: ref
+                                .read(topicsProvider.notifier)
+                                .getDisplayCategory(category),
                             color: isSelected && category != 'All'
-                                ? AppColors.flat(AppColors.getColorName(
-                                    category.toLowerCase()))
+                                ? AppColors.themed(
+                                    AppColors.getColorName(category.toLowerCase()),
+                                    'light',
+                                    'flat'
+                                  )
                                 : theme.colorScheme.surface,
                             parentColor: theme.colorScheme.surface,
                             variant: isSelected
                                 ? ClayButtonVariant.outlined
                                 : ClayButtonVariant.text,
                             size: ClayButtonSize.xsmall,
-                            textColor: theme.colorScheme.onSurface,
+                            textColor: isSelected && category != 'All'
+                                ? AppColors.themed(
+                                    AppColors.getColorName(category.toLowerCase()),
+                                    'shadow',
+                                    'highlight'
+                                  )
+                                : theme.colorScheme.onSurface,
                             spread: isSelected ? 3 : 2,
                             depth: isSelected ? 10 : 6,
-                            curveType:
-                                isSelected ? CurveType.convex : CurveType.concave,
+                            curveType: isSelected
+                                ? CurveType.convex
+                                : CurveType.concave,
                             onPressed: () {
                               // Directly update the category in the provider
-                              ref.read(topicsProvider.notifier).setCategory(category);
-                              
+                              ref
+                                  .read(topicsProvider.notifier)
+                                  .setCategory(category);
+
                               // Scroll to the correct category button
-                              final categories = ref.read(topicsProvider.notifier).getCategories();
+                              final categories = ref
+                                  .read(topicsProvider.notifier)
+                                  .getCategories();
                               _scrollToCategory(categories.indexOf(category));
                             },
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
                             width: 120,
                             height: 34,
                             borderRadius: 17,
@@ -397,20 +416,20 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
       setState(() {
         ref.read(topicsProvider.notifier).setCategory(categories[nextIndex]);
       });
-      
+
       await _swipeController.animateTo(
         direction > 0 ? 1.0 : -1.0,
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
       );
-      
+
       setState(() {
         _swipeProgress = 0;
       });
-      
+
       _scrollToCategory(nextIndex);
     }
-    
+
     _isAnimating = false;
   }
 
@@ -423,11 +442,11 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
       duration: Duration(milliseconds: 200),
       curve: Curves.easeOut,
     );
-    
+
     setState(() {
       _swipeProgress = 0;
     });
-    
+
     _isAnimating = false;
   }
 
