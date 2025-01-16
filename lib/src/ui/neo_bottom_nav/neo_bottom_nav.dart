@@ -5,6 +5,7 @@ import 'dart:math' show max, pi, sqrt;
 import 'package:clay_containers/clay_containers.dart';
 import 'package:clay_containers/utils/clay_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:trancend/src/ui/glass_bottom_sheet.dart';
 
 part './bottom_clipper.dart';
 
@@ -310,9 +311,13 @@ class _NeoBottomNavNSheetState extends State<NeoBottomNavNSheet>
       }
     }
 
-    var bgColor = widget.backgroundColor ?? theme.canvasColor;
-    var gradientColors =
-        widget.borderColors ?? [bgColor, theme.iconTheme.color!, bgColor];
+    var bgColor = widget.backgroundColor ?? Theme.of(context).colorScheme.surface;
+    var gradientColors = widget.borderColors ?? [
+      bgColor.withOpacity(0.8),
+      Theme.of(context).colorScheme.primary.withOpacity(0.6),
+      bgColor.withOpacity(0.8),
+    ];
+
     CustomPainter painter = _BottomPainterPlain(gradientColors);
     CustomClipper<Path> clipper = _BottomClipperPlain();
 
@@ -326,13 +331,13 @@ class _NeoBottomNavNSheetState extends State<NeoBottomNavNSheet>
       );
     }
 
-    final parentColorValue = widget.parentColor ?? widget.backgroundColor;
+    final parentColorValue = widget.parentColor ?? Theme.of(context).colorScheme.surface;
     var shadowList = <BoxShadow>[
       BoxShadow(
         color: ClayUtils.getAdjustColor(
-          parentColorValue!,
+          parentColorValue,
           widget.emboss ? 0 - widget.depth : widget.depth,
-        ),
+        ).withOpacity(0.3),
         offset: Offset(0 - widget.spread.toDouble(), 0 - widget.spread.toDouble()),
         blurRadius: widget.spread.toDouble(),
       ),
@@ -340,7 +345,7 @@ class _NeoBottomNavNSheetState extends State<NeoBottomNavNSheet>
         color: ClayUtils.getAdjustColor(
           parentColorValue,
           widget.emboss ? widget.depth : 0 - widget.depth,
-        ),
+        ).withOpacity(0.3),
         offset: Offset(widget.spread.toDouble(), widget.spread.toDouble()),
         blurRadius: widget.spread.toDouble(),
       ),

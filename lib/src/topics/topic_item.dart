@@ -9,8 +9,6 @@ import 'package:trancend/src/ui/clay_bottom_sheet2.dart';
 import 'package:trancend/src/ui/clay_button.dart';
 import 'package:trancend/src/trance/trance_player.dart';
 
-Color baseColor = const Color(0xFFD59074);
-
 class TopicItem extends StatefulWidget {
   const TopicItem({
     super.key,
@@ -123,11 +121,11 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                 child: ClayContainer(
                   color: const Color(0xFF883912),
                   parentColor: const Color(0xFFD59074),
-                  depth: 20,
-                  spread: 3,
+                  depth: 12,
+                  spread: 5,
                   curveType: CurveType.convex,
                   borderRadius: 0,
-                  emboss: true,
+                  emboss: false,
                   customBorderRadius: const BorderRadius.vertical(
                     top: Radius.circular(30),
                   ),
@@ -284,6 +282,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
     double _width = MediaQuery.of(context).size.width;
     double _fullWidth = _width > 70 ? 70 : _width;
     final topic = widget.topic;
+    final theme = Theme.of(context);
 
     return AnimatedBuilder(
       animation: _animationController,
@@ -297,7 +296,8 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 child: ClayContainer(
-                  color: baseColor,
+                  color: theme.colorScheme.surface,
+                  parentColor: theme.colorScheme.surface,
                   borderRadius: 20,
                   height: 120,
                   width: 400,
@@ -316,11 +316,11 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                             topic.title,
                             emboss: _isEmbossed,
                             size: 20,
-                            parentColor: baseColor,
+                            parentColor: theme.colorScheme.surface,
                             textColor: !_isEmbossed
-                                ? Colors.white
+                                ? theme.colorScheme.onSurface
                                 : AppColors.highlight(topic.appColor),
-                            color: baseColor,
+                            color: theme.colorScheme.surface,
                             spread: 2,
                             style: TextStyle(fontWeight: FontWeight.w200),
                           ),
@@ -332,7 +332,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                           children: [
                             ClayContainer(
                               surfaceColor: AppColors.light(topic.appColor),
-                              parentColor: baseColor,
+                              parentColor: theme.colorScheme.surface,
                               emboss: _isEmbossed,
                               spread: 8,
                               depth: 8,

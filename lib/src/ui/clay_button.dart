@@ -20,7 +20,7 @@ class ClayButton extends StatelessWidget {
   final IconData? icon;
   final Color color;
   final Color? parentColor;
-  final Color textColor;
+  final Color? textColor;
   final Color? borderColor;
   final double borderWidth;
   final EdgeInsets? padding;
@@ -42,7 +42,7 @@ class ClayButton extends StatelessWidget {
     this.icon,
     required this.color,
     this.parentColor,
-    this.textColor = Colors.black,
+    this.textColor = Colors.white,
     this.borderColor,
     this.borderWidth = 0.8,
     this.padding,
@@ -126,6 +126,10 @@ class ClayButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final effectiveTextColor = textColor ?? theme.colorScheme.onSurface;
+    final effectiveBorderColor = borderColor ?? theme.colorScheme.outline;
+    
     return Container(
       margin: margin,
       child: Material(
@@ -148,13 +152,15 @@ class ClayButton extends StatelessWidget {
               width: width,
               height: height,
               alignment: Alignment.center,
-              decoration: borderColor != null ? BoxDecoration(
-                border: Border.all(
-                  color: borderColor!,
-                  width: borderWidth,
-                ),
-                borderRadius: BorderRadius.circular(borderRadius),
-              ) : null,
+              decoration: variant == ClayButtonVariant.outlined
+                  ? BoxDecoration(
+                      border: Border.all(
+                        color: effectiveBorderColor,
+                        width: borderWidth,
+                      ),
+                      borderRadius: BorderRadius.circular(borderRadius),
+                    )
+                  : null,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -162,7 +168,7 @@ class ClayButton extends StatelessWidget {
                   if (icon != null) ...[
                     Icon(
                       icon,
-                      color: textColor,
+                      color: effectiveTextColor,
                       size: _iconSize,
                     ),
                     SizedBox(width: _iconSpacing),
@@ -172,7 +178,7 @@ class ClayButton extends StatelessWidget {
                     style: TextStyle(
                       fontSize: _fontSize,
                       fontWeight: _fontWeight,
-                      color: textColor,
+                      color: effectiveTextColor,
                       height: 1.2,
                     ),
                     textAlign: TextAlign.center,

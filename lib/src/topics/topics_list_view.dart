@@ -12,10 +12,6 @@ import 'package:trancend/src/topics/glass_topic_item.dart';
 import 'package:trancend/src/topics/topic_item.dart';
 import 'package:trancend/src/ui/clay_button.dart';
 
-Color baseColor = const Color(0xFFD59074);
-Color baseColor2 = const Color(0xFFC67E60);
-Color textColor = const Color(0xFF883912);
-Color titleColor = const Color(0xFFFBF3D8);
 double firstDepth = 15;
 double secondDepth = 10;
 double thirdDepth = 50;
@@ -193,6 +189,7 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
+    final theme = Theme.of(context);
     
     return user.when(
       data: (user) => GestureDetector(
@@ -261,11 +258,11 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      baseColor,
-                      baseColor,
-                      baseColor,
-                      baseColor.withAlpha((0.9 * 255).round()),
-                      baseColor.withAlpha(0),
+                      theme.colorScheme.surface,
+                      theme.colorScheme.surface,
+                      theme.colorScheme.surface,
+                      theme.colorScheme.surface.withOpacity(0.9),
+                      theme.colorScheme.surface.withOpacity(0),
                     ],
                   ),
                 ),
@@ -277,13 +274,13 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
               children: [
                 Container(
                   height: 120,
-                  padding: EdgeInsets.only(
+                  padding: const EdgeInsets.only(
                     left: 20,
                     right: 20,
                     top: 60,
                     bottom: 0,
                   ),
-                  color: baseColor,
+                  color: theme.colorScheme.surface,
                   child: Align(
                     alignment: Alignment.bottomLeft,
                     child: Row(
@@ -294,12 +291,12 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                             "Goals",
                             emboss: false,
                             size: 36,
-                            parentColor: baseColor,
-                            textColor: titleColor.withAlpha((0.8 * 255).round()),
-                            color: baseColor,
+                            parentColor: theme.colorScheme.surface,
+                            textColor: theme.colorScheme.onSurface.withOpacity(0.8),
+                            color: theme.colorScheme.surface,
                             depth: 9,
                             spread: 3,
-                            style: TextStyle(fontWeight: FontWeight.w300),
+                            style: const TextStyle(fontWeight: FontWeight.w300),
                           ),
                         ),
                         Row(
@@ -307,7 +304,7 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                             Text(
                               "Glass Style",
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: theme.colorScheme.onSurface.withOpacity(0.7),
                                 fontSize: 16,
                               ),
                             ),
@@ -318,7 +315,7 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                                   _useGlassItems = value;
                                 });
                               },
-                              activeColor: Colors.white70,
+                              activeColor: theme.colorScheme.primary,
                             ),
                           ],
                         ),
@@ -330,29 +327,29 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                   padding: const EdgeInsets.all(8.0),
                   child: Container(
                     height: 50,
-                    color: baseColor,
+                    color: theme.colorScheme.surface,
                     child: ListView(
                       controller: _categoriesScrollController,
                       scrollDirection: Axis.horizontal,
-                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       children: ref.read(topicsProvider.notifier).getCategories().map((category) {
                         final isSelected =
                             category == ref.read(topicsProvider.notifier).selectedCategory;
                         return Container(
                           margin:
-                              EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                              const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                           child: ClayButton(
                             text: ref.read(topicsProvider.notifier).getDisplayCategory(category),
                             color: isSelected && category != 'All'
                                 ? AppColors.flat(AppColors.getColorName(
                                     category.toLowerCase()))
-                                : baseColor,
-                            parentColor: baseColor,
+                                : theme.colorScheme.surface,
+                            parentColor: theme.colorScheme.surface,
                             variant: isSelected
                                 ? ClayButtonVariant.outlined
                                 : ClayButtonVariant.text,
                             size: ClayButtonSize.xsmall,
-                            textColor: Colors.white,
+                            textColor: theme.colorScheme.onSurface,
                             spread: isSelected ? 3 : 2,
                             depth: isSelected ? 10 : 6,
                             curveType:
@@ -366,7 +363,7 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                               _scrollToCategory(categories.indexOf(category));
                             },
                             padding:
-                                EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             width: 120,
                             height: 34,
                             borderRadius: 17,

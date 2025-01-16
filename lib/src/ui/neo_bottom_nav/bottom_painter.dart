@@ -20,8 +20,7 @@ class _BottomPainterPlain extends CustomPainter {
       ..shader = LinearGradient(
         colors: colors,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..blendMode = BlendMode.srcIn
-      ..color = Colors.white;
+      ..blendMode = BlendMode.srcIn;
 
     canvas.drawPath(path, paint);
   }

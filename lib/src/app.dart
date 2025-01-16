@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/pages/home.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
+import 'package:trancend/src/theme/app_theme.dart';
 
 import 'settings/settings_controller.dart';
 
@@ -47,11 +48,8 @@ class MyApp extends ConsumerWidget {
             ],
             onGenerateTitle: (BuildContext context) =>
                 AppLocalizations.of(context)!.appTitle,
-            theme: ThemeData(
-              // bottomSheetTheme: BottomSheetThemeData(
-              //     backgroundColor: Colors.black.withOpacity(0)),
-            ),
-            darkTheme: ThemeData.dark(),
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
             themeMode: settingsController.themeMode,
             home: appState.when(
               data: (data) {

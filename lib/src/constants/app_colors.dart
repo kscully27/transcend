@@ -206,6 +206,13 @@ class GradientColors {
 }
 
 const Map<String, Map<String, int>> colors = {
+  "khaki": {
+    "flat": 0xFFD59074,    // Warm Terracotta
+    "light": 0xFFE2BFAF,   // Light Clay
+    "dark": 0xFF883912,    // Deep Clay
+    "shadow": 0xFF8B5E3C,  // Dark Brown
+    "highlight": 0xFFFFFFFF, // Pale Clay
+  },
   "blue": {
     "flat": 0xFFD59074,    // Warm Terracotta
     "light": 0xFFE6B695,   // Light Clay

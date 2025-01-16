@@ -9,8 +9,6 @@ import 'package:trancend/src/ui/glass_bottom_sheet.dart';
 import 'package:trancend/src/ui/glass_button.dart';
 import 'package:trancend/src/trance/trance_player.dart';
 
-Color baseColor = const Color(0xFFD59074);
-
 class GlassTopicItem extends StatefulWidget {
   const GlassTopicItem({
     super.key, 
@@ -111,18 +109,14 @@ class _TopicItemState extends State<GlassTopicItem> with TickerProviderStateMixi
               children: [
                 Text(
                   topic.title,
-                  style: const TextStyle(
-                    fontSize: 24,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w400,
-                    color: Colors.black87,
                   ),
                 ),
                 Text(
                   topic.description,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w300,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -138,10 +132,10 @@ class _TopicItemState extends State<GlassTopicItem> with TickerProviderStateMixi
                     Navigator.pop(context);
                   },
                 ),
-                const Divider(
+                Divider(
                   height: 32,
                   thickness: 1,
-                  color: Colors.black26,
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
                 ),
                 GlassButton(
                   text: "Start Session",
@@ -194,6 +188,7 @@ class _TopicItemState extends State<GlassTopicItem> with TickerProviderStateMixi
     double _width = MediaQuery.of(context).size.width;
     double _fullWidth = _width > 70 ? 70 : _width;
     final topic = widget.topic;
+    final theme = Theme.of(context);
 
     return AnimatedBuilder(
       animation: _animationController,
@@ -207,7 +202,8 @@ class _TopicItemState extends State<GlassTopicItem> with TickerProviderStateMixi
               child: Container(
                 padding: const EdgeInsets.all(12),
                 child: ClayContainer(
-                  color: baseColor,
+                  color: theme.colorScheme.surface,
+                  parentColor: theme.colorScheme.surface,
                   borderRadius: 20,
                   height: 120,
                   width: 400,
@@ -226,11 +222,13 @@ class _TopicItemState extends State<GlassTopicItem> with TickerProviderStateMixi
                             topic.title,
                             emboss: _isEmbossed,
                             size: 20,
-                            parentColor: baseColor,
-                            textColor: !_isEmbossed ? Colors.white : AppColors.highlight(topic.appColor),
-                            color: baseColor,
+                            parentColor: theme.colorScheme.surface,
+                            textColor: !_isEmbossed 
+                                ? theme.colorScheme.onSurface 
+                                : AppColors.highlight(topic.appColor),
+                            color: theme.colorScheme.surface,
                             spread: 2,
-                            style: TextStyle(fontWeight: FontWeight.w200),
+                            style: const TextStyle(fontWeight: FontWeight.w200),
                           ),
                         ),
                       ),
@@ -240,14 +238,14 @@ class _TopicItemState extends State<GlassTopicItem> with TickerProviderStateMixi
                           children: [
                             ClayContainer(
                               surfaceColor: AppColors.light(topic.appColor),
-                              parentColor: baseColor,
+                              parentColor: theme.colorScheme.surface,
                               emboss: _isEmbossed,
                               spread: 8,
                               depth: 8,
                               curveType: CurveType.concave,
                               width: 100,
                               height: double.infinity,
-                              customBorderRadius: BorderRadius.only(
+                              customBorderRadius: const BorderRadius.only(
                                 topRight: Radius.elliptical(16, 16),
                                 bottomRight: Radius.elliptical(16, 16),
                               ),
@@ -259,7 +257,8 @@ class _TopicItemState extends State<GlassTopicItem> with TickerProviderStateMixi
                                   topic.svg,
                                   fit: BoxFit.cover,
                                   alignment: Alignment.bottomCenter,
-                                  color: AppColors.flat(topic.appColor),                                  width: _fullWidth,
+                                  color: AppColors.flat(topic.appColor),
+                                  width: _fullWidth,
                                 ),
                               ),
                             ),

@@ -177,7 +177,7 @@ class GlassButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(borderRadius),
             ),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: mainAxisSize,
               mainAxisAlignment: _mainAxisAlignment,
               crossAxisAlignment: crossAxisAlignment,
               children: [

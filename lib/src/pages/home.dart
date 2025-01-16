@@ -27,12 +27,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     final appState = ref.watch(appStateProvider);
     var theme = Theme.of(context);
 
-    Color baseColor = const Color(0xFFD59074);
-    Color baseColor2 = const Color(0xFFC67E60);
-    Color navColor = const Color(0xFFC6846A);
-    Color textColor = const Color(0xFF883912);
-    Color iconColor = const Color(0xFFE2BFAF);
-
     return appState.when(
       data: (data) {
         if (!data.isInitialized) {
@@ -41,7 +35,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
         return Scaffold(
           extendBody: true,
-          backgroundColor: baseColor,
+          backgroundColor: theme.colorScheme.background,
           body: _index == 0
               ? data.topics.when(
                   data: (topics) => TopicsListView(),
@@ -60,14 +54,20 @@ class _HomePageState extends ConsumerState<HomePage> {
                   ),
                 ),
           bottomNavigationBar: NeoBottomNavNSheet(
-              backgroundColor: navColor,
-              emboss: false,
-              parentColor: baseColor,
-              borderColors: [baseColor2, baseColor2, baseColor2, baseColor2],
-              selectedItemColor: iconColor,
-              unselectedItemColor: theme.colorScheme.secondary,
-              sheetOpenIconBoxColor: iconColor,
-              sheetOpenIconColor: textColor,
+            backgroundColor: theme.colorScheme.surface,
+            emboss: false,
+            parentColor: theme.colorScheme.background,
+            borderColors: [
+              theme.colorScheme.primary.withOpacity(0.2),
+              theme.colorScheme.primary,
+              theme.colorScheme.primary.withOpacity(0.2),
+            ],
+            selectedItemColor: theme.colorScheme.primary,
+            unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.6),
+            sheetOpenIconBoxColor: theme.colorScheme.primary,
+            sheetOpenIconColor: theme.colorScheme.onPrimary,
+            sheetCloseIconBoxColor: theme.colorScheme.surface,
+            sheetCloseIconColor: theme.colorScheme.primary,
             initialSelectedIndex: _index,
             onTap: (index) {
               setState(() {
@@ -82,20 +82,17 @@ class _HomePageState extends ConsumerState<HomePage> {
               sheet: Sheet(),
               sheetOpenIcon: Remix.play_large_line,
               sheetCloseIcon: Remix.add_line,
-              // sheetCloseIconBoxColor: Colors.white,
-              sheetCloseIconColor: theme.colorScheme.secondary,
-              // sheetOpenIconColor: Colors.white,
               onSheetToggle: (v) {
                 setState(() {});
             },
-            items: [
+            items: const [
               NeoBottomNavItem(
-                  activeIcon: Remix.home_6_fill,
-                  icon: Remix.home_6_line,
+                activeIcon: Remix.home_6_fill,
+                icon: Remix.home_6_line,
               ),
               NeoBottomNavItem(
-                  icon: Remix.user_3_line,
-                  activeIcon: Remix.user_3_fill,
+                icon: Remix.user_3_line,
+                activeIcon: Remix.user_3_fill,
               ),
             ],
           ),
@@ -118,7 +115,7 @@ class Sheet extends StatelessWidget {
       builder: (context, controller) {
         return Container(
           margin: const EdgeInsets.all(8),
-          child: ClipRRect(
+          child: ClipRRect( 
             borderRadius: const BorderRadius.all(Radius.circular(20)),
             child: BackdropFilter(
               filter: ImageFilter.blur(
@@ -136,7 +133,6 @@ class Sheet extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    // Handle
                     Center(
                       child: FractionallySizedBox(
                         widthFactor: 0.25,
@@ -154,12 +150,14 @@ class Sheet extends StatelessWidget {
                         ),
                       ),
                     ),
-                    // Scrollable content
                     Expanded(
-                      child: ListView(
-                        controller: controller,
-                        padding: const EdgeInsets.all(20),
-                        children: const [],
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: ListView(
+                          controller: controller,
+                          padding: const EdgeInsets.all(20),
+                          children: const [],
+                        ),
                       ),
                     ),
                   ],
