@@ -22,7 +22,7 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appState = ref.watch(appStateProvider);
-    
+
     return ClayTheme(
       themeData: const ClayThemeData(
         height: 10,
@@ -47,7 +47,10 @@ class MyApp extends ConsumerWidget {
             ],
             onGenerateTitle: (BuildContext context) =>
                 AppLocalizations.of(context)!.appTitle,
-            theme: ThemeData(),
+            theme: ThemeData(
+              // bottomSheetTheme: BottomSheetThemeData(
+              //     backgroundColor: Colors.black.withOpacity(0)),
+            ),
             darkTheme: ThemeData.dark(),
             themeMode: settingsController.themeMode,
             home: appState.when(

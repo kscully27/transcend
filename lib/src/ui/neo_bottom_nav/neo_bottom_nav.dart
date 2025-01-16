@@ -369,15 +369,15 @@ class _NeoBottomNavNSheetState extends State<NeoBottomNavNSheet>
               spread: 20,
               depth: 20,
               borderRadius: 0,
-              width: 400,
+              width: double.infinity,
               duration: const Duration(milliseconds: 300),
-              // duration: const Duration(milliseconds: 300),
               height: 96,
               surfaceColor: bgColor,
               curveType: CurveType.concave,
               child: Material(
                 color: Colors.transparent,
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: items,
                 ),
               ),

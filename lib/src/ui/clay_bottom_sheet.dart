@@ -1,75 +1,139 @@
 import 'package:clay_containers/clay_containers.dart';
 import 'package:flutter/material.dart';
+import 'package:trancend/src/ui/glass_icon_button.dart';
 
-class ClayBottomSheet {
+class ClayBottomSheet extends StatelessWidget {
+  final Widget content;
+  final bool hasCloseButton;
+  final double heightPercent;
+
+  const ClayBottomSheet({
+    super.key,
+    required this.content,
+    this.hasCloseButton = true,
+    this.heightPercent = 0.5,
+  });
+
   static Future<T?> show<T>({
     required BuildContext context,
     required Widget content,
-    Color color = const Color(0xFF883912),
-    Color parentColor = const Color(0xFFD59074),
-    int depth = 15,
-    double spread = 2,
-    CurveType curveType = CurveType.concave,
-    double borderRadius = 30,
-    bool emboss = false,
+    bool hasCloseButton = true,
+    double heightPercent = 0.5,
   }) {
-    return showModalBottomSheet<T>(
-      context: context,
-      backgroundColor: Colors. ransparent,
-      barrierColor: Colors.black26,
-      isScrollControlled: true,
-      isDismissible: true,
-      enableDrag: true,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: parentColor,
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: EdgeInsets.only(top: spread),
-                child: ClayContainer(
-                  color: color,
-                  parentColor: parentColor,
-                  depth: emboss ? -depth : depth,
-                  spread: spread,
-                  curveType: curveType,
-                  surfaceColor: curveType == CurveType.none ? color : null,
-                  borderRadius: 0,
-                  emboss: emboss,
-                  customBorderRadius: BorderRadius.vertical(
-                    top: Radius.circular(borderRadius),
-                  ),
+    return Future.delayed(
+      const Duration(milliseconds: 360),
+      () => showModalBottomSheet<T>(
+        context: context,
+        backgroundColor: Colors.red,
+        barrierColor: Colors.transparent,
+        isDismissible: true,
+        isScrollControlled: true,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * heightPercent,
+        ),
+        builder: (context) {
+          return AnimatedBuilder(
+            animation: ModalRoute.of(context)!.animation!,
+            builder: (context, child) {
+              final delayedAnimation = CurvedAnimation(
+                parent: ModalRoute.of(context)!.animation!,
+                curve: const Interval(
+                  0.0,
+                  1.0,
+                  curve: Curves.easeOutBack,
+                ),
+              );
+              
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(delayedAnimation),
+                child: FadeTransition(
+                  opacity: delayedAnimation,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 12),
-                        Container(
-                          width: 40,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.white24,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        content,
-                        const SizedBox(height: 20),
-                      ],
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    child: ClayBottomSheet(
+                      content: content,
+                      hasCloseButton: hasCloseButton,
+                      heightPercent: heightPercent,
                     ),
                   ),
                 ),
-              ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(8),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(20)),
+        child: ClayContainer(
+          color: Colors.white,
+          borderRadius: 20,
+          depth: 50,
+          spread: 5,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.8),
+              borderRadius: const BorderRadius.all(Radius.circular(20)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: FractionallySizedBox(
+                    widthFactor: 0.25,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(2),
+                        border: Border.all(
+                          color: Colors.black12,
+                          width: 0.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                if (hasCloseButton)
+                  SizedBox(
+                    width: double.infinity,
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: GlassIconButton(
+                            icon: Icons.close,
+                            iconColor: Colors.black,
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: content,
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  content,
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 } 

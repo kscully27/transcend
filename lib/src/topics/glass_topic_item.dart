@@ -11,8 +11,8 @@ import 'package:trancend/src/trance/trance_player.dart';
 
 Color baseColor = const Color(0xFFD59074);
 
-class TopicItem extends StatefulWidget {
-  const TopicItem({
+class GlassTopicItem extends StatefulWidget {
+  const GlassTopicItem({
     super.key, 
     required this.topic,
     required this.index,
@@ -27,10 +27,10 @@ class TopicItem extends StatefulWidget {
   final bool isFavorite;
   final Function() onFavoritePressed;
   @override
-  State<TopicItem> createState() => _TopicItemState();
+  State<GlassTopicItem> createState() => _TopicItemState();
 }
 
-class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
+class _TopicItemState extends State<GlassTopicItem> with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
@@ -73,7 +73,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
   }
 
   @override
-  void didUpdateWidget(TopicItem oldWidget) {
+  void didUpdateWidget(GlassTopicItem oldWidget) {
     super.didUpdateWidget(oldWidget);
     
     // Reset animation if shouldAnimate changes to true

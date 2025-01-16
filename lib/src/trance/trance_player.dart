@@ -215,6 +215,7 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                           borderRadius: innerSize / 2,
                           depth: 25,
                           spread: 8,
+                          emboss: !isPlaying,
                           child: IconButton(
                             iconSize: innerSize * 0.4,
                             icon: sessionState.isLoading 

@@ -8,6 +8,7 @@ import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/providers/topics_provider.dart';
 import 'package:trancend/src/providers/user_topics_provider.dart';
 import 'package:trancend/src/services/firestore.service.dart';
+import 'package:trancend/src/topics/glass_topic_item.dart';
 import 'package:trancend/src/topics/topic_item.dart';
 import 'package:trancend/src/ui/clay_button.dart';
 
@@ -37,6 +38,7 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
   double _swipeProgress = 0;
   bool _isAnimating = false;
   final String _selectedCategory = 'All';
+  bool _useGlassItems = false;
 
   @override
   void initState() {
@@ -109,13 +111,21 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                   for (var ut in userTopics) ut.topicId: ut.isFavorite
                 };
                 
-                return TopicItem(
-                  index: index,
-                  shouldAnimate: _isAnimating,
-                  topic: topic,
-                  isFavorite: favoriteMap[topic.id] ?? false,
-                  onFavoritePressed: () => _toggleFavorite(topic.id),
-                );
+                return _useGlassItems
+                  ? GlassTopicItem(
+                      index: index,
+                      shouldAnimate: _isAnimating,
+                      topic: topic,
+                      isFavorite: favoriteMap[topic.id] ?? false,
+                      onFavoritePressed: () => _toggleFavorite(topic.id),
+                    )
+                  : TopicItem(
+                      index: index,
+                      shouldAnimate: _isAnimating,
+                      topic: topic,
+                      isFavorite: favoriteMap[topic.id] ?? false,
+                      onFavoritePressed: () => _toggleFavorite(topic.id),
+                    );
               },
               loading: () => const CircularProgressIndicator(),
               error: (error, stack) => Text('Error: $error'),
@@ -276,16 +286,43 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                   color: baseColor,
                   child: Align(
                     alignment: Alignment.bottomLeft,
-                    child: ClayText(
-                      "Goals",
-                      emboss: false,
-                      size: 36,
-                      parentColor: baseColor,
-                      textColor: titleColor.withAlpha((0.8 * 255).round()),
-                      color: baseColor,
-                      depth: 9,
-                      spread: 3,
-                      style: TextStyle(fontWeight: FontWeight.w300),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: ClayText(
+                            "Goals",
+                            emboss: false,
+                            size: 36,
+                            parentColor: baseColor,
+                            textColor: titleColor.withAlpha((0.8 * 255).round()),
+                            color: baseColor,
+                            depth: 9,
+                            spread: 3,
+                            style: TextStyle(fontWeight: FontWeight.w300),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              "Glass Style",
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Switch(
+                              value: _useGlassItems,
+                              onChanged: (value) {
+                                setState(() {
+                                  _useGlassItems = value;
+                                });
+                              },
+                              activeColor: Colors.white70,
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
