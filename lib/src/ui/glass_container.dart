@@ -10,6 +10,10 @@ class GlassContainer extends StatelessWidget {
   final double blurY;
   final Border? border;
   final List<BoxShadow>? boxShadow;
+  final double? width;
+  final double? height;
+  final EdgeInsets? padding;
+  final Decoration? decoration;
 
   const GlassContainer({
     super.key,
@@ -21,12 +25,20 @@ class GlassContainer extends StatelessWidget {
     this.blurY = 20.0,
     this.border,
     this.boxShadow,
+    this.width,
+    this.height,
+    this.padding,
+    this.decoration,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: margin,
+      width: width,
+      height: height,
+      padding: padding,
+      decoration: decoration,
       child: ClipRRect(
         borderRadius: borderRadius ?? BorderRadius.zero,
         child: BackdropFilter(

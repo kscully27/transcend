@@ -131,6 +131,9 @@ class _TopicItemState extends State<GlassTopicItem> with TickerProviderStateMixi
                   variant: GlassButtonVariant.text,
                   size: GlassButtonSize.xsmall,
                   align: GlassButtonAlign.center,
+                  textColor: Theme.of(context).colorScheme.onSurface,
+                  glassColor: Theme.of(context).colorScheme.surface.withOpacity(0.1),
+                  borderColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
                   onPressed: () {
                     widget.onFavoritePressed();
                     Navigator.pop(context);
@@ -147,6 +150,9 @@ class _TopicItemState extends State<GlassTopicItem> with TickerProviderStateMixi
                   icon: Remix.play_fill,
                   width: double.infinity,
                   margin: const EdgeInsets.only(bottom: 12),
+                  textColor: Theme.of(context).colorScheme.onSurface,
+                  glassColor: Theme.of(context).colorScheme.surface.withOpacity(0.1),
+                  borderColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
                   onPressed: () {
                     Navigator.pop(context); // Close the bottom sheet first
                     Future.microtask(() {

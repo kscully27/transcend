@@ -100,155 +100,157 @@ class CandyTopicItem extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            height: 120,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(0),
-              boxShadow: [
-                BoxShadow(
-                  color: shadowColor,
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                  offset: const Offset(0, 5),
-                ),
-                // BoxShadow(
-                //   color: shadowColor,
-                //   offset: const Offset(-5, 0),
-                // ),
-                // BoxShadow(
-                //   color: shadowColor,
-                //   offset: const Offset(5, 0),
-                // )
-              ],
-            ),
-            child: ShaderMask(
-              blendMode: BlendMode.hardLight,
-              shaderCallback: (Rect bounds) {
-                return RadialGradient(
-                  center: Alignment.center,
-                  radius: 150,
-                  colors: [
-                    highlightColor.withOpacity(0.6),
-                    Colors.transparent,
-                  ],
-                  stops: const [0.0, 1.0],
-                ).createShader(bounds);
-              },
-              child: InnerShadow(
-                key: GlobalKey(),
-                blur: 25,
-                color: Color.fromARGB(255, 250, 175, 143),
-                offset: const Offset(-24, 12),
-                child: Container(
-                  decoration: BoxDecoration(
-                    
-                    borderRadius: BorderRadius.circular(20),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [highlightColor, midColor, shadowColor],
-                      stops: const [0.3, 0.6, 1.0],
-                    ),
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 12, right: 12, bottom: 4),
+            child: Container(
+              padding: const EdgeInsets.all(120),
+              height: 120,
+              // width: double.infinity - 140,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: shadowColor,
+                    spreadRadius: 1,
+                    blurRadius: 5,
+                    offset: const Offset(0, 12),
                   ),
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        right: 20,
-                        top: 20,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          width: 60,
-                          height: 60,
-                          child: SimpleShadow(
-                            opacity: .7, // Default: 0.5
-                            color: Colors.white, // Default: Black
-                            offset: Offset(2, 2), // Default: Offset(2, 2)
-                            sigma: 2,
-                            child: SvgPicture.network(
-                              topic.svg,
-                              width: 60,
-                              height: 60,
-                              colorFilter: const ColorFilter.mode(
-                                Colors.white,
-                                BlendMode.srcIn,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              topic.group,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontFamily: 'TitilliumWeb',
-                                fontWeight: FontWeight.w300,
-                                color: Colors.white.withOpacity(0.6),
-                                letterSpacing: 1,
-                                shadows: [
-                                  Shadow(
-                                    color: shadowColor.withOpacity(0.9),
-                                    offset: const Offset(0, 3),
-                                    blurRadius: 4,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              topic.title,
-                              style: GoogleFonts.titilliumWeb(
-                                fontSize: 32,
-                                letterSpacing: -0.5,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                                height: 1.1,
-                                shadows: [
-                                  Shadow(
-                                    color: highlightColor,
-                                    offset: const Offset(2, 3),
-                                    blurRadius: 3,
-                                  ),
-                                ],
-                              ),
-                              // style: TextStyle(
-                              //   fontSize: 28,
-                              //   fontFamily: 'Nunito',
-                              //   fontWeight: FontWeight.w900,
-                              //   letterSpacing: -0.5,
-                              //   color: Colors.white,
-                              //   height: 1.1,
-                              //   shadows: [
-                              //     Shadow(
-                              //       color: shadowColor.withOpacity(0.6),
-                              //       offset: const Offset(0, 1),
-                              //       blurRadius: 3,
-                              //     ),
-                              //   ],
-                              // ),
-                            ),
-                          ],
-                        ),
-                      ),
+                ],
+              ),
+            ),
+          ),
+          Container(
+            height: 120,
+            width: double.infinity,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: ShaderMask(
+                blendMode: BlendMode.hardLight,
+                shaderCallback: (Rect bounds) {
+                  return RadialGradient(
+                    center: Alignment.center,
+                    radius: 40,
+                    // focal: Alignment.topLeft,
+                    focalRadius: 0.1,
+                    colors: [
+                      highlightColor.withOpacity(0.8),
+                      highlightColor.withOpacity(0.1),
                     ],
+                    stops: const [1.0, 1.0],
+                  ).createShader(bounds);
+                },
+                child: InnerShadow(
+                  key: GlobalKey(),
+                  blur: 25,
+                  color: Color.fromARGB(255, 250, 175, 143),
+                  offset: const Offset(-24, 12),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [highlightColor, midColor, shadowColor],
+                        stops: const [0.3, 0.6, 1.0],
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          right: 20,
+                          top: 20,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            width: 60,
+                            height: 60,
+                            child: SimpleShadow(
+                              opacity: .7, // Default: 0.5
+                              color: Colors.white, // Default: Black
+                              offset: Offset(2, 2), // Default: Offset(2, 2)
+                              sigma: 2,
+                              child: SvgPicture.network(
+                                topic.svg,
+                                width: 60,
+                                height: 60,
+                                colorFilter: const ColorFilter.mode(
+                                  Colors.white,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                topic.group,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontFamily: 'TitilliumWeb',
+                                  fontWeight: FontWeight.w300,
+                                  color: Colors.white.withOpacity(0.6),
+                                  letterSpacing: 1,
+                                  shadows: [
+                                    Shadow(
+                                      color: shadowColor.withOpacity(0.9),
+                                      offset: const Offset(0, 3),
+                                      blurRadius: 4,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                topic.title,
+                                style: GoogleFonts.titilliumWeb(
+                                  fontSize: 32,
+                                  letterSpacing: -0.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  height: 1.1,
+                                  shadows: [
+                                    Shadow(
+                                      color: highlightColor,
+                                      offset: const Offset(2, 3),
+                                      blurRadius: 3,
+                                    ),
+                                  ],
+                                ),
+                                // style: TextStyle(
+                                //   fontSize: 28,
+                                //   fontFamily: 'Nunito',
+                                //   fontWeight: FontWeight.w900,
+                                //   letterSpacing: -0.5,
+                                //   color: Colors.white,
+                                //   height: 1.1,
+                                //   shadows: [
+                                //     Shadow(
+                                //       color: shadowColor.withOpacity(0.6),
+                                //       offset: const Offset(0, 1),
+                                //       blurRadius: 3,
+                                //     ),
+                                //   ],
+                                // ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
