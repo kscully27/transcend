@@ -218,106 +218,108 @@ class GlassButton extends StatelessWidget {
           height: height,
           backgroundColor: glassColor,
           borderRadius: BorderRadius.circular(borderRadius),
-          decoration: BoxDecoration(
-            border: variant == GlassButtonVariant.outlined
-                ? Border.all(
-                    color: borderColor ?? textColor,
-                    width: borderWidth,
-                  )
-                : null,
-            borderRadius: BorderRadius.circular(borderRadius),
-          ),
-          child: Padding(
-            padding: padding ?? _defaultPadding,
-            child: Row(
-              mainAxisSize: mainAxisSize,
-              mainAxisAlignment: _mainAxisAlignment,
-              crossAxisAlignment: crossAxisAlignment,
-              children: [
-                if (icon != null) ...[
-                  if (glowAmount != GlowAmount.none)
-                    Container(
-                      child: SimpleShadow(
-                        opacity: _glowOpacity,
-                        color: glowColor ?? textColor,
-                        offset: _glowOffset,
-                        sigma: _glowSigma,
-                        child: Icon(
-                          icon,
-                          color: textColor,
-                          size: _iconSize,
-                        ),
-                      ),
+          child: Container(
+            decoration: BoxDecoration(
+              border: variant == GlassButtonVariant.outlined
+                  ? Border.all(
+                      color: borderColor ?? textColor,
+                      width: borderWidth,
                     )
-                  else
-                    Icon(
-                      icon,
-                      color: textColor,
-                      size: _iconSize,
-                    ),
-                  if (hasDivider) ...[
-                    SizedBox(width: _iconSpacing),
-                    Container(
-                      width: 1,
-                      height: _iconSize * 0.8,
-                      color: (borderColor ?? textColor).withOpacity(0.5),
-                    ),
-                  ],
-                  SizedBox(width: _iconSpacing),
-                ] else if (iconUrl != null) ...[
-                  if (glowAmount != GlowAmount.none)
-                    Container(
-                      width: _iconSize,
-                      height: _iconSize,
-                      child: SimpleShadow(
-                        opacity: _glowOpacity,
-                        color: glowColor ?? textColor,
-                        offset: _glowOffset,
-                        sigma: _glowSigma,
-                        child: SvgPicture.network(
-                          iconUrl!,
-                          colorFilter: ColorFilter.mode(
-                            textColor,
-                            BlendMode.srcIn,
+                  : null,
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+            child: Padding(
+              padding: padding ?? _defaultPadding,
+              child: Row(
+                mainAxisSize: mainAxisSize,
+                mainAxisAlignment: _mainAxisAlignment,
+                crossAxisAlignment: crossAxisAlignment,
+                children: [
+                  if (icon != null) ...[
+                    if (glowAmount != GlowAmount.none)
+                      Container(
+                        child: SimpleShadow(
+                          opacity: _glowOpacity,
+                          color: glowColor ?? textColor,
+                          offset: _glowOffset,
+                          sigma: _glowSigma,
+                          child: Icon(
+                            icon,
+                            color: textColor,
+                            size: _iconSize,
                           ),
                         ),
+                      )
+                    else
+                      Icon(
+                        icon,
+                        color: textColor,
+                        size: _iconSize,
                       ),
-                    )
-                  else
-                    SvgPicture.network(
-                      iconUrl!,
-                      width: _iconSize,
-                      height: _iconSize,
-                      colorFilter: ColorFilter.mode(
-                        textColor,
-                        BlendMode.srcIn,
+                    if (hasDivider) ...[
+                      SizedBox(width: _iconSpacing),
+                      Container(
+                        width: 1,
+                        height: _iconSize * 0.8,
+                        color: (borderColor ?? textColor).withOpacity(0.5),
                       ),
-                    ),
-                  if (hasDivider) ...[
+                    ],
                     SizedBox(width: _iconSpacing),
-                    Container(
-                      width: 1,
-                      height: _iconSize * 0.8,
-                      color: (borderColor ?? textColor).withOpacity(0.5),
-                    ),
+                  ] else if (iconUrl != null) ...[
+                    if (glowAmount != GlowAmount.none)
+                      Container(
+                        width: _iconSize,
+                        height: _iconSize,
+                        child: SimpleShadow(
+                          opacity: _glowOpacity,
+                          color: glowColor ?? textColor,
+                          offset: _glowOffset,
+                          sigma: _glowSigma,
+                          child: SvgPicture.network(
+                            iconUrl!,
+                            colorFilter: ColorFilter.mode(
+                              textColor,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      SvgPicture.network(
+                        iconUrl!,
+                        width: _iconSize,
+                        height: _iconSize,
+                        colorFilter: ColorFilter.mode(
+                          textColor,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    if (hasDivider) ...[
+                      SizedBox(width: _iconSpacing),
+                      Container(
+                        width: 1,
+                        height: _iconSize * 0.8,
+                        color: (borderColor ?? textColor).withOpacity(0.5),
+                      ),
+                    ],
+                    SizedBox(width: _iconSpacing),
                   ],
-                  SizedBox(width: _iconSpacing),
+                  Flexible(
+                    fit: FlexFit.loose,
+                    child: glowAmount != GlowAmount.none
+                        ? Container(
+                            child: SimpleShadow(
+                              opacity: _glowOpacity,
+                              color: glowColor ?? textColor,
+                              offset: _glowOffset,
+                              sigma: _glowSigma,
+                              child: _buildText(),
+                            ),
+                          )
+                        : _buildText(),
+                  ),
                 ],
-                Flexible(
-                  fit: FlexFit.loose,
-                  child: glowAmount != GlowAmount.none
-                      ? Container(
-                          child: SimpleShadow(
-                            opacity: _glowOpacity,
-                            color: glowColor ?? textColor,
-                            offset: _glowOffset,
-                            sigma: _glowSigma,
-                            child: _buildText(),
-                          ),
-                        )
-                      : _buildText(),
-                ),
-              ],
+              ),
             ),
           ),
         ),

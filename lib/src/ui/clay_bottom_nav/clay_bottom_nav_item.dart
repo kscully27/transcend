@@ -1,7 +1,7 @@
-part of './neo_bottom_nav.dart';
+part of 'clay_bottom_nav.dart';
 
-/// [BottomNavigationBarItem] (bottom navigation bar items) for [NeoBottomNavNSheet]
-class NeoBottomNavItem {
+/// [BottomNavigationBarItem] (bottom navigation bar items) for [ClayBottomNavNSheet]
+class ClayBottomNavItem {
   /// Icon when item is not selected
   final IconData icon;
 
@@ -11,14 +11,14 @@ class NeoBottomNavItem {
   /// Label of the item
   // final String label;
 
-  const NeoBottomNavItem({
+  const ClayBottomNavItem({
     required this.icon,
     // required this.label,
     this.activeIcon,
   });
 }
 
-class _NeoBottomNavItem extends StatelessWidget {
+class _ClayBottomNavItem extends StatelessWidget {
   final IconData icon;
   final IconData? activeIcon;
   // final String label;
@@ -31,7 +31,7 @@ class _NeoBottomNavItem extends StatelessWidget {
   final bool hide;
   final VoidCallback? onTap;
 
-  const _NeoBottomNavItem({
+  const _ClayBottomNavItem({
     required this.icon,
     // required this.label,
     this.padding,

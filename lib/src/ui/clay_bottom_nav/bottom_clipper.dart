@@ -1,6 +1,6 @@
-part of './neo_bottom_nav.dart';
+part of 'clay_bottom_nav.dart';
 
-/// Clip background of [NeoBottomNavNSheet] when sheet is disabled
+/// Clip background of [ClayBottomNavNSheet] when sheet is disabled
 class _BottomClipperPlain extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -18,7 +18,7 @@ class _BottomClipperPlain extends CustomClipper<Path> {
   }
 }
 
-/// Clip background of [NeoBottomNavNSheet] when sheet is enabled
+/// Clip background of [ClayBottomNavNSheet] when sheet is enabled
 class _BottomClipper extends CustomClipper<Path> {
   final double value;
 

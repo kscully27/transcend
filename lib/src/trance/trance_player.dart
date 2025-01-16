@@ -4,7 +4,7 @@ import 'package:clay_containers/clay_containers.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/session.model.dart';
 import 'package:trancend/src/providers/trance_provider.dart';
-import 'package:trancend/src/ui/clay_slider.dart';
+import 'package:trancend/src/ui/clay/clay_slider.dart';
 
 Color baseColor = const Color(0xFFD59074);
 

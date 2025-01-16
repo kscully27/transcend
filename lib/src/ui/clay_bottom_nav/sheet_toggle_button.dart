@@ -1,4 +1,4 @@
-part of './neo_bottom_nav.dart';
+part of 'clay_bottom_nav.dart';
 
 /// Toggle button for the bottom sheet
 class _SheetToggleButton extends StatelessWidget {

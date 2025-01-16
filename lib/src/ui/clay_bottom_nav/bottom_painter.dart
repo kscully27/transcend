@@ -1,6 +1,6 @@
-part of './neo_bottom_nav.dart';
+part of 'clay_bottom_nav.dart';
 
-/// Top glowing border painter for  [NeoBottomNavNSheet] when sheet is disabled
+/// Top glowing border painter for  [ClayBottomNavNSheet] when sheet is disabled
 class _BottomPainterPlain extends CustomPainter {
   final List<Color> colors;
 
@@ -31,7 +31,7 @@ class _BottomPainterPlain extends CustomPainter {
   }
 }
 
-/// Top glowing border painter for  [NeoBottomNavNSheet] when sheet is enabled
+/// Top glowing border painter for  [ClayBottomNavNSheet] when sheet is enabled
 class _BottomPainter extends CustomPainter {
   final List<Color> colors;
   final double value;

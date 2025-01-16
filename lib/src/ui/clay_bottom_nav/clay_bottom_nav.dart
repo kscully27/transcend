@@ -1,4 +1,4 @@
-library;
+library clay_bottom_nav;
 
 import 'dart:math' show max, pi, sqrt;
 
@@ -7,13 +7,10 @@ import 'package:clay_containers/utils/clay_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:trancend/src/ui/glass_bottom_sheet.dart';
 
-part './bottom_clipper.dart';
-
-part './bottom_painter.dart';
-
-part './neo_bottom_nav_item.dart';
-
-part './sheet_toggle_button.dart';
+part 'clay_bottom_nav_item.dart';
+part 'bottom_clipper.dart';
+part 'bottom_painter.dart';
+part 'sheet_toggle_button.dart';
 
 class ClipShadowPath extends StatelessWidget {
   final List<BoxShadow> shadow;
@@ -71,11 +68,11 @@ class _ClipShadowShadowPainter extends CustomPainter {
 }
 
 /// Animated, modern and highly customisable [BottomNavigationBar]
-class NeoBottomNavNSheet extends StatefulWidget {
-  /// List of [NeoBottomNavItem] (bottom navigation items)
-  final List<NeoBottomNavItem> items;
+class ClayBottomNavNSheet extends StatefulWidget {
+  /// List of [ClayBottomNavItem] (bottom navigation items)
+  final List<ClayBottomNavItem> items;
 
-  /// [Function] callback that returns index of selected [NeoBottomNavItem]
+  /// [Function] callback that returns index of selected [ClayBottomNavItem]
   final void Function(int index)? onTap;
 
   /// Index of default selected item
@@ -108,14 +105,14 @@ class NeoBottomNavNSheet extends StatefulWidget {
   /// [Decoration] for toggle button
   final BoxDecoration? sheetToggleDecoration;
 
-  /// [List] of [Color] for border over [NeoBottomNavNSheet] ([Gradient] from left to right)
+  /// [List] of [Color] for border over [ClayBottomNavNSheet] ([Gradient] from left to right)
   final List<Color>? borderColors;
 
-  /// Background [Color] of [NeoBottomNavNSheet]
+  /// Background [Color] of [ClayBottomNavNSheet]
   final Color? backgroundColor;
   final Color? parentColor;
 
-  /// Background [Gradient] of [NeoBottomNavNSheet]
+  /// Background [Gradient] of [ClayBottomNavNSheet]
   final Gradient? backgroundGradient;
 
   /// [Color] of selected nav item
@@ -124,10 +121,10 @@ class NeoBottomNavNSheet extends StatefulWidget {
   /// [Color] of unselected nav item
   final Color? unselectedItemColor;
 
-  /// [Gradient] of selected [NeoBottomNavItem]
+  /// [Gradient] of selected [ClayBottomNavItem]
   final Gradient? selectedItemGradient;
 
-  /// [Gradient] of unselected [NeoBottomNavItem]
+  /// [Gradient] of unselected [ClayBottomNavItem]
   final Gradient? unselectedItemGradient;
 
   /// [Function] callback that returns ```true``` if sheet is open
@@ -143,7 +140,7 @@ class NeoBottomNavNSheet extends StatefulWidget {
   /// Clay container emboss
   final bool emboss;
 
-  const NeoBottomNavNSheet({
+  const ClayBottomNavNSheet({
     super.key,
     required this.items,
     this.onTap,
@@ -177,10 +174,10 @@ class NeoBottomNavNSheet extends StatefulWidget {
         );
 
   @override
-  State<NeoBottomNavNSheet> createState() => _NeoBottomNavNSheetState();
+  State<ClayBottomNavNSheet> createState() => _ClayBottomNavNSheetState();
 }
 
-class _NeoBottomNavNSheetState extends State<NeoBottomNavNSheet>
+class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
     with SingleTickerProviderStateMixin {
   int? _selectedIndex;
   late AnimationController _animationController;
@@ -248,14 +245,14 @@ class _NeoBottomNavNSheetState extends State<NeoBottomNavNSheet>
 
   @override
   Widget build(BuildContext context) {
-    List<NeoBottomNavItem> _items = widget.items;
+    List<ClayBottomNavItem> _items = widget.items;
     var theme = Theme.of(context);
     var items = <Widget>[];
 
     for (var item in _items) {
       var i = _items.indexOf(item);
       items.add(Expanded(
-        child: _NeoBottomNavItem(
+        child: _ClayBottomNavItem(
           icon: item.icon,
           activeIcon: item.activeIcon,
           // label: item.label,
@@ -311,12 +308,14 @@ class _NeoBottomNavNSheetState extends State<NeoBottomNavNSheet>
       }
     }
 
-    var bgColor = widget.backgroundColor ?? Theme.of(context).colorScheme.surface;
-    var gradientColors = widget.borderColors ?? [
-      bgColor.withOpacity(0.8),
-      Theme.of(context).colorScheme.primary.withOpacity(0.6),
-      bgColor.withOpacity(0.8),
-    ];
+    var bgColor =
+        widget.backgroundColor ?? Theme.of(context).colorScheme.surface;
+    var gradientColors = widget.borderColors ??
+        [
+          bgColor.withOpacity(0.8),
+          Theme.of(context).colorScheme.primary.withOpacity(0.6),
+          bgColor.withOpacity(0.8),
+        ];
 
     CustomPainter painter = _BottomPainterPlain(gradientColors);
     CustomClipper<Path> clipper = _BottomClipperPlain();
@@ -331,14 +330,16 @@ class _NeoBottomNavNSheetState extends State<NeoBottomNavNSheet>
       );
     }
 
-    final parentColorValue = widget.parentColor ?? Theme.of(context).colorScheme.surface;
+    final parentColorValue =
+        widget.parentColor ?? Theme.of(context).colorScheme.surface;
     var shadowList = <BoxShadow>[
       BoxShadow(
         color: ClayUtils.getAdjustColor(
           parentColorValue,
           widget.emboss ? 0 - widget.depth : widget.depth,
         ).withOpacity(0.3),
-        offset: Offset(0 - widget.spread.toDouble(), 0 - widget.spread.toDouble()),
+        offset:
+            Offset(0 - widget.spread.toDouble(), 0 - widget.spread.toDouble()),
         blurRadius: widget.spread.toDouble(),
       ),
       BoxShadow(

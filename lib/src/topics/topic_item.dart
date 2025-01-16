@@ -58,12 +58,12 @@ class _ClayTopicItemState extends State<ClayTopicItem> {
                   child: Text(
                     widget.topic.title,
 
-                          style: GoogleFonts.titilliumWeb(
-                            fontSize: 60,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            height: 1.1,
-                          ),
+                    style: GoogleFonts.titilliumWeb(
+                      fontSize: 60,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      height: 1.1,
+                    ),
                     // emboss: _isEmbossed,
                     // size: 20,
                     // parentColor: theme.colorScheme.surface,
@@ -81,7 +81,8 @@ class _ClayTopicItemState extends State<ClayTopicItem> {
                 child: Stack(
                   children: [
                     ClayContainer(
-                      surfaceColor: AppColors.themedWithContext(context, widget.topic.appColor, "light", "shadow"),
+                      surfaceColor: AppColors.themedWithContext(
+                          context, widget.topic.appColor, "light", "shadow"),
                       parentColor: theme.colorScheme.surface,
                       emboss: _isEmbossed,
                       spread: 8,
@@ -101,7 +102,8 @@ class _ClayTopicItemState extends State<ClayTopicItem> {
                           widget.topic.svg,
                           fit: BoxFit.cover,
                           alignment: Alignment.bottomCenter,
-                          color: AppColors.themedWithContext(context, widget.topic.appColor, "flat", "flat"),
+                          color: AppColors.themedWithContext(
+                              context, widget.topic.appColor, "flat", "flat"),
                           width: _fullWidth,
                         ),
                       ),

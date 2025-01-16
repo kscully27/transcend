@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:trancend/src/models/topic.model.dart';
-import 'package:trancend/src/ui/clay_container.dart';
-import 'package:trancend/src/ui/clay_text.dart';
+import 'package:trancend/src/ui/clay/clay_container.dart';
+import 'package:trancend/src/ui/clay/clay_text.dart';
 
 class ClayTopicItem extends StatelessWidget {
   final Topic topic;

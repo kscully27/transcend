@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:trancend/src/ui/clay_container.dart';
+import 'package:trancend/src/ui/clay/clay_container.dart';
 
 class ClayText extends StatelessWidget {
   final String text;

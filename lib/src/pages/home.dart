@@ -6,7 +6,7 @@ import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/pages/settings.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
 import 'package:trancend/src/topics/topics_list_view.dart';
-import 'package:trancend/src/ui/neo_bottom_nav/neo_bottom_nav.dart';
+import 'package:trancend/src/ui/clay_bottom_nav/clay_bottom_nav.dart';
 import 'package:trancend/src/constants/app_colors.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -52,7 +52,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   )
                 : const SettingsPage(),
           ),
-          bottomNavigationBar: NeoBottomNavNSheet(
+          bottomNavigationBar: ClayBottomNavNSheet(
             backgroundColor: theme.colorScheme.surface,
             emboss: false,
             parentColor: theme.colorScheme.background,
@@ -84,12 +84,12 @@ class _HomePageState extends ConsumerState<HomePage> {
               onSheetToggle: (v) {
                 setState(() {});
             },
-            items: const [
-              NeoBottomNavItem(
+            items: [
+              ClayBottomNavItem(
                 activeIcon: Remix.home_6_fill,
                 icon: Remix.home_6_line,
               ),
-              NeoBottomNavItem(
+              ClayBottomNavItem(
                 icon: Remix.user_3_line,
                 activeIcon: Remix.user_3_fill,
               ),
