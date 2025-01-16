@@ -1,5 +1,5 @@
-import 'package:clay_containers/clay_containers.dart';
 import 'package:flutter/material.dart';
+import 'package:trancend/src/ui/clay_container.dart';
 
 enum ClayButtonVariant {
   outlined,
@@ -16,10 +16,10 @@ enum ClayButtonSize {
 
 class ClayButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final IconData? icon;
   final Color color;
-  final Color? parentColor;
+  final Color parentColor;
   final Color? textColor;
   final Color? borderColor;
   final double borderWidth;
@@ -29,7 +29,7 @@ class ClayButton extends StatelessWidget {
   final double? width;
   final double? height;
   final double spread;
-  final int depth;
+  final double depth;
   final CurveType? curveType;
   final bool emboss;
   final ClayButtonVariant variant;
@@ -41,7 +41,7 @@ class ClayButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     required this.color,
-    this.parentColor,
+    required this.parentColor,
     this.textColor = Colors.white,
     this.borderColor,
     this.borderWidth = 0.8,
@@ -51,8 +51,8 @@ class ClayButton extends StatelessWidget {
     this.width,
     this.height,
     this.spread = 2,
-    this.depth = 40,
-    this.curveType = CurveType.concave,
+    this.depth = 40.0,
+    this.curveType,
     this.emboss = false,
     this.variant = ClayButtonVariant.outlined,
     this.size = ClayButtonSize.medium,

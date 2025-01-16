@@ -205,13 +205,99 @@ class GradientColors {
       {this.type = GradientType.Flat, this.stops = const [0.0, 1.0]});
 }
 
+const Map<String, Map<String, int>> earthToneColors = {
+  "khaki": {
+    "flat": 0xFFD59074,
+    "light": 0xFFE2BFAF,
+    "dark": 0xFF883912,
+    "shadow": 0xFF8B5E3C,
+    "highlight": 0xFFFFFFFF,
+  },
+  "blue": {
+    "flat": 0xFFD59074,
+    "light": 0xFFE6B695,
+    "dark": 0xFFB67857,
+    "shadow": 0xFF8B5E3C,
+    "highlight": 0xFFF2D9C7,
+  },
+  "green": {
+    "flat": 0xFF8B7355,
+    "light": 0xFFAA9177,
+    "dark": 0xFF6D5A43,
+    "shadow": 0xFF4D3F2D,
+    "highlight": 0xFFCCBDAA,
+  },
+  "purple": {
+    "flat": 0xFF9C7A63,
+    "light": 0xFFBE9B84,
+    "dark": 0xFF7E5F48,
+    "shadow": 0xFF5E4636,
+    "highlight": 0xFFDEC3AD,
+  },
+  "red": {
+    "flat": 0xFFA65D57,
+    "light": 0xFFC88078,
+    "dark": 0xFF884540,
+    "shadow": 0xFF663330,
+    "highlight": 0xFFE6B3B0,
+  },
+  "orange": {
+    "flat": 0xFFD6924A,
+    "light": 0xFFE5B37C,
+    "dark": 0xFFB37339,
+    "shadow": 0xFF8C592D,
+    "highlight": 0xFFF2D4B3,
+  },
+  "pink": {
+    "flat": 0xFFCB8A72,
+    "light": 0xFFDBAB93,
+    "dark": 0xFFAD6B53,
+    "shadow": 0xFF8B503A,
+    "highlight": 0xFFEBCCB4,
+  },
+  "dark": {
+    "flat": 0xFF4A3B2F,
+    "light": 0xFF695647,
+    "dark": 0xFF362B22,
+    "shadow": 0xFF231C16,
+    "highlight": 0xFF8C7A6B,
+  },
+  "light": {
+    "flat": 0xFFF5E6D3,
+    "light": 0xFFFFF4E6,
+    "dark": 0xFFE6D0B3,
+    "shadow": 0xFFBFA88C,
+    "highlight": 0xFFFFFAF0,
+  },
+  "white": {
+    "flat": 0xFFFAF6F0,
+    "dark": 0xFFE6D0B3,
+    "shadow": 0xFFD4C4A8,
+  },
+  "black": {
+    "flat": 0xFF2B1810,
+  },
+  "google": {
+    "flat": 0xFF8B5E3C,
+  },
+  "facebook": {
+    "flat": 0xFF6B4423,
+  },
+  "transparent": {
+    "flat": 0x00000000
+  },
+  "primaryDark": {
+    "flat": 0xFF4A3B2F
+  }
+};
+
 const Map<String, Map<String, int>> colors = {
   "khaki": {
-    "flat": 0xFFD59074,    // Warm Terracotta
-    "light": 0xFFE2BFAF,   // Light Clay
-    "dark": 0xFF883912,    // Deep Clay
-    "shadow": 0xFF8B5E3C,  // Dark Brown
-    "highlight": 0xFFFFFFFF, // Pale Clay
+    "flat": 0xFFFF8E7E,    // Mars Pink (Primary)
+    "light": 0xFFFFB5A7,   // Light Mars Pink
+    "dark": 0xFFE56F5D,    // Dark Mars Pink
+    "shadow": 0xFFCC4F3D,  // Deep Mars Pink
+    "highlight": 0xFFFFD6CF, // Pale Mars Pink
   },
   "blue": {
     "flat": 0xFFD59074,    // Warm Terracotta
@@ -242,11 +328,11 @@ const Map<String, Map<String, int>> colors = {
     "highlight": 0xFFE6B3B0, // Pale Terra Cotta
   },
   "orange": {
-    "flat": 0xFFD6924A,    // Raw Sienna
-    "light": 0xFFE5B37C,   // Light Sienna
-    "dark": 0xFFB37339,    // Dark Sienna
-    "shadow": 0xFF8C592D,  // Deep Sienna
-    "highlight": 0xFFF2D4B3, // Pale Sienna
+    "flat": 0xFFFF7F50,    // Coral Orange
+    "light": 0xFFFFAB90,   // Light Coral
+    "dark": 0xFFE65B32,    // Dark Coral
+    "shadow": 0xFFCC4019,  // Deep Coral
+    "highlight": 0xFFFFCFBF, // Pale Coral
   },
   "pink": {
     "flat": 0xFFCB8A72,    // Rose Clay
@@ -256,18 +342,18 @@ const Map<String, Map<String, int>> colors = {
     "highlight": 0xFFEBCCB4, // Pale Rose Clay
   },
   "dark": {
-    "flat": 0xFF4A3B2F,    // Dark Earth
-    "light": 0xFF695647,   // Medium Earth
-    "dark": 0xFF362B22,    // Deeper Earth
-    "shadow": 0xFF231C16,  // Darkest Earth
-    "highlight": 0xFF8C7A6B, // Light Earth
+    "flat": 0xFF2D1810,    // Mars Dark
+    "light": 0xFF4A2920,   // Light Mars Dark
+    "dark": 0xFF1A0E09,    // Deep Mars Dark
+    "shadow": 0xFF0D0704,  // Shadow Mars Dark
+    "highlight": 0xFF6B3F30, // Highlight Mars Dark
   },
   "light": {
-    "flat": 0xFFF5E6D3,    // Natural Cream
-    "light": 0xFFFFF4E6,   // Light Cream
-    "dark": 0xFFE6D0B3,    // Dark Cream
-    "shadow": 0xFFBFA88C,  // Shadow Cream
-    "highlight": 0xFFFFFAF0, // Bright Cream
+    "flat": 0xFFFFF0EB,    // Mars White
+    "light": 0xFFFFF8F6,   // Light Mars White
+    "dark": 0xFFFFE6E0,    // Dark Mars White
+    "shadow": 0xFFFFD6CF,  // Shadow Mars White
+    "highlight": 0xFFFFFFFF, // Pure White
   },
   "white": {
     "flat": 0xFFFAF6F0,    // Off White
@@ -448,4 +534,17 @@ class AppColors {
     }
     return mainColor;
   }
+
+  static LinearGradient marsBackgroundGradient(BuildContext context) {
+    return LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Theme.of(context).colorScheme.surface,
+        Theme.of(context).colorScheme.surfaceTint,
+      ],
+    );
+  }
+
+  static bool enableGradients = true;  // Global toggle for gradients
 }

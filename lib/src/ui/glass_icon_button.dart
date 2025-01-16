@@ -1,36 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:trancend/src/ui/glass_container.dart';
 
 class GlassIconButton extends StatelessWidget {
   final IconData icon;
-  final double iconSize;
+  final VoidCallback? onPressed;
   final Color iconColor;
-  final VoidCallback onPressed;
-  final EdgeInsets padding;
-  final EdgeInsets margin;
-  final AlignmentGeometry alignment;
+  final Color backgroundColor;
+  final double size;
 
   const GlassIconButton({
     super.key,
     required this.icon,
-    this.iconSize = 32,
-    this.iconColor = Colors.black,
-    required this.onPressed,
-    this.padding = const EdgeInsets.all(0),
-    this.margin = const EdgeInsets.all(0),
-    this.alignment = Alignment.center,
+    this.onPressed,
+    this.iconColor = Colors.white,
+    this.backgroundColor = Colors.white10,
+    this.size = 40,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: margin,
-      padding: padding,
-      alignment: alignment,
-      child: IconButton(
-        icon: Icon(icon, color: iconColor),
-        iconSize: iconSize,
-        padding: EdgeInsets.zero,
-        onPressed: onPressed,
+    return GlassContainer(
+      backgroundColor: backgroundColor,
+      borderRadius: BorderRadius.circular(size / 2),
+      margin: const EdgeInsets.all(8),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(size / 2),
+          onTap: onPressed,
+          child: Container(
+            width: size,
+            height: size,
+            alignment: Alignment.center,
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: size * 0.5,
+            ),
+          ),
+        ),
       ),
     );
   }

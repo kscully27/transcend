@@ -7,6 +7,7 @@ import 'package:trancend/src/pages/settings.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
 import 'package:trancend/src/topics/topics_list_view.dart';
 import 'package:trancend/src/ui/neo_bottom_nav/neo_bottom_nav.dart';
+import 'package:trancend/src/constants/app_colors.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -37,13 +38,20 @@ class _HomePageState extends ConsumerState<HomePage> {
         return Scaffold(
           extendBody: true,
           backgroundColor: theme.colorScheme.background,
-          body: _index == 0
-              ? data.topics.when(
-                  data: (topics) => TopicsListView(),
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => Center(child: Text('Error loading topics: $error')),
-                )
-              : const SettingsPage(),
+          body: Container(
+            decoration: AppColors.enableGradients
+                ? BoxDecoration(
+                    gradient: AppColors.marsBackgroundGradient(context),
+                  )
+                : null,
+            child: _index == 0
+                ? data.topics.when(
+                    data: (topics) => TopicsListView(),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (error, stack) => Center(child: Text('Error loading topics: $error')),
+                  )
+                : const SettingsPage(),
+          ),
           bottomNavigationBar: NeoBottomNavNSheet(
             backgroundColor: theme.colorScheme.surface,
             emboss: false,

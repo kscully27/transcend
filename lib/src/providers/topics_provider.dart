@@ -48,4 +48,10 @@ class Topics extends _$Topics {
   }
 
   String get selectedCategory => _selectedCategory;
+  set selectedCategory(String value) => _selectedCategory = value;
+
+  void setSelectedCategory(String category) {
+    state = AsyncValue.data(state.value!);
+    selectedCategory = category;
+  }
 } 
