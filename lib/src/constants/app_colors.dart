@@ -324,7 +324,13 @@ class AppColors {
   static Color shadow(String name) => _getColor(name, 'shadow');
 
   static Color themed(String name, String lightMode, [String? darkMode]) {
-    final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    // We can't detect theme here without context, so we'll keep this method
+    // for backward compatibility but mark it as deprecated
+    return _getColor(name, lightMode);
+  }
+
+  static Color themedWithContext(BuildContext context, String name, String lightMode, [String? darkMode]) {
+    final brightness = Theme.of(context).brightness;
     final mode = brightness == Brightness.light ? lightMode : (darkMode ?? lightMode);
     return _getColor(name, mode);
   }

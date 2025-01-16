@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/constants/app_colors.dart';
-import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
-import 'package:trancend/src/ui/clay_bottom_sheet2.dart';
-import 'package:trancend/src/ui/clay_button.dart';
+import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/trance/trance_player.dart';
+import 'package:trancend/src/ui/clay_button.dart';
 
 class TopicItem extends StatefulWidget {
   const TopicItem({
@@ -320,7 +319,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                             parentColor: theme.colorScheme.surface,
                             textColor: !_isEmbossed
                                 ? theme.colorScheme.onSurface
-                                : AppColors.highlight(topic.appColor),
+                                : AppColors.themedWithContext(context, topic.appColor, "flat", "flat"),
                             color: theme.colorScheme.surface,
                             spread: 2,
                             style: TextStyle(fontWeight: FontWeight.w200),
@@ -332,7 +331,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                         child: Stack(
                           children: [
                             ClayContainer(
-                              surfaceColor: AppColors.light(topic.appColor),
+                              surfaceColor: AppColors.themedWithContext(context, topic.appColor, "light", "shadow"),
                               parentColor: theme.colorScheme.surface,
                               emboss: _isEmbossed,
                               spread: 8,
@@ -352,7 +351,7 @@ class _TopicItemState extends State<TopicItem> with TickerProviderStateMixin {
                                   topic.svg,
                                   fit: BoxFit.cover,
                                   alignment: Alignment.bottomCenter,
-                                  color: AppColors.flat(topic.appColor),
+                                  color: AppColors.themedWithContext(context, topic.appColor, "flat", "flat"),
                                   width: _fullWidth,
                                 ),
                               ),

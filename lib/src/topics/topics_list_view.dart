@@ -346,7 +346,8 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                                 .read(topicsProvider.notifier)
                                 .getDisplayCategory(category),
                             color: isSelected && category != 'All'
-                                ? AppColors.themed(
+                                ? AppColors.themedWithContext(
+                                    context,
                                     AppColors.getColorName(category.toLowerCase()),
                                     'light',
                                     'flat'
@@ -358,7 +359,8 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                                 : ClayButtonVariant.text,
                             size: ClayButtonSize.xsmall,
                             textColor: isSelected && category != 'All'
-                                ? AppColors.themed(
+                                ? AppColors.themedWithContext(
+                                    context,
                                     AppColors.getColorName(category.toLowerCase()),
                                     'shadow',
                                     'highlight'
