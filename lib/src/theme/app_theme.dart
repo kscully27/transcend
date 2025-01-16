@@ -19,10 +19,10 @@ class AppTheme {
         onSecondary: AppColors.dark('orange'),
         error: AppColors.flat('red'),
         onError: AppColors.dark('red'),
-        background: AppColors.flat('light'),
+        background: AppColors.flat('khaki'),
         onBackground: AppColors.dark('light'),
-        surface: AppColors.light('light'),
-        onSurface: AppColors.dark('light'),
+        surface: AppColors.flat('khaki'),
+        onSurface: AppColors.highlight('khaki'),
         surfaceTint: AppColors.light('khaki'),
       ),
 

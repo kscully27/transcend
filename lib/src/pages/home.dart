@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
+import 'package:trancend/src/pages/settings.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
 import 'package:trancend/src/topics/topics_list_view.dart';
 import 'package:trancend/src/ui/neo_bottom_nav/neo_bottom_nav.dart';
@@ -42,17 +43,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   loading: () => const Center(child: CircularProgressIndicator()),
                   error: (error, stack) => Center(child: Text('Error loading topics: $error')),
                 )
-              : Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Page $_index',
-                        style: theme.textTheme.headlineMedium,
-                      ),
-                    ],
-                  ),
-                ),
+              : const SettingsPage(),
           bottomNavigationBar: NeoBottomNavNSheet(
             backgroundColor: theme.colorScheme.surface,
             emboss: false,

@@ -16,9 +16,11 @@ class MyApp extends ConsumerWidget {
   const MyApp({
     super.key,
     required this.settingsController,
+    this.themeMode,
   });
 
   final SettingsController settingsController;
+  final ThemeMode? themeMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -36,6 +38,7 @@ class MyApp extends ConsumerWidget {
         listenable: settingsController,
         builder: (BuildContext context, Widget? child) {
           return MaterialApp(
+            debugShowCheckedModeBanner: false,
             restorationScopeId: 'app',
             localizationsDelegates: const [
               AppLocalizations.delegate,
@@ -50,7 +53,7 @@ class MyApp extends ConsumerWidget {
                 AppLocalizations.of(context)!.appTitle,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
-            themeMode: settingsController.themeMode,
+            themeMode: themeMode ?? settingsController.themeMode,
             home: appState.when(
               data: (data) {
                 if (!data.isInitialized) {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
+import 'package:trancend/src/providers/theme_provider.dart';
 
 import 'src/app.dart';
 import 'src/settings/settings_controller.dart';
@@ -22,7 +23,11 @@ void runMainApp(FirebaseOptions firebaseOptions) async {
           builder: (context, ref, child) {
             // Initialize app state
             ref.watch(appStateProvider);
-            return MyApp(settingsController: settingsController);
+            final isDarkMode = ref.watch(themeProvider);
+            return MyApp(
+              settingsController: settingsController,
+              themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            );
           },
         ),
       ),

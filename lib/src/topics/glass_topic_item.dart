@@ -109,14 +109,18 @@ class _TopicItemState extends State<GlassTopicItem> with TickerProviderStateMixi
               children: [
                 Text(
                   topic.title,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  style: const TextStyle(
+                    fontSize: 24,
                     fontWeight: FontWeight.w400,
+                    color: Colors.black87,
                   ),
                 ),
                 Text(
                   topic.description,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  style: const TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.w300,
+                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 12),
