@@ -13,6 +13,7 @@ import 'package:trancend/src/topics/glass_topic_item.dart';
 import 'package:trancend/src/ui/clay_button.dart';
 import 'package:trancend/src/ui/glass_button.dart';
 import 'package:trancend/src/ui/glass_container.dart';
+import '../pages/settings.dart';
 
 double firstDepth = 15;
 double secondDepth = 10;
@@ -244,120 +245,152 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
         onHorizontalDragCancel: () {
           _cancelSwipe();
         },
-        child: Stack(
-          children: [
-            _buildTopicsList(),
-            Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: GlassContainer(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Text(
+              'Topics',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsPage(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Theme.of(context).colorScheme.surfaceTint,
+                  Theme.of(context).colorScheme.surface,
+                ],
+              ),
+            ),
+            child: Stack(
+              children: [
+                _buildTopicsList(),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: GlassContainer(
                     backgroundColor: theme.colorScheme.surfaceTint.withOpacity(0.5),
                     fade: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        // const Color(0xFFF7966E).withOpacity(1),
                         const Color.fromARGB(255, 224, 167, 102).withOpacity(.9),
                         const Color(0xFFF7966E).withOpacity(0),
-                        // Colors.transparent,
                       ],
                       stops: const [0.0, 1.0],
                     ),
-                    // border: Border.all( width: 0),
-                    // borderRadius: BorderRadius.circular(10),
                     child: Container(
                       height: 180,
                       width: MediaQuery.of(context).size.width,
-                    ))),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 120,
-                  padding: const EdgeInsets.only(
-                    left: 20,
-                    right: 20,
-                    top: 60,
-                    bottom: 0,
-                  ),
-                  color: Colors.transparent,
-                  child: Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: ClayText(
-                            "Goals",
-                            emboss: false,
-                            size: 40,
-                            parentColor: theme.colorScheme.surface,
-                            textColor:
-                                theme.colorScheme.onSurface.withOpacity(0.8),
-                            color: theme.colorScheme.surface,
-                            depth: 9,
-                            spread: 3,
-                            style: const TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    height: 50,
-                    // color: theme.colorScheme.surface,
-                    child: ListView(
-                      controller: _categoriesScrollController,
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      children: ref
-                          .read(topicsProvider.notifier)
-                          .getCategories()
-                          .map((category) {
-                        final isSelected = category ==
-                            ref.read(topicsProvider.notifier).selectedCategory;
-                        return Container(
-                          margin: const EdgeInsets.only(
-                              left: 4, top: 8, bottom: 8),
-                          child: GlassButton(
-                            borderRadius: 17,
-                            borderWidth: 1.5,
-                            borderColor: Colors.white38,
-                            text: ref
-                                .read(topicsProvider.notifier)
-                                .getDisplayCategory(category),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            // height: 34,
-                            glassColor: Colors.white12,
-                            textColor: Colors.white,
-                            glowAmount: isSelected ? GlowAmount.heavy : GlowAmount.none,
-                            // icon: Icons.girl,
-                            hasDivider: true,
-                            size: GlassButtonSize.small,
-                            onPressed: () {
-                              ref
-                                  .read(topicsProvider.notifier)
-                                  .setCategory(category);
-                              final categories = ref
-                                  .read(topicsProvider.notifier)
-                                  .getCategories();
-                              _scrollToCategory(categories.indexOf(category));
-                            },
-                          ),
-                        );
-                      }).toList(),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: 120,
+                      padding: const EdgeInsets.only(
+                        left: 20,
+                        right: 20,
+                        top: 60,
+                        bottom: 0,
+                      ),
+                      color: Colors.transparent,
+                      child: Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: ClayText(
+                                "Goals",
+                                emboss: false,
+                                size: 40,
+                                parentColor: theme.colorScheme.surface,
+                                textColor:
+                                    theme.colorScheme.onSurface.withOpacity(0.8),
+                                color: theme.colorScheme.surface,
+                                depth: 9,
+                                spread: 3,
+                                style: const TextStyle(fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        height: 50,
+                        child: ListView(
+                          controller: _categoriesScrollController,
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          children: ref
+                              .read(topicsProvider.notifier)
+                              .getCategories()
+                              .map((category) {
+                            final isSelected = category ==
+                                ref.read(topicsProvider.notifier).selectedCategory;
+                            return Container(
+                              margin: const EdgeInsets.only(
+                                  left: 4, top: 8, bottom: 8),
+                              child: GlassButton(
+                                borderRadius: 17,
+                                borderWidth: 1.5,
+                                borderColor: Colors.white38,
+                                text: ref
+                                    .read(topicsProvider.notifier)
+                                    .getDisplayCategory(category),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                                glassColor: Colors.white12,
+                                textColor: Colors.white,
+                                glowAmount: isSelected ? GlowAmount.heavy : GlowAmount.none,
+                                hasDivider: true,
+                                size: GlassButtonSize.small,
+                                onPressed: () {
+                                  ref
+                                      .read(topicsProvider.notifier)
+                                      .setCategory(category);
+                                  final categories = ref
+                                      .read(topicsProvider.notifier)
+                                      .getCategories();
+                                  _scrollToCategory(categories.indexOf(category));
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
       loading: () => const CircularProgressIndicator(),

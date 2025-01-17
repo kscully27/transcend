@@ -411,7 +411,7 @@ class AppColors {
   static ColorSchemeData? get currentScheme => _currentScheme;
 
   static Future<void> initialize() async {
-    await loadColorScheme('candy');
+    await loadColorScheme(_currentSchemeName);
   }
 
   static Future<void> loadColorScheme(String name) async {

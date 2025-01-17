@@ -4,7 +4,7 @@
   "theme": {
     "light": {
       "primary": "0xFFD59074",
-      "primaryContainer": "0xFFFFDBC8",
+      "primaryContainer": "0xFF913009",
       "onPrimaryContainer": "0xFF3E1800",
       "secondary": "0xFF775654",
       "secondaryContainer": "0xFFFFDAD6",
@@ -12,11 +12,11 @@
       "tertiary": "0xFF725B2E",
       "tertiaryContainer": "0xFFFFDEA6",
       "onTertiaryContainer": "0xFF271900",
-      "surface": "0xFFFFFBFA",
-      "surfaceVariant": "0xFFF5DDD9",
+      "surface": "0xFFD36D46",
+      "surfaceVariant": "0xFF51230C",
       "onSurfaceVariant": "0xFF534341",
-      "surfaceTint": "0xFFD59074",
-      "background": "0xFFFFFBFA",
+      "surfaceTint": "0xFFE87D54",
+      "background": "0xFFD59074",
       "error": "0xFFBA1A1A",
       "errorContainer": "0xFFFFDAD6",
       "onPrimary": "0xFFFFFFFF",
@@ -27,7 +27,7 @@
       "onErrorContainer": "0xFF410002",
       "outline": "0xFF857371",
       "outlineVariant": "0xFFD8C2BF",
-      "shadow": "0xFF000000",
+      "shadow": "0xFF862C07",
       "scrim": "0xFF000000",
       "inverseSurface": "0xFF362F2E",
       "onInverseSurface": "0xFFFBEEEC",
@@ -150,4 +150,4 @@
       "flat": "0xFF4A3B2F"
     }
   }
-} 
+}

@@ -114,34 +114,33 @@ class CandyTopicItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final baseColor = AppColors.flat(topic.appColor);
-    final highlightColor = Color.lerp(
-        baseColor,
-        topic.appColor.contains('pink')
-            ? const Color(0xFFFFAE45)
-            : const Color.fromARGB(255, 219, 106, 88),
-        0.9)!;
-    final midColor = Color.lerp(baseColor, highlightColor, 0.6)!;
-    final shadowColor = const Color(0xFFDF5843);
+    final baseColor = AppColors.dark(topic.appColor);
+    final highlightColor =
+        Color.lerp(baseColor.withOpacity(0.4), theme.colorScheme.surfaceTint, 0.3)!;
+    // final midColor = Color.lerp(baseColor, highlightColor, 0.6)!;
+    final midColor = baseColor.withOpacity(0.2);
+    // final shadowColor = theme.colorScheme.shadow.withOpacity(0.8);
+    // final shadowColor = const Color(0xFFDF5843);
+    final shadowColor = theme.colorScheme.primaryContainer;
 
     void _handleButtonPressed() {
       GlassBottomSheet.show(
         context: context,
         heightPercent: 0.6,
-        backgroundColor: highlightColor.withOpacity(0.2),
-        barrierColor: const Color.fromARGB(255, 21, 16, 32).withOpacity(0.4),
+        backgroundColor: theme.colorScheme.surfaceTint.withOpacity(0.7),
+        barrierColor: const Color.fromARGB(255, 21, 14, 33).withOpacity(0.5),
         closeButtonColor: Colors.white70,
         blur: 10,
         opacity: .5,
-        // fade: LinearGradient(
-        //   begin: Alignment.topCenter,
-        //   end: Alignment.bottomCenter,
-        //   colors: [
-        //     highlightColor.withOpacity(0.3),
-        //     Colors.transparent,
-        //   ],
-        //   stops: const [0.0, 1.0],
-        // ),
+        fade: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            highlightColor.withOpacity(0.3),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 1.0],
+        ),
         border: Border.all(color: Colors.white24, width: 0.5),
         animationSpeed: AnimationSpeed.medium,
         content: Column(
@@ -282,22 +281,22 @@ class CandyTopicItem extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: ShaderMask(
-                  blendMode: BlendMode.hardLight,
+                  blendMode: BlendMode.softLight,
                   shaderCallback: (Rect bounds) {
                     return RadialGradient(
                       center: Alignment.center,
-                      radius: 40,
+                      radius: 10,
                       colors: [
-                        highlightColor.withOpacity(0.8),
-                        highlightColor.withOpacity(0.1),
+                        highlightColor.withOpacity(0.3),
+                        highlightColor.withOpacity(0.05),
                       ],
-                      stops: const [1.0, 1.0],
+                      stops: const [.3, 1.0],
                     ).createShader(bounds);
                   },
                   child: InnerShadow(
                     key: GlobalKey(),
                     blur: 20,
-                    color: shadowColor.withOpacity(0.5),
+                    color: shadowColor.withOpacity(0.4),
                     offset: const Offset(0, 35),
                     topShadow: false,
                     leftShadow: false,
@@ -305,7 +304,8 @@ class CandyTopicItem extends StatelessWidget {
                     child: InnerShadow(
                       key: GlobalKey(),
                       blur: 30,
-                      color: Color.fromARGB(253, 250, 175, 143),
+                      // color: theme.colorScheme.surfaceTint.withOpacity(0.3),
+                      color: theme.colorScheme.surfaceTint.withOpacity(0.1),
                       offset: const Offset(-24, 12),
                       bottomShadow: false,
                       child: Container(
@@ -340,7 +340,7 @@ class CandyTopicItem extends StatelessWidget {
                                     height: 60,
                                     colorFilter: const ColorFilter.mode(
                                       Colors.white,
-                                      BlendMode.srcIn,
+                                      BlendMode.srcATop,
                                     ),
                                   ),
                                 ),

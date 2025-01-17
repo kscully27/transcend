@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../constants/app_colors.dart';
-import '../constants/color_scheme.dart';
 
 class AppTheme {
-  static const _isEarthTone = false; // Toggle between themes
 
   static Color _getRequiredColor(Map<String, dynamic> colors, String key) {
     print('Getting color for key: $key');

@@ -1,17 +1,17 @@
+import 'dart:convert';
+
+import 'package:clay_containers/widgets/clay_container.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:clay_containers/widgets/clay_container.dart';
-import 'dart:io';
-import 'dart:convert';
 
 import '../constants/app_colors.dart';
-import '../widgets/color_picker_dialog.dart';
-import '../services/saved_preferences.dart';
+import '../ui/candy/candy_button.dart';
+import '../ui/candy/candy_container.dart';
 import '../utils/eye_dropper.dart' if (dart.library.html) '../utils/eye_dropper_web.dart';
+import '../widgets/color_picker_dialog.dart';
 
 extension StringExtension on String {
   String capitalize() {
@@ -158,124 +158,189 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final theme = Theme.of(context);
     final isDarkMode = ref.watch(darkModeProvider);
     final currentTheme = ref.watch(themeProvider);
+    
+    // Watch color updates to trigger rebuilds
+    ref.watch(colorUpdateProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Settings', style: theme.textTheme.headlineSmall),
-      ),
-      body: Consumer(
-        builder: (context, ref, _) {
-          final themeColors = ref.watch(themeColorsProvider);
-          final mode = isDarkMode ? 'dark' : 'light';
-          final colors = (themeColors['theme'] as Map<String, dynamic>)[mode] as Map<String, dynamic>;
+    return Consumer(
+      builder: (context, ref, _) {
+        final themeColors = ref.watch(themeColorsProvider);
+        final mode = isDarkMode ? 'dark' : 'light';
+        final colors = (themeColors['theme'] as Map<String, dynamic>)[mode] as Map<String, dynamic>;
 
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Theme Selection
-                  Text('Theme', style: theme.textTheme.titleLarge),
-                  const SizedBox(height: 8),
-                  DropdownButton<String>(
-                    value: currentTheme,
-                    isExpanded: true,
-                    items: const [
-                      DropdownMenuItem(
-                          value: 'candy', child: Text('Candy Theme')),
-                      DropdownMenuItem(
-                          value: 'earth', child: Text('Earth Tones Theme')),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        ref.read(themeProvider.notifier).setTheme(value);
-                      }
-                    },
+        // Create a custom theme from the current state colors
+        final customTheme = theme.copyWith(
+          colorScheme: ColorScheme(
+            brightness: isDarkMode ? Brightness.dark : Brightness.light,
+            primary: _getColorFromMap(colors, 'primary'),
+            onPrimary: _getColorFromMap(colors, 'onPrimary'),
+            secondary: _getColorFromMap(colors, 'secondary'),
+            onSecondary: _getColorFromMap(colors, 'onSecondary'),
+            error: _getColorFromMap(colors, 'error'),
+            onError: _getColorFromMap(colors, 'onError'),
+            background: _getColorFromMap(colors, 'background'),
+            onBackground: _getColorFromMap(colors, 'onBackground'),
+            surface: _getColorFromMap(colors, 'surface'),
+            onSurface: _getColorFromMap(colors, 'onSurface'),
+            surfaceVariant: _getColorFromMap(colors, 'surfaceVariant'),
+            onSurfaceVariant: _getColorFromMap(colors, 'onSurfaceVariant'),
+            outline: _getColorFromMap(colors, 'outline'),
+            outlineVariant: _getColorFromMap(colors, 'outlineVariant'),
+            shadow: _getColorFromMap(colors, 'shadow'),
+            scrim: _getColorFromMap(colors, 'scrim'),
+            inverseSurface: _getColorFromMap(colors, 'inverseSurface'),
+            onInverseSurface: _getColorFromMap(colors, 'onInverseSurface'),
+            inversePrimary: _getColorFromMap(colors, 'inversePrimary'),
+            primaryContainer: _getColorFromMap(colors, 'primaryContainer'),
+            onPrimaryContainer: _getColorFromMap(colors, 'onPrimaryContainer'),
+            secondaryContainer: _getColorFromMap(colors, 'secondaryContainer'),
+            onSecondaryContainer: _getColorFromMap(colors, 'onSecondaryContainer'),
+            tertiary: _getColorFromMap(colors, 'tertiary'),
+            onTertiary: _getColorFromMap(colors, 'onTertiary'),
+            tertiaryContainer: _getColorFromMap(colors, 'tertiaryContainer'),
+            onTertiaryContainer: _getColorFromMap(colors, 'onTertiaryContainer'),
+            errorContainer: _getColorFromMap(colors, 'errorContainer'),
+            onErrorContainer: _getColorFromMap(colors, 'onErrorContainer'),
+            surfaceTint: _getColorFromMap(colors, 'surfaceTint'),
+          ),
+        );
+
+        return Theme(
+          data: customTheme,
+          child: Builder(
+            builder: (context) {
+              return Scaffold(
+                backgroundColor: Colors.transparent,
+                extendBodyBehindAppBar: true,
+                appBar: AppBar(
+                  title: Text('Settings', style: Theme.of(context).textTheme.headlineSmall),
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                ),
+                body: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Theme.of(context).colorScheme.surfaceTint,
+                        Theme.of(context).colorScheme.surface,
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 32),
-                  ClayContainer(
-                    color: theme.colorScheme.surface,
-                    parentColor: theme.colorScheme.surface,
-                    borderRadius: 12,
-                    width: double.infinity,
-                    height: 100,
-                    depth: 20,
-                    spread: 2,
+                  child: SingleChildScrollView(
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Dark Mode',
-                            style: TextStyle(
-                              color: theme.colorScheme.onSurface,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                          // Theme Selection
+                          Text('Theme', style: Theme.of(context).textTheme.titleLarge),
+                          const SizedBox(height: 8),
+                          DropdownButton<String>(
+                            value: currentTheme,
+                            isExpanded: true,
+                            items: const [
+                              DropdownMenuItem(
+                                  value: 'candy', child: Text('Candy Theme')),
+                              DropdownMenuItem(
+                                  value: 'earth', child: Text('Earth Tones Theme')),
+                            ],
+                            onChanged: (value) async {
+                              if (value != null) {
+                                await ref.read(themeProvider.notifier).setTheme(value);
+                                await ref.read(themeColorsProvider.notifier).loadColors(value);
+                                ref.read(colorUpdateProvider.notifier).triggerUpdate();
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 32),
+                          ClayContainer(
+                            color: Theme.of(context).colorScheme.surface,
+                            parentColor: Theme.of(context).colorScheme.surface,
+                            borderRadius: 12,
+                            width: double.infinity,
+                            height: 100,
+                            depth: 20,
+                            spread: 2,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Dark Mode',
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Switch(
+                                    value: isDarkMode,
+                                    onChanged: (value) {
+                                      ref.read(darkModeProvider.notifier).toggle();
+                                    },
+                                    activeColor: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          Switch(
-                            value: isDarkMode,
-                            onChanged: (value) {
-                              ref.read(darkModeProvider.notifier).toggle();
-                            },
-                            activeColor: theme.colorScheme.primary,
-                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Theme Colors Section
+                          Text('Theme Colors', style: Theme.of(context).textTheme.titleLarge),
+                          const SizedBox(height: 16),
+                          _buildThemeColorSection(Theme.of(context), colors, mode, ref),
+                          const SizedBox(height: 24),
+
+                          // App Colors Section
+                          Text('App Colors', style: Theme.of(context).textTheme.titleLarge),
+                          const SizedBox(height: 16),
+                          _buildAppColorSection(Theme.of(context)),
+
+                          const SizedBox(height: 32),
+
+                          // Publish Changes Button
+                          if (themeColors.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 200),
+                              child: Center(
+                                child: ElevatedButton(
+                                  onPressed: () =>
+                                      _publishChanges(context, currentTheme, themeColors),
+                                  child: const Text('Publish Changes'),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 24),
-
-                  // Theme Colors Section
-                  Text('Theme Colors', style: theme.textTheme.titleLarge),
-                  const SizedBox(height: 16),
-                  _buildThemeColorSection(theme, colors, mode, ref),
-                  const SizedBox(height: 24),
-
-                  // App Colors Section
-                  Text('App Colors', style: theme.textTheme.titleLarge),
-                  const SizedBox(height: 16),
-                  _buildAppColorSection(theme),
-
-                  const SizedBox(height: 32),
-
-                  // Publish Changes Button
-                  if (themeColors.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 200),
-                      child: Center(
-                        child: ElevatedButton(
-                          onPressed: () =>
-                              _publishChanges(context, currentTheme, themeColors),
-                          child: const Text('Publish Changes'),
-                        ),
+                ),
+                floatingActionButton: Consumer(
+                  builder: (context, ref, _) {
+                    final hasChanges = ref.read(themeColorsProvider.notifier).hasChanges;
+                    if (!hasChanges) return const SizedBox.shrink();
+                    
+                    return FloatingActionButton.extended(
+                      onPressed: () => _publishChanges(
+                        context,
+                        ref.read(themeProvider),
+                        ref.read(themeColorsProvider),
                       ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: Consumer(
-        builder: (context, ref, _) {
-          final hasChanges = ref.read(themeColorsProvider.notifier).hasChanges;
-          if (!hasChanges) return const SizedBox.shrink();
-          
-          return FloatingActionButton.extended(
-            onPressed: () => _publishChanges(
-              context,
-              ref.read(themeProvider),
-              ref.read(themeColorsProvider),
-            ),
-            label: const Text('Copy JSON'),
-            icon: const Icon(Icons.copy),
-          );
-        },
-      ),
+                      label: const Text('Copy JSON'),
+                      icon: const Icon(Icons.copy),
+                    );
+                  },
+                ),
+              );
+            }
+          ),
+        );
+      },
     );
   }
 
@@ -533,49 +598,87 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
                 // Color boxes
                 Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        if (_hasColorMode(color, 'shadow'))
-                          _buildAppColorBox(
-                            'shadow', 
-                            color,
-                            _getAppColorFromJson(appColors, color, 'shadow'),
-                            ref,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Color variants
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              if (_hasColorMode(color, 'shadow'))
+                                _buildAppColorBox(
+                                  'shadow', 
+                                  color,
+                                  _getAppColorFromJson(appColors, color, 'shadow'),
+                                  ref,
+                                ),
+                              if (_hasColorMode(color, 'dark'))
+                                _buildAppColorBox(
+                                  'dark', 
+                                  color,
+                                  _getAppColorFromJson(appColors, color, 'dark'),
+                                  ref,
+                                ),
+                              _buildAppColorBox(
+                                'flat', 
+                                color,
+                                _getAppColorFromJson(appColors, color, 'flat'),
+                                ref,
+                              ),
+                              if (_hasColorMode(color, 'light'))
+                                _buildAppColorBox(
+                                  'light', 
+                                  color,
+                                  _getAppColorFromJson(appColors, color, 'light'),
+                                  ref,
+                                ),
+                              if (_hasColorMode(color, 'highlight') &&
+                                  color != 'white' &&
+                                  color != 'black' &&
+                                  color != 'transparent')
+                                _buildAppColorBox(
+                                  'highlight', 
+                                  color,
+                                  _getAppColorFromJson(appColors, color, 'highlight'),
+                                  ref,
+                                ),
+                            ],
                           ),
-                        if (_hasColorMode(color, 'dark'))
-                          _buildAppColorBox(
-                            'dark', 
-                            color,
-                            _getAppColorFromJson(appColors, color, 'dark'),
-                            ref,
-                          ),
-                        _buildAppColorBox(
-                          'flat', 
-                          color,
-                          _getAppColorFromJson(appColors, color, 'flat'),
-                          ref,
                         ),
-                        if (_hasColorMode(color, 'light'))
-                          _buildAppColorBox(
-                            'light', 
-                            color,
-                            _getAppColorFromJson(appColors, color, 'light'),
-                            ref,
+                      ),
+                      // CandyButton preview
+                      if (color != 'transparent' && color != 'google' && color != 'facebook' && color != 'primaryDark') ...[
+                        const SizedBox(width: 16),
+                        SizedBox(
+                          width: 300,
+                          child: CandyContainer(
+                            baseColor: _getAppColorFromJson(appColors, color, 'flat'),
+                            highlightColor: _getAppColorFromJson(appColors, color, 'shadow'),
+                            shadowColor: theme.colorScheme.primaryContainer,
+                            highlightOpacity: .1,
+                            shadowOpacity: 1,
+                            glowStrength: GlowStrength.xweak,
+                            shaderBlendMode: BlendMode.colorDodge,
+                            shadowMaskBlendMode: BlendMode.hardLight,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              child: Text(
+                                'Candy Container',
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  color: color == 'white' || color == 'light' 
+                                    ? _getAppColorFromJson(appColors, 'dark', 'flat')
+                                    : _getAppColorFromJson(appColors, 'white', 'flat'),
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
                           ),
-                        if (_hasColorMode(color, 'highlight') &&
-                            color != 'white' &&
-                            color != 'black' &&
-                            color != 'transparent')
-                          _buildAppColorBox(
-                            'highlight', 
-                            color,
-                            _getAppColorFromJson(appColors, color, 'highlight'),
-                            ref,
-                          ),
+                        ),
                       ],
-                    ),
+                    ],
                   ),
                 ),
               ],
