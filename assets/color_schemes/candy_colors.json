@@ -1,0 +1,46 @@
+{
+  "theme": {
+    "light": {
+      "primary": "0xFFFF8E7E",
+      "primaryContainer": "0xFFFFDAD4",
+      "secondary": "0xFF775654",
+      "secondaryContainer": "0xFFFFDAD6",
+      "surface": "0xFFFFFBFA",
+      "surfaceVariant": "0xFFF5DDD9",
+      "background": "0xFFFFFBFA",
+      "error": "0xFFBA1A1A",
+      "errorContainer": "0xFFFFDAD6",
+      "onPrimary": "0xFFFFFFFF",
+      "onSecondary": "0xFFFFFFFF",
+      "onSurface": "0xFF201A19",
+      "onBackground": "0xFF201A19",
+      "onError": "0xFFFFFFFF",
+      "outline": "0xFF857371",
+      "shadow": "0xFF000000",
+      "inverseSurface": "0xFF362F2E",
+      "onInverseSurface": "0xFFFBEEEC",
+      "inversePrimary": "0xFFFFB4A8"
+    },
+    "dark": {
+      "primary": "0xFFFF8E7E",
+      "primaryContainer": "0xFF93000A",
+      "secondary": "0xFFE7BDB9",
+      "secondaryContainer": "0xFF5D3F3D",
+      "surface": "0xFF201A19",
+      "surfaceVariant": "0xFF534341",
+      "background": "0xFF201A19",
+      "error": "0xFFFFB4AB",
+      "errorContainer": "0xFF93000A",
+      "onPrimary": "0xFF690004",
+      "onSecondary": "0xFF442927",
+      "onSurface": "0xFFEDE0DE",
+      "onBackground": "0xFFEDE0DE",
+      "onError": "0xFF690004",
+      "outline": "0xFFA08C8A",
+      "shadow": "0xFF000000",
+      "inverseSurface": "0xFFEDE0DE",
+      "onInverseSurface": "0xFF362F2E",
+      "inversePrimary": "0xFFBA1A1A"
+    }
+  }
+} 

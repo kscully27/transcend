@@ -4,6 +4,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:trancend/src/constants/enums.dart';
+import 'color_scheme.dart';
 
 enum AppColor { Red, Orange, Blue, Green, Purple, Pink, Light, White, Dark }
 
@@ -403,16 +404,32 @@ class AppColorMaker {
 }
 
 class AppColors {
+  static ColorSchemeData? _currentScheme;
+  static String _currentSchemeName = 'candy';
+  static bool enableGradients = true;
+
+  static ColorSchemeData? get currentScheme => _currentScheme;
+
+  static Future<void> initialize() async {
+    await loadColorScheme('candy');
+  }
+
+  static Future<void> loadColorScheme(String name) async {
+    _currentScheme = await ColorSchemeData.load(name);
+    _currentSchemeName = name;
+  }
+
   static Color flat(String name) => _getColor(name, 'flat');
   static Color light(String name) => _getColor(name, 'light');
   static Color dark(String name) => _getColor(name, 'dark');
   static Color highlight(String name) => _getColor(name, 'highlight');
   static Color shadow(String name) => _getColor(name, 'shadow');
 
-  static Color themed(String name, String lightMode, [String? darkMode]) {
-    // We can't detect theme here without context, so we'll keep this method
-    // for backward compatibility but mark it as deprecated
-    return _getColor(name, lightMode);
+  static Color _getColor(String name, String mode) {
+    if (_currentScheme == null) {
+      throw StateError('Color scheme not initialized. Call AppColors.initialize() first.');
+    }
+    return Color(_currentScheme!.getColor(name, mode));
   }
 
   static Color themedWithContext(BuildContext context, String name, String lightMode, [String? darkMode]) {
@@ -421,20 +438,8 @@ class AppColors {
     return _getColor(name, mode);
   }
 
-  static Color _getColor(String name, String mode) {
-    final colorData = colors[name];
-    if (colorData == null) {
-      throw ArgumentError("Invalid color name: $name");
-    }
-    final colorModeData = colorData[mode];
-    if (colorModeData == null) {
-      throw ArgumentError("Invalid color mode: $mode");
-    }
-    return Color(colorModeData);
-  }
-
   static Color disabled(String color) {
-    return Color(ColorGroup.fromMap(colors[color]).light).withOpacity(.2);
+    return light(color).withOpacity(.2);
   }
 
   static Gradient gradient(String color) {
@@ -513,38 +518,31 @@ class AppColors {
   }
 
   static Color groupColor(String group, {String type = 'flat'}) {
-    String _colorName = "blue";
-    Color mainColor = flat("blue");
-    _colorName = getColorName(group);
-
-    if (type == 'flat') {
-      mainColor = flat(_colorName);
+    String _colorName = getColorName(group);
+    switch (type) {
+      case 'flat':
+        return flat(_colorName);
+      case 'light':
+        return light(_colorName);
+      case 'dark':
+        return dark(_colorName);
+      case 'shadow':
+        return shadow(_colorName);
+      case 'highlight':
+        return highlight(_colorName);
+      default:
+        return flat(_colorName);
     }
-    if (type == "light") {
-      mainColor = light(_colorName);
-    }
-    if (type == "dark") {
-      mainColor = dark(_colorName);
-    }
-    if (type == "shadow") {
-      mainColor = shadow(_colorName);
-    }
-    if (type == "highlight") {
-      mainColor = highlight(_colorName);
-    }
-    return mainColor;
   }
 
-  static LinearGradient marsBackgroundGradient(BuildContext context) {
+  static Gradient marsBackgroundGradient(BuildContext context) {
     return LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
       colors: [
-        Theme.of(context).colorScheme.surface,
-        Theme.of(context).colorScheme.surfaceTint,
+        dark('dark'),
+        flat('dark'),
       ],
     );
   }
-
-  static bool enableGradients = true;  // Global toggle for gradients
 }
