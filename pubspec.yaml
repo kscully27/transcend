@@ -47,6 +47,9 @@ dependencies:
   path_provider: ^2.1.5
   google_fonts: ^6.2.1
   flutter_colorpicker: ^1.0.3
+  simple_eye_dropper:
+    git:
+      url: https://github.com/satoshiiorg/simple_eye_dropper.git
 
 dev_dependencies:
   flutter_test:

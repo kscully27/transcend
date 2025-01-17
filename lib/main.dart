@@ -10,14 +10,32 @@ import 'src/app.dart';
 import 'src/settings/settings_controller.dart';
 import 'src/settings/settings_service.dart';
 
-void runMainApp(FirebaseOptions firebaseOptions) async {
+void main() async {
+  runMainApp(null);
+}
+
+void runMainApp(FirebaseOptions? firebaseOptions) async {
+  print('Running main app');
+  print('Firebase options: $firebaseOptions');
+  
   WidgetsFlutterBinding.ensureInitialized();
   try {
     final settingsController = SettingsController(SettingsService());
     await settingsController.loadSettings();
-    await Firebase.initializeApp(options: firebaseOptions);
+
+    if (firebaseOptions != null) {
+      print('Initializing Firebase with options...');
+      await Firebase.initializeApp(options: firebaseOptions);
+      print('Firebase initialized successfully');
+    }
+    
+    print('Initializing AppColors...');
     await AppColors.initialize();
+    print('AppColors initialized');
+    
+    print('Setting up locator...');
     await setupLocator();
+    print('Locator setup complete');
 
     runApp(
       ProviderScope(
@@ -34,7 +52,8 @@ void runMainApp(FirebaseOptions firebaseOptions) async {
         ),
       ),
     );
-  } catch (e) {
+  } catch (e, stackTrace) {
     print('Error initializing Firebase: $e');
+    print('Stack trace: $stackTrace');
   }
 }

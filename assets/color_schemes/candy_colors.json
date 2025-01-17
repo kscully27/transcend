@@ -1,13 +1,22 @@
 {
+  "name": "candy",
+  "title": "Candy Theme",
   "theme": {
     "light": {
       "primary": "0xFFFF8E7E",
       "primaryContainer": "0xFFFFDAD4",
+      "onPrimaryContainer": "0xFF3E0400",
       "secondary": "0xFF775654",
       "secondaryContainer": "0xFFFFDAD6",
-      "surface": "0xFFFFFBFA",
+      "onSecondaryContainer": "0xFF2C1513",
+      "tertiary": "0xFF725B2E",
+      "tertiaryContainer": "0xFFFFDEA6",
+      "onTertiaryContainer": "0xFF271900",
+      "surface": "0xFFFFDBD6",
       "surfaceVariant": "0xFFF5DDD9",
-      "background": "0xFFFFFBFA",
+      "onSurfaceVariant": "0xFF534341",
+      "surfaceTint": "0xFFFF8E7E",
+      "background": "0xFF282828",
       "error": "0xFFBA1A1A",
       "errorContainer": "0xFFFFDAD6",
       "onPrimary": "0xFFFFFFFF",
@@ -15,32 +24,130 @@
       "onSurface": "0xFF201A19",
       "onBackground": "0xFF201A19",
       "onError": "0xFFFFFFFF",
+      "onErrorContainer": "0xFF410002",
       "outline": "0xFF857371",
+      "outlineVariant": "0xFFD8C2BF",
       "shadow": "0xFF000000",
+      "scrim": "0xFF000000",
       "inverseSurface": "0xFF362F2E",
       "onInverseSurface": "0xFFFBEEEC",
       "inversePrimary": "0xFFFFB4A8"
     },
     "dark": {
       "primary": "0xFFFF8E7E",
-      "primaryContainer": "0xFF93000A",
+      "primaryContainer": "0xFF93240E",
+      "onPrimaryContainer": "0xFFFFDAD4",
       "secondary": "0xFFE7BDB9",
       "secondaryContainer": "0xFF5D3F3D",
+      "onSecondaryContainer": "0xFFFFDAD6",
+      "tertiary": "0xFFDDC38C",
+      "tertiaryContainer": "0xFF574419",
+      "onTertiaryContainer": "0xFFFFDEA6",
       "surface": "0xFF201A19",
       "surfaceVariant": "0xFF534341",
+      "onSurfaceVariant": "0xFFD8C2BF",
+      "surfaceTint": "0xFFFF8E7E",
       "background": "0xFF201A19",
       "error": "0xFFFFB4AB",
       "errorContainer": "0xFF93000A",
-      "onPrimary": "0xFF690004",
+      "onPrimary": "0xFF4E1500",
       "onSecondary": "0xFF442927",
       "onSurface": "0xFFEDE0DE",
       "onBackground": "0xFFEDE0DE",
       "onError": "0xFF690004",
+      "onErrorContainer": "0xFFFFDAD4",
       "outline": "0xFFA08C8A",
+      "outlineVariant": "0xFF534341",
       "shadow": "0xFF000000",
+      "scrim": "0xFF000000",
       "inverseSurface": "0xFFEDE0DE",
       "onInverseSurface": "0xFF362F2E",
-      "inversePrimary": "0xFFBA1A1A"
+      "inversePrimary": "0xFF93240E"
+    }
+  },
+  "colors": {
+    "khaki": {
+      "flat": "0xFFFF8E7E",
+      "light": "0xFFFFB5A7",
+      "dark": "0xFFE56F5D",
+      "shadow": "0xFFCC4F3D",
+      "highlight": "0xFFFFD6CF"
+    },
+    "blue": {
+      "flat": "0xFF66B6FF",
+      "light": "0xFF99CFFF",
+      "dark": "0xFF3399FF",
+      "shadow": "0xFF0066CC",
+      "highlight": "0xFFCCE5FF"
+    },
+    "green": {
+      "flat": "0xFF7AFFB5",
+      "light": "0xFFA6FFD1",
+      "dark": "0xFF4DFF99",
+      "shadow": "0xFF00CC66",
+      "highlight": "0xFFD1FFE6"
+    },
+    "purple": {
+      "flat": "0xFFB366FF",
+      "light": "0xFFCC99FF",
+      "dark": "0xFF9933FF",
+      "shadow": "0xFF6600CC",
+      "highlight": "0xFFE5CCFF"
+    },
+    "red": {
+      "flat": "0xFFFF6666",
+      "light": "0xFFFF9999",
+      "dark": "0xFFFF3333",
+      "shadow": "0xFFCC0000",
+      "highlight": "0xFFFFCCCC"
+    },
+    "orange": {
+      "flat": "0xFFFF7F50",
+      "light": "0xFFFFAB90",
+      "dark": "0xFFE65B32",
+      "shadow": "0xFFCC4019",
+      "highlight": "0xFFFFCFBF"
+    },
+    "pink": {
+      "flat": "0xFFFF66B2",
+      "light": "0xFFFF99CC",
+      "dark": "0xFFFF3399",
+      "shadow": "0xFFCC0066",
+      "highlight": "0xFFFFCCE5"
+    },
+    "dark": {
+      "flat": "0xFF2D1810",
+      "light": "0xFF4A2920",
+      "dark": "0xFF1A0E09",
+      "shadow": "0xFF0D0704",
+      "highlight": "0xFF6B3F30"
+    },
+    "light": {
+      "flat": "0xFFFFF0EB",
+      "light": "0xFFFFF8F6",
+      "dark": "0xFFFFE6E0",
+      "shadow": "0xFFFFD6CF",
+      "highlight": "0xFFFFFFFF"
+    },
+    "white": {
+      "flat": "0xFFFFF5F5",
+      "dark": "0xFFFFE6E6",
+      "shadow": "0xFFFFD6D6"
+    },
+    "black": {
+      "flat": "0xFF1A0F0F"
+    },
+    "google": {
+      "flat": "0xFFFF4444"
+    },
+    "facebook": {
+      "flat": "0xFF3B5998"
+    },
+    "transparent": {
+      "flat": "0x00000000"
+    },
+    "primaryDark": {
+      "flat": "0xFF2D1810"
     }
   }
-} 
+}

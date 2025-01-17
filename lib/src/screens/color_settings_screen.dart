@@ -128,7 +128,7 @@ class _ColorSettingsScreenState extends State<ColorSettingsScreen> {
           
           _updateChangesCount();
           setState(() {});
-        },
+        }, onCancel: () {  },
       ),
     );
   }

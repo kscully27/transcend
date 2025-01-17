@@ -1,15 +1,24 @@
-import 'package:clay_containers/widgets/clay_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:clay_containers/widgets/clay_container.dart';
 import 'dart:io';
 import 'dart:convert';
 
 import '../constants/app_colors.dart';
 import '../widgets/color_picker_dialog.dart';
 import '../services/saved_preferences.dart';
+import '../utils/eye_dropper.dart' if (dart.library.html) '../utils/eye_dropper_web.dart';
+
+extension StringExtension on String {
+  String capitalize() {
+    if (isEmpty) return this;
+    return '${this[0].toUpperCase()}${substring(1)}';
+  }
+}
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -79,23 +88,28 @@ class ThemeColorsNotifier extends StateNotifier<Map<String, dynamic>> {
   bool _hasChanges = false;
   bool get hasChanges => _hasChanges;
 
-  ThemeColorsNotifier() : super({'theme': {'light': {}, 'dark': {}}});
+  ThemeColorsNotifier() : super({'theme': {'light': {}, 'dark': {}}, 'colors': {}});
 
   Future<void> loadColors(String themeName) async {
     try {
       // Load from bundled assets
       final jsonString = await rootBundle.loadString('assets/color_schemes/${themeName}_colors.json');
-      final dynamic jsonData = json.decode(jsonString);
+      final Map<String, dynamic> jsonData = json.decode(jsonString) as Map<String, dynamic>;
       
-      // Properly cast the maps
-      final Map<String, dynamic> themeData = {
+      // Get the theme data
+      final Map<String, dynamic> themeData = jsonData['theme'] as Map<String, dynamic>;
+      final Map<String, dynamic> lightTheme = themeData['light'] as Map<String, dynamic>;
+      final Map<String, dynamic> darkTheme = themeData['dark'] as Map<String, dynamic>;
+      final Map<String, dynamic> colors = jsonData['colors'] as Map<String, dynamic>;
+      
+      state = {
         'theme': {
-          'light': Map<String, dynamic>.from(jsonData['theme']['light'] as Map),
-          'dark': Map<String, dynamic>.from(jsonData['theme']['dark'] as Map),
-        }
+          'light': lightTheme,
+          'dark': darkTheme,
+        },
+        'colors': colors,
       };
       
-      state = themeData;
       _hasChanges = false;
     } catch (e) {
       print('Error loading colors: $e');
@@ -105,7 +119,16 @@ class ThemeColorsNotifier extends StateNotifier<Map<String, dynamic>> {
   void updateColor(String mode, String name, Color color) {
     final newState = Map<String, dynamic>.from(state);
     final theme = (newState['theme'] as Map<String, dynamic>)[mode] as Map<String, dynamic>;
-    theme[name.replaceAll(' ', '')] = '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    theme[name] = '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    state = newState;
+    _hasChanges = true;
+  }
+
+  void updateAppColor(String colorName, String variant, Color color) {
+    final newState = Map<String, dynamic>.from(state);
+    final colors = (newState['colors'] as Map<String, dynamic>);
+    final colorData = (colors[colorName] as Map<String, dynamic>);
+    colorData[variant] = '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
     state = newState;
     _hasChanges = true;
   }
@@ -248,8 +271,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ref.read(themeProvider),
               ref.read(themeColorsProvider),
             ),
-            label: const Text('Publish Changes'),
-            icon: const Icon(Icons.save),
+            label: const Text('Copy JSON'),
+            icon: const Icon(Icons.copy),
           );
         },
       ),
@@ -259,67 +282,205 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Future<void> _publishChanges(BuildContext context, String themeName,
       Map<String, dynamic> colors) async {
     try {
-      // For now, just update the theme
-      await AppColors.loadColorScheme(themeName);
-      
-      // Reset changes flag
-      ref.read(themeColorsProvider.notifier)._hasChanges = false;
+      // Get the original JSON structure
+      final scheme = AppColors.currentScheme;
+      if (scheme == null) return;
 
+      // Create the complete JSON structure
+      final completeJson = {
+        'name': scheme.name,
+        'title': scheme.title,
+        'theme': colors['theme'],
+        'colors': colors['colors'],
+      };
+      
+      // Format the JSON
+      final prettyJson = const JsonEncoder.withIndent('  ').convert(completeJson);
+      
+      // Copy to clipboard
+      await Clipboard.setData(ClipboardData(text: prettyJson));
+      
       if (context.mounted) {
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Changes applied successfully')),
+          const SnackBar(content: Text('JSON copied to clipboard')),
+        );
+        
+        // Show the dialog with the copied JSON
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Theme Colors JSON'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('JSON has been copied to your clipboard. Save it to:'),
+                    Text('assets/color_schemes/${themeName}_colors.json', 
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    SelectableText(prettyJson,
+                      style: const TextStyle(fontFamily: 'monospace')),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
         );
       }
     } catch (e) {
-      print('Error applying changes: $e');
+      print('Error copying JSON: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error applying changes: $e')),
+          SnackBar(content: Text('Error copying JSON: $e')),
         );
       }
     }
   }
 
+  void _showColorPicker(BuildContext context, Color color, String key, Function(Color) onColorChanged) {
+    final RenderBox button = context.findRenderObject() as RenderBox;
+    final position = button.localToGlobal(Offset.zero);
+    
+    late final OverlayEntry overlay;
+    overlay = OverlayEntry(
+      builder: (context) => Positioned(
+        left: 0,
+        top: position.dy,
+        child: Material(
+          color: Colors.transparent,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.4,
+            child: ColorPickerDialog(
+              initialColor: color,
+              colorKey: key,
+              commonColors: _getCommonColors(context),
+              onColorChanged: (newColor) {
+                onColorChanged(newColor);
+                overlay.remove();
+              },
+              onCancel: () => overlay.remove(),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(overlay);
+  }
+
+  Widget _buildColorBox(Color color, Function(Color) onColorChanged) {
+    return Consumer(
+      builder: (context, ref, _) => Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+            ),
+          ),
+          if (kIsWeb) ...[
+            const SizedBox(width: 4),
+            IconButton(
+              icon: const Icon(Icons.colorize, size: 20),
+              onPressed: () async {
+                final pickedColor = await ColorPicker.pickColor();
+                if (pickedColor != null) {
+                  onColorChanged(pickedColor);
+                  ref.read(colorUpdateProvider.notifier).triggerUpdate();
+                }
+              },
+              tooltip: 'Pick color from screen',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(
+                minWidth: 24,
+                minHeight: 24,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildThemeColorSection(ThemeData theme,
       Map<String, dynamic> themeColors, String mode, WidgetRef ref) {
+    final scheme = AppColors.currentScheme;
+    if (scheme == null) return const SizedBox.shrink();
+
+    final jsonColors = scheme.theme[mode];
+    if (jsonColors == null) return const SizedBox.shrink();
+
+    final colorKeys = jsonColors.keys.toList()..sort();
+    
+    // Watch color updates
+    ref.watch(colorUpdateProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildColorRow(
-            'primary', _getColorFromMap(themeColors, 'primary'), mode, ref),
-        _buildColorRow('primaryContainer',
-            _getColorFromMap(themeColors, 'primaryContainer'), mode, ref),
-        _buildColorRow(
-            'secondary', _getColorFromMap(themeColors, 'secondary'), mode, ref),
-        _buildColorRow('secondaryContainer',
-            _getColorFromMap(themeColors, 'secondaryContainer'), mode, ref),
-        _buildColorRow(
-            'surface', _getColorFromMap(themeColors, 'surface'), mode, ref),
-        _buildColorRow('surfaceVariant',
-            _getColorFromMap(themeColors, 'surfaceVariant'), mode, ref),
-        _buildColorRow('background',
-            _getColorFromMap(themeColors, 'background'), mode, ref),
-        _buildColorRow('error', _getColorFromMap(themeColors, 'error'), mode, ref),
-        _buildColorRow('errorContainer',
-            _getColorFromMap(themeColors, 'errorContainer'), mode, ref),
-          _buildColorRow('onPrimary', _getColorFromMap(themeColors, 'onPrimary'),
-            mode, ref),
-        _buildColorRow('onSecondary',
-            _getColorFromMap(themeColors, 'onSecondary'), mode, ref),
-          _buildColorRow('onSurface', _getColorFromMap(themeColors, 'onSurface'),
-            mode, ref),
-        _buildColorRow('onBackground',
-            _getColorFromMap(themeColors, 'onBackground'), mode, ref),
-        _buildColorRow('onError', _getColorFromMap(themeColors, 'onError'), mode, ref),
-        _buildColorRow('outline', _getColorFromMap(themeColors, 'outline'), mode, ref),
-        _buildColorRow('shadow', _getColorFromMap(themeColors, 'shadow'), mode, ref),
-        _buildColorRow('inverseSurface',
-            _getColorFromMap(themeColors, 'inverseSurface'), mode, ref),
-        _buildColorRow('onInverseSurface',
-            _getColorFromMap(themeColors, 'onInverseSurface'), mode, ref),
-        _buildColorRow('inversePrimary',
-            _getColorFromMap(themeColors, 'inversePrimary'), mode, ref),
-      ],
+      children: colorKeys.map((key) {
+        final color = _getColorFromMap(themeColors, key);
+        final hexCode = '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              // Color name (1/4 of space)
+              SizedBox(
+                width: 150,
+                child: Text(
+                  key,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+              // Color box and hex code
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InkWell(
+                    onTap: () => _showColorPicker(
+                      context,
+                      color,
+                      key,
+                      (newColor) async {
+                        ref.read(themeColorsProvider.notifier)
+                            .updateColor(mode, key, newColor);
+                        await AppColors.loadColorScheme(ref.read(themeProvider));
+                        ref.read(colorUpdateProvider.notifier).triggerUpdate();
+                      },
+                    ),
+                    child: _buildColorBox(
+                      color,
+                      (newColor) async {
+                        ref.read(themeColorsProvider.notifier)
+                            .updateColor(mode, key, newColor);
+                        await AppColors.loadColorScheme(ref.read(themeProvider));
+                        ref.read(colorUpdateProvider.notifier).triggerUpdate();
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(hexCode, style: const TextStyle(fontSize: 10, fontFamily: 'monospace')),
+                ],
+              ),
+              // Space for future content
+              Expanded(child: Container()),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -344,103 +505,128 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       'black'
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: colors.map((color) => _buildAppColorRow(color)).toList(),
+    return Consumer(
+      builder: (context, ref, _) {
+        final themeColors = ref.watch(themeColorsProvider);
+        final appColors = (themeColors['colors'] as Map<String, dynamic>?) ?? {};
+        
+        // Watch color updates
+        ref.watch(colorUpdateProvider);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: colors.map((color) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Color name and variants (1/4 of space)
+                SizedBox(
+                  width: 150,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(color.toUpperCase(),
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+                // Color boxes
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        if (_hasColorMode(color, 'shadow'))
+                          _buildAppColorBox(
+                            'shadow', 
+                            color,
+                            _getAppColorFromJson(appColors, color, 'shadow'),
+                            ref,
+                          ),
+                        if (_hasColorMode(color, 'dark'))
+                          _buildAppColorBox(
+                            'dark', 
+                            color,
+                            _getAppColorFromJson(appColors, color, 'dark'),
+                            ref,
+                          ),
+                        _buildAppColorBox(
+                          'flat', 
+                          color,
+                          _getAppColorFromJson(appColors, color, 'flat'),
+                          ref,
+                        ),
+                        if (_hasColorMode(color, 'light'))
+                          _buildAppColorBox(
+                            'light', 
+                            color,
+                            _getAppColorFromJson(appColors, color, 'light'),
+                            ref,
+                          ),
+                        if (_hasColorMode(color, 'highlight') &&
+                            color != 'white' &&
+                            color != 'black' &&
+                            color != 'transparent')
+                          _buildAppColorBox(
+                            'highlight', 
+                            color,
+                            _getAppColorFromJson(appColors, color, 'highlight'),
+                            ref,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )).toList(),
+        );
+      },
     );
   }
 
-  Widget _buildColorRow(String name, Color color, String mode, WidgetRef ref) {
-    return Builder(
-        builder: (context) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Text(name),
-                  ),
-                  InkWell(
-                    onTap: () => showDialog(
-                      context: context,
-                      builder: (context) => ColorPickerDialog(
-                        initialColor: color,
-                        colorKey: name,
-                        commonColors: _getCommonColors(context),
-                        onColorChanged: (newColor) async {
-                          // Update local state
-                          ref
-                              .read(themeColorsProvider.notifier)
-                              .updateColor(mode, name, newColor);
-
-                          // Update theme immediately
-                          await AppColors.loadColorScheme(
-                              ref.read(themeProvider));
-
-                          // Navigator.of(context).pop();
-                        },
-                      ),
-                    ),
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ));
+  Color _getAppColorFromJson(Map<String, dynamic> colors, String colorName, String variant) {
+    try {
+      final colorData = colors[colorName] as Map<String, dynamic>;
+      final value = colorData[variant];
+      if (value == null) return Colors.grey;
+      return Color(int.parse(value.toString()));
+    } catch (e) {
+      return Colors.grey;
+    }
   }
 
-  Map<String, Color> _getCommonColors(BuildContext context) {
-    final theme = Theme.of(context).colorScheme;
-    return {
-      'Primary': theme.primary,
-      'Secondary': theme.secondary,
-      'Surface': theme.surface,
-      'Background': theme.background,
-      'Error': theme.error,
-      'On Primary': theme.onPrimary,
-      'On Secondary': theme.onSecondary,
-      'On Surface': theme.onSurface,
-      'On Background': theme.onBackground,
-      'On Error': theme.onError,
-    };
-  }
-
-  Widget _buildAppColorRow(String colorName) {
+  Widget _buildAppColorBox(String variant, String colorName, Color color, WidgetRef ref) {
+    final hexCode = '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.only(right: 8),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(colorName.toUpperCase(),
-              style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                if (_hasColorMode(colorName, 'shadow'))
-                  _buildAppColorBox('Shadow', AppColors.shadow(colorName)),
-                if (_hasColorMode(colorName, 'dark'))
-                  _buildAppColorBox('Dark', AppColors.dark(colorName)),
-                _buildAppColorBox('Flat', AppColors.flat(colorName)),
-                if (_hasColorMode(colorName, 'light'))
-                  _buildAppColorBox('Light', AppColors.light(colorName)),
-                if (_hasColorMode(colorName, 'highlight') &&
-                    colorName != 'white' &&
-                    colorName != 'black' &&
-                    colorName != 'transparent')
-                  _buildAppColorBox(
-                      'Highlight', AppColors.highlight(colorName)),
-              ],
+          InkWell(
+            onTap: () => _showColorPicker(
+              context,
+              color,
+              '$colorName-$variant',
+              (newColor) async {
+                ref.read(themeColorsProvider.notifier)
+                    .updateAppColor(colorName, variant, newColor);
+                await AppColors.loadColorScheme(ref.read(themeProvider));
+              },
+            ),
+            child: _buildColorBox(
+              color,
+              (newColor) async {
+                ref.read(themeColorsProvider.notifier)
+                    .updateAppColor(colorName, variant, newColor);
+                await AppColors.loadColorScheme(ref.read(themeProvider));
+              },
             ),
           ),
+          const SizedBox(height: 4),
+          Text(variant.capitalize(), style: const TextStyle(fontSize: 12)),
+          const SizedBox(height: 2),
+          Text(hexCode, style: const TextStyle(fontSize: 10, fontFamily: 'monospace')),
         ],
       ),
     );
@@ -468,24 +654,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
-  Widget _buildAppColorBox(String name, Color color) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: Column(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(name, style: const TextStyle(fontSize: 12)),
-        ],
-      ),
-    );
+  Map<String, Color> _getCommonColors(BuildContext context) {
+    final theme = Theme.of(context).colorScheme;
+    return {
+      'Primary': theme.primary,
+      'Secondary': theme.secondary,
+      'Surface': theme.surface,
+      'Background': theme.background,
+      'Error': theme.error,
+      'On Primary': theme.onPrimary,
+      'On Secondary': theme.onSecondary,
+      'On Surface': theme.onSurface,
+      'On Background': theme.onBackground,
+      'On Error': theme.onError,
+    };
   }
 }

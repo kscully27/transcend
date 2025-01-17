@@ -6,9 +6,44 @@ class AppTheme {
   static const _isEarthTone = false; // Toggle between themes
 
   static Color _getRequiredColor(Map<String, dynamic> colors, String key) {
+    print('Getting color for key: $key');
+    print('Available colors: ${colors.keys}');
     final value = colors[key];
-    if (value == null) throw Exception('Required color $key not found in theme');
-    return Color(int.parse(value.toString()));
+    if (value == null) {
+      print('Color $key not found in theme');
+      // Default to a safe color if missing
+      switch (key) {
+        case 'scrim':
+          return const Color(0xFF000000);
+        case 'surfaceTint':
+          return Color(int.parse(colors['primary'].toString()));
+        case 'onSurfaceVariant':
+          return Color(int.parse(colors['onSurface'].toString())).withOpacity(0.7);
+        case 'outlineVariant':
+          return Color(int.parse(colors['outline'].toString())).withOpacity(0.5);
+        case 'tertiary':
+          return Color(int.parse(colors['secondary'].toString()));
+        case 'tertiaryContainer':
+          return Color(int.parse(colors['secondaryContainer'].toString()));
+        case 'onTertiaryContainer':
+          return Color(int.parse(colors['onSecondaryContainer'].toString()));
+        case 'onSecondaryContainer':
+          return Color(int.parse(colors['onSecondary'].toString()));
+        case 'onPrimaryContainer':
+          return Color(int.parse(colors['onPrimary'].toString()));
+        case 'onErrorContainer':
+          return Color(int.parse(colors['onError'].toString()));
+        default:
+          throw Exception('Required color $key not found in theme');
+      }
+    }
+    try {
+      return Color(int.parse(value.toString()));
+    } catch (e) {
+      print('Error parsing color value for $key: $value');
+      print('Error details: $e');
+      rethrow;
+    }
   }
 
   static ThemeData get lightTheme {
@@ -27,31 +62,34 @@ class AppTheme {
       colorScheme: ColorScheme.light(
         primary: _getRequiredColor(themeMap, 'primary'),
         onPrimary: _getRequiredColor(themeMap, 'onPrimary'),
+        primaryContainer: _getRequiredColor(themeMap, 'primaryContainer'),
+        onPrimaryContainer: _getRequiredColor(themeMap, 'onPrimaryContainer'),
         secondary: _getRequiredColor(themeMap, 'secondary'),
         onSecondary: _getRequiredColor(themeMap, 'onSecondary'),
+        secondaryContainer: _getRequiredColor(themeMap, 'secondaryContainer'),
+        onSecondaryContainer: _getRequiredColor(themeMap, 'onSecondaryContainer'),
+        tertiary: _getRequiredColor(themeMap, 'secondary'),
+        onTertiary: _getRequiredColor(themeMap, 'onSecondary'),
+        tertiaryContainer: _getRequiredColor(themeMap, 'secondaryContainer'),
+        onTertiaryContainer: _getRequiredColor(themeMap, 'onSecondaryContainer'),
         error: _getRequiredColor(themeMap, 'error'),
         onError: _getRequiredColor(themeMap, 'onError'),
+        errorContainer: _getRequiredColor(themeMap, 'errorContainer'),
+        onErrorContainer: _getRequiredColor(themeMap, 'onErrorContainer'),
         background: _getRequiredColor(themeMap, 'background'),
         onBackground: _getRequiredColor(themeMap, 'onBackground'),
         surface: _getRequiredColor(themeMap, 'surface'),
         onSurface: _getRequiredColor(themeMap, 'onSurface'),
-        surfaceTint: _getRequiredColor(themeMap, 'surfaceTint'),
-        inversePrimary: _getRequiredColor(themeMap, 'inversePrimary'),
-        inverseSurface: _getRequiredColor(themeMap, 'inverseSurface'),
-        onInverseSurface: _getRequiredColor(themeMap, 'onInverseSurface'),
-        outline: _getRequiredColor(themeMap, 'outline'),
-        shadow: _getRequiredColor(themeMap, 'shadow'),
-        scrim: _getRequiredColor(themeMap, 'scrim'),
         surfaceVariant: _getRequiredColor(themeMap, 'surfaceVariant'),
         onSurfaceVariant: _getRequiredColor(themeMap, 'onSurfaceVariant'),
-        primaryContainer: _getRequiredColor(themeMap, 'primaryContainer'),
-        onPrimaryContainer: _getRequiredColor(themeMap, 'onPrimaryContainer'),
-        secondaryContainer: _getRequiredColor(themeMap, 'secondaryContainer'),
-        onSecondaryContainer: _getRequiredColor(themeMap, 'onSecondaryContainer'),
-        tertiaryContainer: _getRequiredColor(themeMap, 'tertiaryContainer'),
-        onTertiaryContainer: _getRequiredColor(themeMap, 'onTertiaryContainer'),
-        errorContainer: _getRequiredColor(themeMap, 'errorContainer'),
-        onErrorContainer: _getRequiredColor(themeMap, 'onErrorContainer'),
+        outline: _getRequiredColor(themeMap, 'outline'),
+        outlineVariant: _getRequiredColor(themeMap, 'outlineVariant'),
+        shadow: _getRequiredColor(themeMap, 'shadow'),
+        scrim: _getRequiredColor(themeMap, 'scrim'),
+        inverseSurface: _getRequiredColor(themeMap, 'inverseSurface'),
+        onInverseSurface: _getRequiredColor(themeMap, 'onInverseSurface'),
+        inversePrimary: _getRequiredColor(themeMap, 'inversePrimary'),
+        surfaceTint: _getRequiredColor(themeMap, 'surfaceTint'),
       ),
 
       // Scaffold background color
@@ -132,8 +170,9 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme {
-    final colors = AppColors.currentScheme?.theme?['dark'];
-    if (colors == null) throw Exception('Theme colors not loaded');
+    if (AppColors.currentScheme == null) throw Exception('Theme colors not loaded');
+    final colors = AppColors.currentScheme!.theme['dark'];
+    if (colors == null) throw Exception('Dark theme colors not loaded');
 
     return ThemeData(
       useMaterial3: true,
@@ -143,35 +182,37 @@ class AppTheme {
       primaryColorDark: _getRequiredColor(colors, 'onPrimary'),
       
       // Color Scheme
-      colorScheme: ColorScheme(
-        brightness: Brightness.dark,
+      colorScheme: ColorScheme.dark(
         primary: _getRequiredColor(colors, 'primary'),
         onPrimary: _getRequiredColor(colors, 'onPrimary'),
+        primaryContainer: _getRequiredColor(colors, 'primaryContainer'),
+        onPrimaryContainer: _getRequiredColor(colors, 'onPrimaryContainer'),
         secondary: _getRequiredColor(colors, 'secondary'),
         onSecondary: _getRequiredColor(colors, 'onSecondary'),
+        secondaryContainer: _getRequiredColor(colors, 'secondaryContainer'),
+        onSecondaryContainer: _getRequiredColor(colors, 'onSecondaryContainer'),
+        tertiary: _getRequiredColor(colors, 'secondary'),
+        onTertiary: _getRequiredColor(colors, 'onSecondary'),
+        tertiaryContainer: _getRequiredColor(colors, 'secondaryContainer'),
+        onTertiaryContainer: _getRequiredColor(colors, 'onSecondaryContainer'),
         error: _getRequiredColor(colors, 'error'),
         onError: _getRequiredColor(colors, 'onError'),
+        errorContainer: _getRequiredColor(colors, 'errorContainer'),
+        onErrorContainer: _getRequiredColor(colors, 'onErrorContainer'),
         background: _getRequiredColor(colors, 'background'),
         onBackground: _getRequiredColor(colors, 'onBackground'),
         surface: _getRequiredColor(colors, 'surface'),
         onSurface: _getRequiredColor(colors, 'onSurface'),
-        surfaceTint: _getRequiredColor(colors, 'surfaceTint'),
-        inversePrimary: _getRequiredColor(colors, 'inversePrimary'),
-        inverseSurface: _getRequiredColor(colors, 'inverseSurface'),
-        onInverseSurface: _getRequiredColor(colors, 'onInverseSurface'),
-        outline: _getRequiredColor(colors, 'outline'),
-        shadow: _getRequiredColor(colors, 'shadow'),
-        scrim: _getRequiredColor(colors, 'scrim'),
         surfaceVariant: _getRequiredColor(colors, 'surfaceVariant'),
         onSurfaceVariant: _getRequiredColor(colors, 'onSurfaceVariant'),
-        primaryContainer: _getRequiredColor(colors, 'primaryContainer'),
-        onPrimaryContainer: _getRequiredColor(colors, 'onPrimaryContainer'),
-        secondaryContainer: _getRequiredColor(colors, 'secondaryContainer'),
-        onSecondaryContainer: _getRequiredColor(colors, 'onSecondaryContainer'),
-        tertiaryContainer: _getRequiredColor(colors, 'tertiaryContainer'),
-        onTertiaryContainer: _getRequiredColor(colors, 'onTertiaryContainer'),
-        errorContainer: _getRequiredColor(colors, 'errorContainer'),
-        onErrorContainer: _getRequiredColor(colors, 'onErrorContainer'),
+        outline: _getRequiredColor(colors, 'outline'),
+        outlineVariant: _getRequiredColor(colors, 'outlineVariant'),
+        shadow: _getRequiredColor(colors, 'shadow'),
+        scrim: _getRequiredColor(colors, 'scrim'),
+        inverseSurface: _getRequiredColor(colors, 'inverseSurface'),
+        onInverseSurface: _getRequiredColor(colors, 'onInverseSurface'),
+        inversePrimary: _getRequiredColor(colors, 'inversePrimary'),
+        surfaceTint: _getRequiredColor(colors, 'surfaceTint'),
       ),
 
       // Scaffold background color

@@ -1186,6 +1186,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.1.0"
+  simple_eye_dropper:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "6d1af76ec492b2bbcf274b8c706ed58ff756f4b6"
+      url: "https://github.com/satoshiiorg/simple_eye_dropper.git"
+    source: git
+    version: "0.2.1"
   simple_shadow:
     dependency: "direct main"
     description:
