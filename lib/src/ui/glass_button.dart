@@ -85,11 +85,11 @@ class GlassButton extends StatelessWidget {
   double get _iconSize {
     switch (size) {
       case GlassButtonSize.xsmall:
-        return 16;
+        return 12;
       case GlassButtonSize.small:
-        return 20;
+        return 14;
       case GlassButtonSize.medium:
-        return 24;
+        return 20;
       case GlassButtonSize.large:
         return 32;
       case GlassButtonSize.xlarge:
@@ -138,7 +138,7 @@ class GlassButton extends StatelessWidget {
       case GlowAmount.strong:
         return 6;
       case GlowAmount.heavy:
-        return 8;
+        return 28;
     }
   }
 
@@ -159,7 +159,7 @@ class GlassButton extends StatelessWidget {
         multiplier = 1.5;
         break;
       case GlowAmount.heavy:
-        multiplier = 2.0;
+        multiplier = 12.0;
         break;
     }
     return Offset(base * multiplier, base * multiplier);

@@ -1,17 +1,22 @@
+import 'dart:convert';
+
+import 'package:clay_containers/widgets/clay_container.dart' as clay_containers;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:remixicon/remixicon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:clay_containers/widgets/clay_container.dart';
-import 'dart:io';
-import 'dart:convert';
 
 import '../constants/app_colors.dart';
-import '../widgets/color_picker_dialog.dart';
-import '../services/saved_preferences.dart';
+import '../ui/candy/candy_button.dart';
+import '../ui/candy/candy_container.dart';
+import '../ui/clay/clay_button.dart';
+import '../ui/glass/glass_button.dart';
+import '../ui/glass/glass_container.dart';
+import '../ui/glass_bottom_sheet.dart';
 import '../utils/eye_dropper.dart' if (dart.library.html) '../utils/eye_dropper_web.dart';
+import '../widgets/color_picker_dialog.dart';
 
 extension StringExtension on String {
   String capitalize() {
@@ -158,6 +163,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final theme = Theme.of(context);
     final isDarkMode = ref.watch(darkModeProvider);
     final currentTheme = ref.watch(themeProvider);
+    final parentColor = theme.colorScheme.surface;
 
     return Scaffold(
       appBar: AppBar(
@@ -194,7 +200,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     },
                   ),
                   const SizedBox(height: 32),
-                  ClayContainer(
+                  clay_containers.ClayContainer(
                     color: theme.colorScheme.surface,
                     parentColor: theme.colorScheme.surface,
                     borderRadius: 12,
@@ -226,22 +232,167 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                     ),
                   ),
-
+                  const SizedBox(height: 32),
+                  // UI Components Showcase Section
+                  Text('UI Components', style: theme.textTheme.titleLarge),
+                  const SizedBox(height: 16),
+                  // Glass Components
+                  Text('Glass Components', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  GlassContainer(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(20),
+                    backgroundColor: theme.colorScheme.surface.withOpacity(0.1),
+                    child: Text(
+                      'Glass Container Example',
+                      style: TextStyle(color: theme.colorScheme.onSurface),
+                    ),
+                  ),
+                  GlassButton(
+                    text: "Open Glass Bottom Sheet",
+                    icon: Remix.arrow_right_line,
+                    // width: double.infinity,
+                    textColor: theme.colorScheme.onSurface,
+                    opacity: .1,
+                    glowAmount: GlowAmount.heavy,
+                    glassColor: theme.colorScheme.onSurface.withOpacity(0.01),
+                    onPressed: () {
+                      GlassBottomSheet.show(
+                        context: context,
+                        content: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Glass Bottom Sheet',
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'This is a glass bottom sheet example.',
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                   const SizedBox(height: 24),
-
+                  // Candy Components
+                  Text('Candy Components', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  CandyContainer(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    baseColor: parentColor,
+                    highlightColor: theme.colorScheme.surfaceTint,
+                    shadowColor: parentColor,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        'Candy Container Example',
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                      ),
+                    ),
+                  ),
+                  CandyButton(
+                    text: "Candy Button",
+                    icon: Remix.arrow_right_line,
+                    color: parentColor,
+                    textColor: theme.colorScheme.onSurface,
+                    onPressed: () {},
+                  ),
+                  const SizedBox(height: 24),
+                  // Clay Components
+                  Text('Clay Components', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  clay_containers.ClayContainer(
+                    color: parentColor,
+                    parentColor: parentColor,
+                    spread: 2,
+                    depth: 40,
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        'Clay Container Example',
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ClayButton(
+                    text: "Clay Button",
+                    icon: Remix.arrow_right_line,
+                    color: parentColor,
+                    parentColor: parentColor,
+                    textColor: theme.colorScheme.onSurface,
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => Container(
+                          margin: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(height: 8),
+                              Container(
+                                width: 40,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.onSurface.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Clay Bottom Sheet',
+                                      style: theme.textTheme.headlineSmall?.copyWith(
+                                        color: theme.colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'This is a clay bottom sheet example.',
+                                      style: TextStyle(
+                                        color: theme.colorScheme.onSurface,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 32),
                   // Theme Colors Section
                   Text('Theme Colors', style: theme.textTheme.titleLarge),
                   const SizedBox(height: 16),
                   _buildThemeColorSection(theme, colors, mode, ref),
                   const SizedBox(height: 24),
-
                   // App Colors Section
                   Text('App Colors', style: theme.textTheme.titleLarge),
                   const SizedBox(height: 16),
                   _buildAppColorSection(theme),
-
                   const SizedBox(height: 32),
-
                   // Publish Changes Button
                   if (themeColors.isNotEmpty)
                     Padding(

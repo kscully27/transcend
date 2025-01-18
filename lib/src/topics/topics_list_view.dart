@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
@@ -9,10 +10,8 @@ import 'package:trancend/src/providers/user_topics_provider.dart';
 import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/topics/candy_topic_item.dart';
 import 'package:trancend/src/topics/glass_topic_item.dart';
-import 'package:trancend/src/ui/glass_button.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
-
-import '../pages/settings.dart';
+import 'package:trancend/src/ui/glass_button.dart';
 
 double firstDepth = 15;
 double secondDepth = 10;
@@ -350,7 +349,7 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                                 left: 4, top: 8, bottom: 8),
                             child: GlassButton(
                               borderRadius: 17,
-                              borderWidth: 1.5,
+                              borderWidth: .5,
                               borderColor: Colors.white24,
                               text: ref
                                   .read(topicsProvider.notifier)
@@ -359,11 +358,14 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                                   horizontal: 16, vertical: 8),
                               glassColor: Colors.white12.withOpacity(0.5),
                               textColor: Colors.white,
+                              opacity: isSelected ? 0.1 : 0.0,
+                              glowColor: Colors.blue,
+                              icon: Remix.arrow_right_line,
                               glowAmount: isSelected
                                   ? GlowAmount.heavy
-                                  : GlowAmount.none,
+                                  : GlowAmount.light,
                               hasDivider: true,
-                              size: GlassButtonSize.small,
+                              size: GlassButtonSize.xsmall,
                               onPressed: () {
                                 ref
                                     .read(topicsProvider.notifier)
