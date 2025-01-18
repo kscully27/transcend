@@ -114,21 +114,21 @@ class CandyTopicItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final baseColor = AppColors.dark(topic.appColor);
+    final baseColor = AppColors.flat(topic.appColor).withOpacity(0.5);
     final highlightColor =
-        Color.lerp(baseColor.withOpacity(0.4), theme.colorScheme.surfaceTint, 0.3)!;
+        Color.lerp(baseColor.withOpacity(0.1), theme.colorScheme.surfaceTint, 0.9)!;
     // final midColor = Color.lerp(baseColor, highlightColor, 0.6)!;
     final midColor = baseColor.withOpacity(0.2);
     // final shadowColor = theme.colorScheme.shadow.withOpacity(0.8);
-    // final shadowColor = const Color(0xFFDF5843);
-    final shadowColor = theme.colorScheme.primaryContainer;
+    final shadowColor = const Color(0xFFDF5843);
 
     void _handleButtonPressed() {
       GlassBottomSheet.show(
         context: context,
         heightPercent: 0.6,
-        backgroundColor: theme.colorScheme.surfaceTint.withOpacity(0.7),
-        barrierColor: const Color.fromARGB(255, 21, 14, 33).withOpacity(0.5),
+        backgroundColor: theme.colorScheme.surfaceTint.withOpacity(0.55  ),
+        // backgroundColor: theme.colorScheme.surfaceTint.withOpacity(0.4),
+        barrierColor: const Color.fromARGB(255, 37, 24, 60).withOpacity(0.45),
         closeButtonColor: Colors.white70,
         blur: 10,
         opacity: .5,
@@ -275,19 +275,19 @@ class CandyTopicItem extends StatelessWidget {
                 ),
               ),
             ),
-            Container(
+            SizedBox(
               height: 120,
               width: double.infinity,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: ShaderMask(
-                  blendMode: BlendMode.softLight,
+                  blendMode: BlendMode.lighten,
                   shaderCallback: (Rect bounds) {
                     return RadialGradient(
                       center: Alignment.center,
                       radius: 10,
                       colors: [
-                        highlightColor.withOpacity(0.3),
+                        highlightColor.withOpacity(0.1),
                         highlightColor.withOpacity(0.05),
                       ],
                       stops: const [.3, 1.0],
@@ -315,7 +315,7 @@ class CandyTopicItem extends StatelessWidget {
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [highlightColor, midColor, shadowColor],
-                            stops: const [0.3, 0.6, 1.0],
+                            stops: const [0.1, 0.6, 1.0],
                           ),
                         ),
                         child: Stack(
@@ -380,7 +380,7 @@ class CandyTopicItem extends StatelessWidget {
                                       height: 1.1,
                                       shadows: [
                                         Shadow(
-                                          color: highlightColor,
+                                          color: highlightColor.withOpacity(0.5),
                                           offset: const Offset(2, 3),
                                           blurRadius: 3,
                                         ),

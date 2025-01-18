@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:trancend/src/ui/glass_icon_button.dart';
 import 'package:trancend/src/ui/glass_container.dart';
@@ -77,7 +76,7 @@ class GlassBottomSheet extends StatelessWidget {
       const Duration(milliseconds: 360),
       () => showModalBottomSheet<T>(
         context: context,
-        backgroundColor: Colors.transparent,
+        backgroundColor: backgroundColor ?? Colors.transparent,
         barrierColor: barrierColor ?? Colors.black.withOpacity(0.5),
         isDismissible: true,
         isScrollControlled: true,

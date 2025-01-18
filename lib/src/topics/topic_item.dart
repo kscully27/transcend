@@ -26,7 +26,7 @@ class ClayTopicItem extends StatefulWidget {
 }
 
 class _ClayTopicItemState extends State<ClayTopicItem> {
-  bool _isEmbossed = false;
+  final bool _isEmbossed = false;
 
   @override
   Widget build(BuildContext context) {

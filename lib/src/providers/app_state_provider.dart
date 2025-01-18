@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/settings.model.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/user.model.dart';
@@ -6,7 +7,6 @@ import 'package:trancend/src/models/user_topic.model.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/services/authentication.service.dart';
 import 'package:trancend/src/services/firestore.service.dart';
-import 'package:trancend/src/locator.dart';
 
 part 'app_state_provider.g.dart';
 
@@ -61,9 +61,9 @@ class AppState extends _$AppState {
       // If user doesn't exist in Firestore yet, create them
       final newUser = User(
         uid: user.uid,
-        email: user.email ?? '',
-        displayName: user.displayName ?? 'Anonymous User',
-        photoUrl: user.photoUrl ?? '',
+        email: user.email,
+        displayName: user.displayName,
+        photoUrl: user.photoUrl,
         isAnonymous: true,
       );
       await _firestoreService.createUser(newUser);

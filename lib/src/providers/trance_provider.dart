@@ -240,6 +240,15 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   void dispose() {
     print('Disposing trance state');
     _timer?.cancel();
+    _isPlaying = false;
+    _isLoadingAudio = false;
+    _cumulativeMilliseconds = 0;
+    _previousTracksDuration = 0;
+    _lastTrackStartTime = null;
+    _sessionStartTime = null;
+    _tracks = [];
+    _currentTrackIndex = 0;
+    _currentTopic = null;
     _audioPlayer.stop();
     _audioPlayer.dispose();
     super.dispose();

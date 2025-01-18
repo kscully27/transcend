@@ -813,5 +813,38 @@ class AuthenticationServiceAdapter implements AuthenticationService {
     }
   }
 
-    
+  Stream<auth.User?> get authStateChanges {
+    try {
+      return auth.FirebaseAuth.instance.authStateChanges().map((user) {
+        if (user == null) {
+          print('🔑 No user signed in');
+          return null;
+        }
+        print('🔑 User signed in: ${user.email}');
+        return user;
+      });
+    } catch (e) {
+      print('🚨 Auth state change error: $e');
+      return Stream.value(null);
+    }
+  }
+
+  Future<auth.User?> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null;
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = auth.GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await auth.FirebaseAuth.instance.signInWithCredential(credential);
+      return userCredential.user;
+    } catch (e) {
+      print('🚨 Google sign in error: $e');
+      return null;
+    }
+  }
 }

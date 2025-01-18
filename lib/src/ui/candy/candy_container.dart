@@ -121,7 +121,7 @@ class CandyContainer extends StatelessWidget {
               ),
             ),
           ),
-          Container(
+          SizedBox(
             height: height,
             width: width ?? double.infinity,
             child: ClipRRect(

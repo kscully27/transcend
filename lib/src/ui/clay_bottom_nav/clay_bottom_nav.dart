@@ -1,4 +1,4 @@
-library clay_bottom_nav;
+library;
 
 import 'dart:math' show max, pi, sqrt;
 

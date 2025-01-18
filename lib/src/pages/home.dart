@@ -37,7 +37,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
         return Scaffold(
           extendBody: true,
-          backgroundColor: theme.colorScheme.background,
+          backgroundColor: theme.colorScheme.surface,
           body: Container(
             decoration: AppColors.enableGradients
                 ? BoxDecoration(
@@ -55,7 +55,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           bottomNavigationBar: ClayBottomNavNSheet(
             backgroundColor: theme.colorScheme.surface,
             emboss: false,
-            parentColor: theme.colorScheme.background,
+            parentColor: theme.colorScheme.surface,
             borderColors: [
               theme.colorScheme.primary.withOpacity(0.2),
               theme.colorScheme.primary,

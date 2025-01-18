@@ -267,7 +267,7 @@ class GlassButton extends StatelessWidget {
                     SizedBox(width: _iconSpacing),
                   ] else if (iconUrl != null) ...[
                     if (glowAmount != GlowAmount.none)
-                      Container(
+                      SizedBox(
                         width: _iconSize,
                         height: _iconSize,
                         child: SimpleShadow(

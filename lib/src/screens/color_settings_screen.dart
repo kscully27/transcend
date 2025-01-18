@@ -121,7 +121,7 @@ class _ColorSettingsScreenState extends State<ColorSettingsScreen> {
           var newColor = '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
           print("🚀 ~ _ColorSettingsScreenState ~ void_showColorPicker ~ newColor: $newColor");
           theme[colorKey] = newColor;
-          print("🚀 ~ _ColorSettingsScreenState ~ void_showColorPicker ~ theme: ${theme} ${AppColors.currentScheme!.name}, ${modifiedColors}");
+          print("🚀 ~ _ColorSettingsScreenState ~ void_showColorPicker ~ theme: $theme ${AppColors.currentScheme!.name}, $modifiedColors");
           
           // Save to preferences
           await SavedPreferences.setThemeColors(AppColors.currentScheme!.name, modifiedColors);
@@ -189,7 +189,7 @@ class _ColorSettingsScreenState extends State<ColorSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (originalColors == null || modifiedColors == null) {
+    if (modifiedColors == null) {
       return const Center(child: CircularProgressIndicator());
     }
 

@@ -19,9 +19,10 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
+  <meta name="google-signin-client_id" content="56498301287-236j0odq03ka0hg0q8dd9h4ba4fei1s5.apps.googleusercontent.com">
 
   <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="trancend">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
@@ -34,22 +35,10 @@
 
   <script>
     // The value below is injected by flutter build, do not touch.
-    const serviceWorkerVersion = null;
+    var serviceWorkerVersion = null;
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
-  <script>
-    async function showEyeDropper() {
-      try {
-        const eyeDropper = new EyeDropper();
-        const result = await eyeDropper.open();
-        return result.sRGBHex;
-      } catch (e) {
-        console.error('Error using eye dropper:', e);
-        return null;
-      }
-    }
-  </script>
 </head>
 <body>
   <script>

@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/app_colors.dart';
-import '../ui/candy/candy_button.dart';
 import '../ui/candy/candy_container.dart';
 import '../utils/eye_dropper.dart' if (dart.library.html) '../utils/eye_dropper_web.dart';
 import '../widgets/color_picker_dialog.dart';
@@ -178,11 +177,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             onSecondary: _getColorFromMap(colors, 'onSecondary'),
             error: _getColorFromMap(colors, 'error'),
             onError: _getColorFromMap(colors, 'onError'),
-            background: _getColorFromMap(colors, 'background'),
-            onBackground: _getColorFromMap(colors, 'onBackground'),
             surface: _getColorFromMap(colors, 'surface'),
             onSurface: _getColorFromMap(colors, 'onSurface'),
-            surfaceVariant: _getColorFromMap(colors, 'surfaceVariant'),
+            surfaceContainerHighest: _getColorFromMap(colors, 'surfaceVariant'),
             onSurfaceVariant: _getColorFromMap(colors, 'onSurfaceVariant'),
             outline: _getColorFromMap(colors, 'outline'),
             outlineVariant: _getColorFromMap(colors, 'outlineVariant'),
@@ -763,12 +760,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       'Primary': theme.primary,
       'Secondary': theme.secondary,
       'Surface': theme.surface,
-      'Background': theme.background,
+      'Background': theme.surface,
       'Error': theme.error,
       'On Primary': theme.onPrimary,
       'On Secondary': theme.onSecondary,
       'On Surface': theme.onSurface,
-      'On Background': theme.onBackground,
+      'On Background': theme.onSurface,
       'On Error': theme.onError,
     };
   }
