@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:trancend/src/ui/glass_icon_button.dart';
+import 'package:trancend/src/ui/glass/glass_icon_button.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 
 enum AnimationSpeed {

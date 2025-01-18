@@ -9,8 +9,8 @@ import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/constants/app_colors.dart';
 import 'package:simple_shadow/simple_shadow.dart';
 import 'package:trancend/src/trance/trance_player.dart';
-import 'package:trancend/src/ui/glass_bottom_sheet.dart';
-import 'package:trancend/src/ui/glass_button.dart';
+import 'package:trancend/src/ui/glass/glass_bottom_sheet.dart';
+import 'package:trancend/src/ui/glass/glass_button.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
 
 class InnerShadow extends SingleChildRenderObjectWidget {
@@ -175,7 +175,7 @@ class CandyTopicItem extends StatelessWidget {
                         : "Add to Favorites",
                     icon: isFavorite ? Remix.heart_fill : Remix.heart_line,
                     // width: double.infinity,
-                    variant: GlassButtonVariant.text,
+                    // variant: GlassButtonVariant.text,
                     size: GlassButtonSize.small,
                     align: GlassButtonAlign.center,
                     textColor: Theme.of(context).colorScheme.onSurface,

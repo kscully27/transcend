@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:trancend/src/ui/blurry_container/extension.dart';
 
 import 'settings_controller.dart';
 
@@ -28,18 +27,7 @@ class SettingsView extends StatelessWidget {
           // When a user selects a theme from the dropdown list, the
           // SettingsController is updated, which rebuilds the MaterialApp.
           child: Column(children: [
-            Container().blurry(
-              blur: 50,
-              width: 2300,
-              height: 400,
-              elevation: 30,
-              // blurColor: Colors.red,
-              color: Colors.transparent,
-              
-              // color: Colors.red,
-              padding: const EdgeInsets.all(8),
-              borderRadius: const BorderRadius.all(Radius.circular(10)),
-            ),
+          
             DropdownButton<ThemeMode>(
               // Read the selected themeMode from the controller
               value: controller.themeMode,

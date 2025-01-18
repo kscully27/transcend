@@ -11,6 +11,8 @@ analyzer:
   errors:
     no_leading_underscores_for_local_identifiers: ignore
     invalid_annotation_target: ignore
+    constant_identifier_names: ignore
+    avoid_print: ignore
   plugins:
     - custom_lint
 include: package:flutter_lints/flutter.yaml

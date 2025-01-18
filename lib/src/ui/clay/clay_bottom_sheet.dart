@@ -1,6 +1,6 @@
 import 'package:clay_containers/clay_containers.dart';
 import 'package:flutter/material.dart';
-import 'package:trancend/src/ui/glass_icon_button.dart';
+import 'package:trancend/src/ui/glass/glass_icon_button.dart';
 
 class ClayBottomSheet extends StatelessWidget {
   final Widget content;

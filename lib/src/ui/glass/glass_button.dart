@@ -178,7 +178,7 @@ class GlassButton extends StatelessWidget {
       case GlowAmount.medium:
         return 0.5;
       case GlowAmount.heavy:
-        return 0.7;
+        return 1;
     }
   }
 
@@ -191,7 +191,7 @@ class GlassButton extends StatelessWidget {
       case GlowAmount.medium:
         return const Offset(0, 2);
       case GlowAmount.heavy:
-        return const Offset(0, 3);
+        return const Offset(1, 1);
     }
   }
 
@@ -204,7 +204,7 @@ class GlassButton extends StatelessWidget {
       case GlowAmount.medium:
         return 4;
       case GlowAmount.heavy:
-        return 6;
+        return 12;
     }
   }
 
@@ -238,17 +238,15 @@ class GlassButton extends StatelessWidget {
               children: [
                 if (icon != null) ...[
                   if (glowAmount != GlowAmount.none)
-                    Container(
-                      child: SimpleShadow(
-                        opacity: _glowOpacity,
-                        color: glowColor ?? textColor,
-                        offset: _glowOffset,
-                        sigma: _glowSigma,
-                        child: Icon(
-                          icon,
-                          color: textColor,
-                          size: _fontSize * 1.2,
-                        ),
+                    SimpleShadow(
+                      opacity: _glowOpacity,
+                      color: glowColor ?? textColor,
+                      offset: _glowOffset,
+                      sigma: _glowSigma,
+                      child: Icon(
+                        icon,
+                        color: textColor,
+                        size: _fontSize * 1.2,
                       ),
                     )
                   else

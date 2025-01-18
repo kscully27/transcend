@@ -2,12 +2,8 @@ import 'package:clay_containers/clay_containers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/constants/app_colors.dart';
-import 'package:trancend/src/models/session.model.dart' as session;
 import 'package:trancend/src/models/topic.model.dart';
-import 'package:trancend/src/trance/trance_player.dart';
-import 'package:trancend/src/ui/clay_button.dart';
 
 class ClayTopicItem extends StatefulWidget {
   final Topic topic;

@@ -5,8 +5,8 @@ import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
-import 'package:trancend/src/ui/glass_bottom_sheet.dart';
-import 'package:trancend/src/ui/glass_button.dart';
+import 'package:trancend/src/ui/glass/glass_bottom_sheet.dart';
+import 'package:trancend/src/ui/glass/glass_button.dart';
 import 'package:trancend/src/trance/trance_player.dart';
 
 class GlassTopicItem extends StatefulWidget {
@@ -128,7 +128,7 @@ class _TopicItemState extends State<GlassTopicItem> with TickerProviderStateMixi
                   text: widget.isFavorite ? "Remove from Favorites" : "Add to Favorites",
                   icon: widget.isFavorite ? Remix.heart_fill : Remix.heart_line,
                   width: double.infinity,
-                  variant: GlassButtonVariant.text,
+                  // variant: GlassButtonVariant.text,
                   size: GlassButtonSize.xsmall,
                   align: GlassButtonAlign.center,
                   textColor: Theme.of(context).colorScheme.onSurface,

@@ -8,8 +8,8 @@ import 'package:trancend/src/models/user.model.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/providers/trance_provider.dart';
 import 'package:trancend/src/trance/trance_player.dart';
-import 'package:trancend/src/ui/clay_button.dart';
-import 'package:trancend/src/ui/glass_button.dart';
+import 'package:trancend/src/ui/clay/clay_button.dart';
+import 'package:trancend/src/ui/glass/glass_button.dart';
 
 Color baseColor = const Color(0xFFD59074);
 
@@ -187,7 +187,7 @@ class _TranceViewState extends ConsumerState<TranceView> {
                         GlassButton(
                           text: "Advanced Settings",
                           icon: Remix.settings_3_line,
-                          variant: GlassButtonVariant.text,
+                          variant: GlassButtonVariant.outlined,
                           size: GlassButtonSize.small,
                           textColor: Colors.white70,
                           glassColor: Colors.white12,

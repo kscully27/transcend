@@ -11,7 +11,7 @@ import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/topics/candy_topic_item.dart';
 import 'package:trancend/src/topics/glass_topic_item.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
-import 'package:trancend/src/ui/glass_button.dart';
+import 'package:trancend/src/ui/glass/glass_button.dart';
 
 double firstDepth = 15;
 double secondDepth = 10;
@@ -359,11 +359,11 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                               glassColor: Colors.white12.withOpacity(0.5),
                               textColor: Colors.white,
                               opacity: isSelected ? 0.1 : 0.0,
-                              glowColor: Colors.blue,
+                              glowColor: Colors.green,
                               icon: Remix.arrow_right_line,
                               glowAmount: isSelected
                                   ? GlowAmount.heavy
-                                  : GlowAmount.light,
+                                  : GlowAmount.medium,
                               hasDivider: true,
                               size: GlassButtonSize.xsmall,
                               onPressed: () {

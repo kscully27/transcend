@@ -9,19 +9,12 @@ part 'topics_provider.g.dart';
 class Topics extends _$Topics {
   String _selectedCategory = 'All';
   List<Topic> _allTopics = [];
-  final Map<String, String> _categoryDisplayMap = {};
   
   @override
   Future<List<Topic>> build() async {
     final firestoreService = locator<FirestoreService>();
     _allTopics = await firestoreService.getTopics();
     return getFilteredTopics();
-  }
-
-  String _toTitleCase(String text) {
-    return text.split(' ').map((word) => 
-      word[0].toUpperCase() + word.substring(1).toLowerCase()
-    ).join(' ');
   }
 
   List<String> getCategories() {

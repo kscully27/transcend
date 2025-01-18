@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trancend/src/ui/glass/glass_icon_button.dart';
 
 import '../constants/app_colors.dart';
 import '../ui/candy/candy_button.dart';
@@ -14,8 +15,9 @@ import '../ui/candy/candy_container.dart';
 import '../ui/clay/clay_button.dart';
 import '../ui/glass/glass_button.dart';
 import '../ui/glass/glass_container.dart';
-import '../ui/glass_bottom_sheet.dart';
-import '../utils/eye_dropper.dart' if (dart.library.html) '../utils/eye_dropper_web.dart';
+import '../ui/glass/glass_bottom_sheet.dart';
+import '../utils/eye_dropper.dart'
+    if (dart.library.html) '../utils/eye_dropper_web.dart';
 import '../widgets/color_picker_dialog.dart';
 
 extension StringExtension on String {
@@ -93,20 +95,30 @@ class ThemeColorsNotifier extends StateNotifier<Map<String, dynamic>> {
   bool _hasChanges = false;
   bool get hasChanges => _hasChanges;
 
-  ThemeColorsNotifier() : super({'theme': {'light': {}, 'dark': {}}, 'colors': {}});
+  ThemeColorsNotifier()
+      : super({
+          'theme': {'light': {}, 'dark': {}},
+          'colors': {}
+        });
 
   Future<void> loadColors(String themeName) async {
     try {
       // Load from bundled assets
-      final jsonString = await rootBundle.loadString('assets/color_schemes/${themeName}_colors.json');
-      final Map<String, dynamic> jsonData = json.decode(jsonString) as Map<String, dynamic>;
-      
+      final jsonString = await rootBundle
+          .loadString('assets/color_schemes/${themeName}_colors.json');
+      final Map<String, dynamic> jsonData =
+          json.decode(jsonString) as Map<String, dynamic>;
+
       // Get the theme data
-      final Map<String, dynamic> themeData = jsonData['theme'] as Map<String, dynamic>;
-      final Map<String, dynamic> lightTheme = themeData['light'] as Map<String, dynamic>;
-      final Map<String, dynamic> darkTheme = themeData['dark'] as Map<String, dynamic>;
-      final Map<String, dynamic> colors = jsonData['colors'] as Map<String, dynamic>;
-      
+      final Map<String, dynamic> themeData =
+          jsonData['theme'] as Map<String, dynamic>;
+      final Map<String, dynamic> lightTheme =
+          themeData['light'] as Map<String, dynamic>;
+      final Map<String, dynamic> darkTheme =
+          themeData['dark'] as Map<String, dynamic>;
+      final Map<String, dynamic> colors =
+          jsonData['colors'] as Map<String, dynamic>;
+
       state = {
         'theme': {
           'light': lightTheme,
@@ -114,7 +126,7 @@ class ThemeColorsNotifier extends StateNotifier<Map<String, dynamic>> {
         },
         'colors': colors,
       };
-      
+
       _hasChanges = false;
     } catch (e) {
       print('Error loading colors: $e');
@@ -123,8 +135,10 @@ class ThemeColorsNotifier extends StateNotifier<Map<String, dynamic>> {
 
   void updateColor(String mode, String name, Color color) {
     final newState = Map<String, dynamic>.from(state);
-    final theme = (newState['theme'] as Map<String, dynamic>)[mode] as Map<String, dynamic>;
-    theme[name] = '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    final theme = (newState['theme'] as Map<String, dynamic>)[mode]
+        as Map<String, dynamic>;
+    theme[name] =
+        '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
     state = newState;
     _hasChanges = true;
   }
@@ -133,7 +147,8 @@ class ThemeColorsNotifier extends StateNotifier<Map<String, dynamic>> {
     final newState = Map<String, dynamic>.from(state);
     final colors = (newState['colors'] as Map<String, dynamic>);
     final colorData = (colors[colorName] as Map<String, dynamic>);
-    colorData[variant] = '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    colorData[variant] =
+        '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
     state = newState;
     _hasChanges = true;
   }
@@ -173,7 +188,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         builder: (context, ref, _) {
           final themeColors = ref.watch(themeColorsProvider);
           final mode = isDarkMode ? 'dark' : 'light';
-          final colors = (themeColors['theme'] as Map<String, dynamic>)[mode] as Map<String, dynamic>;
+          final colors = (themeColors['theme'] as Map<String, dynamic>)[mode]
+              as Map<String, dynamic>;
 
           return SingleChildScrollView(
             child: Padding(
@@ -239,6 +255,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   // Glass Components
                   Text('Glass Components', style: theme.textTheme.titleMedium),
                   const SizedBox(height: 8),
+                  
                   GlassContainer(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(20),
@@ -248,13 +265,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       style: TextStyle(color: theme.colorScheme.onSurface),
                     ),
                   ),
+                  const SizedBox(height: 8),
+
+                  GlassIconButton(
+                    icon: Icons.close,
+                    iconColor: theme.colorScheme.onSurface,
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(height: 8),
+
                   GlassButton(
                     text: "Open Glass Bottom Sheet",
                     icon: Remix.arrow_right_line,
-                    // width: double.infinity,
                     textColor: theme.colorScheme.onSurface,
                     opacity: .1,
                     glowAmount: GlowAmount.heavy,
+                    glowColor: Colors.blue,
                     glassColor: theme.colorScheme.onSurface.withOpacity(0.01),
                     onPressed: () {
                       GlassBottomSheet.show(
@@ -289,7 +315,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   const SizedBox(height: 8),
                   CandyContainer(
                     margin: const EdgeInsets.only(bottom: 16),
-                    baseColor: parentColor,
+                    baseColor: AppColors.flat("blue").withOpacity(0.5),
                     highlightColor: theme.colorScheme.surfaceTint,
                     shadowColor: parentColor,
                     child: Padding(
@@ -351,7 +377,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 width: 40,
                                 height: 4,
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.onSurface.withOpacity(0.1),
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(2),
                                 ),
                               ),
@@ -362,7 +389,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                   children: [
                                     Text(
                                       'Clay Bottom Sheet',
-                                      style: theme.textTheme.headlineSmall?.copyWith(
+                                      style: theme.textTheme.headlineSmall
+                                          ?.copyWith(
                                         color: theme.colorScheme.onSurface,
                                       ),
                                     ),
@@ -399,8 +427,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       padding: const EdgeInsets.only(bottom: 200),
                       child: Center(
                         child: ElevatedButton(
-                          onPressed: () =>
-                              _publishChanges(context, currentTheme, themeColors),
+                          onPressed: () => _publishChanges(
+                              context, currentTheme, themeColors),
                           child: const Text('Publish Changes'),
                         ),
                       ),
@@ -415,7 +443,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         builder: (context, ref, _) {
           final hasChanges = ref.read(themeColorsProvider.notifier).hasChanges;
           if (!hasChanges) return const SizedBox.shrink();
-          
+
           return FloatingActionButton.extended(
             onPressed: () => _publishChanges(
               context,
@@ -444,19 +472,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         'theme': colors['theme'],
         'colors': colors['colors'],
       };
-      
+
       // Format the JSON
-      final prettyJson = const JsonEncoder.withIndent('  ').convert(completeJson);
-      
+      final prettyJson =
+          const JsonEncoder.withIndent('  ').convert(completeJson);
+
       // Copy to clipboard
       await Clipboard.setData(ClipboardData(text: prettyJson));
-      
+
       if (context.mounted) {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('JSON copied to clipboard')),
         );
-        
+
         // Show the dialog with the copied JSON
         showDialog(
           context: context,
@@ -469,12 +498,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('JSON has been copied to your clipboard. Save it to:'),
-                    Text('assets/color_schemes/${themeName}_colors.json', 
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(
+                        'JSON has been copied to your clipboard. Save it to:'),
+                    Text('assets/color_schemes/${themeName}_colors.json',
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
                     SelectableText(prettyJson,
-                      style: const TextStyle(fontFamily: 'monospace')),
+                        style: const TextStyle(fontFamily: 'monospace')),
                   ],
                 ),
               ),
@@ -498,10 +528,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
-  void _showColorPicker(BuildContext context, Color color, String key, Function(Color) onColorChanged) {
+  void _showColorPicker(BuildContext context, Color color, String key,
+      Function(Color) onColorChanged) {
     final RenderBox button = context.findRenderObject() as RenderBox;
     final position = button.localToGlobal(Offset.zero);
-    
+
     late final OverlayEntry overlay;
     overlay = OverlayEntry(
       builder: (context) => Positioned(
@@ -575,7 +606,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     if (jsonColors == null) return const SizedBox.shrink();
 
     final colorKeys = jsonColors.keys.toList()..sort();
-    
+
     // Watch color updates
     ref.watch(colorUpdateProvider);
 
@@ -583,7 +614,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: colorKeys.map((key) {
         final color = _getColorFromMap(themeColors, key);
-        final hexCode = '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
+        final hexCode =
+            '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Row(
@@ -606,24 +638,30 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       color,
                       key,
                       (newColor) async {
-                        ref.read(themeColorsProvider.notifier)
+                        ref
+                            .read(themeColorsProvider.notifier)
                             .updateColor(mode, key, newColor);
-                        await AppColors.loadColorScheme(ref.read(themeProvider));
+                        await AppColors.loadColorScheme(
+                            ref.read(themeProvider));
                         ref.read(colorUpdateProvider.notifier).triggerUpdate();
                       },
                     ),
                     child: _buildColorBox(
                       color,
                       (newColor) async {
-                        ref.read(themeColorsProvider.notifier)
+                        ref
+                            .read(themeColorsProvider.notifier)
                             .updateColor(mode, key, newColor);
-                        await AppColors.loadColorScheme(ref.read(themeProvider));
+                        await AppColors.loadColorScheme(
+                            ref.read(themeProvider));
                         ref.read(colorUpdateProvider.notifier).triggerUpdate();
                       },
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(hexCode, style: const TextStyle(fontSize: 10, fontFamily: 'monospace')),
+                  Text(hexCode,
+                      style: const TextStyle(
+                          fontSize: 10, fontFamily: 'monospace')),
                 ],
               ),
               // Space for future content
@@ -659,85 +697,95 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return Consumer(
       builder: (context, ref, _) {
         final themeColors = ref.watch(themeColorsProvider);
-        final appColors = (themeColors['colors'] as Map<String, dynamic>?) ?? {};
-        
+        final appColors =
+            (themeColors['colors'] as Map<String, dynamic>?) ?? {};
+
         // Watch color updates
         ref.watch(colorUpdateProvider);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: colors.map((color) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Color name and variants (1/4 of space)
-                SizedBox(
-                  width: 150,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(color.toUpperCase(),
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-                // Color boxes
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
+          children: colors
+              .map((color) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (_hasColorMode(color, 'shadow'))
-                          _buildAppColorBox(
-                            'shadow', 
-                            color,
-                            _getAppColorFromJson(appColors, color, 'shadow'),
-                            ref,
+                        // Color name and variants (1/4 of space)
+                        SizedBox(
+                          width: 150,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(color.toUpperCase(),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                            ],
                           ),
-                        if (_hasColorMode(color, 'dark'))
-                          _buildAppColorBox(
-                            'dark', 
-                            color,
-                            _getAppColorFromJson(appColors, color, 'dark'),
-                            ref,
-                          ),
-                        _buildAppColorBox(
-                          'flat', 
-                          color,
-                          _getAppColorFromJson(appColors, color, 'flat'),
-                          ref,
                         ),
-                        if (_hasColorMode(color, 'light'))
-                          _buildAppColorBox(
-                            'light', 
-                            color,
-                            _getAppColorFromJson(appColors, color, 'light'),
-                            ref,
+                        // Color boxes
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                if (_hasColorMode(color, 'shadow'))
+                                  _buildAppColorBox(
+                                    'shadow',
+                                    color,
+                                    _getAppColorFromJson(
+                                        appColors, color, 'shadow'),
+                                    ref,
+                                  ),
+                                if (_hasColorMode(color, 'dark'))
+                                  _buildAppColorBox(
+                                    'dark',
+                                    color,
+                                    _getAppColorFromJson(
+                                        appColors, color, 'dark'),
+                                    ref,
+                                  ),
+                                _buildAppColorBox(
+                                  'flat',
+                                  color,
+                                  _getAppColorFromJson(
+                                      appColors, color, 'flat'),
+                                  ref,
+                                ),
+                                if (_hasColorMode(color, 'light'))
+                                  _buildAppColorBox(
+                                    'light',
+                                    color,
+                                    _getAppColorFromJson(
+                                        appColors, color, 'light'),
+                                    ref,
+                                  ),
+                                if (_hasColorMode(color, 'highlight') &&
+                                    color != 'white' &&
+                                    color != 'black' &&
+                                    color != 'transparent')
+                                  _buildAppColorBox(
+                                    'highlight',
+                                    color,
+                                    _getAppColorFromJson(
+                                        appColors, color, 'highlight'),
+                                    ref,
+                                  ),
+                              ],
+                            ),
                           ),
-                        if (_hasColorMode(color, 'highlight') &&
-                            color != 'white' &&
-                            color != 'black' &&
-                            color != 'transparent')
-                          _buildAppColorBox(
-                            'highlight', 
-                            color,
-                            _getAppColorFromJson(appColors, color, 'highlight'),
-                            ref,
-                          ),
+                        ),
                       ],
                     ),
-                  ),
-                ),
-              ],
-            ),
-          )).toList(),
+                  ))
+              .toList(),
         );
       },
     );
   }
 
-  Color _getAppColorFromJson(Map<String, dynamic> colors, String colorName, String variant) {
+  Color _getAppColorFromJson(
+      Map<String, dynamic> colors, String colorName, String variant) {
     try {
       final colorData = colors[colorName] as Map<String, dynamic>;
       final value = colorData[variant];
@@ -748,8 +796,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
-  Widget _buildAppColorBox(String variant, String colorName, Color color, WidgetRef ref) {
-    final hexCode = '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
+  Widget _buildAppColorBox(
+      String variant, String colorName, Color color, WidgetRef ref) {
+    final hexCode =
+        '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: Column(
@@ -760,7 +810,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               color,
               '$colorName-$variant',
               (newColor) async {
-                ref.read(themeColorsProvider.notifier)
+                ref
+                    .read(themeColorsProvider.notifier)
                     .updateAppColor(colorName, variant, newColor);
                 await AppColors.loadColorScheme(ref.read(themeProvider));
               },
@@ -768,7 +819,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             child: _buildColorBox(
               color,
               (newColor) async {
-                ref.read(themeColorsProvider.notifier)
+                ref
+                    .read(themeColorsProvider.notifier)
                     .updateAppColor(colorName, variant, newColor);
                 await AppColors.loadColorScheme(ref.read(themeProvider));
               },
@@ -777,7 +829,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const SizedBox(height: 4),
           Text(variant.capitalize(), style: const TextStyle(fontSize: 12)),
           const SizedBox(height: 2),
-          Text(hexCode, style: const TextStyle(fontSize: 10, fontFamily: 'monospace')),
+          Text(hexCode,
+              style: const TextStyle(fontSize: 10, fontFamily: 'monospace')),
         ],
       ),
     );
