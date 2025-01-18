@@ -77,7 +77,7 @@ class CandyContainer extends StatelessWidget {
     this.width,
     this.borderRadius = 20,
     this.padding = const EdgeInsets.all(20),
-    this.margin = const EdgeInsets.symmetric(vertical: 8.0),
+    this.margin = const EdgeInsets.symmetric(vertical: 24.0),
     this.boxShadow,
     this.gradient,
     this.topInnerShadowBlur = 30,
@@ -97,14 +97,13 @@ class CandyContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final midColor = Color.lerp(baseColor, highlightColor, 0.1)!;
     final midColor = baseColor.withOpacity(1);
     return Padding(
       padding: margin,
       child: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 12, right: 12, bottom: 4),
+            padding: const EdgeInsets.only(left: 12, right: 12, bottom: 10),
             child: Container(
               height: height,
               width: width,
@@ -113,9 +112,9 @@ class CandyContainer extends StatelessWidget {
                 boxShadow: boxShadow ?? [
                   BoxShadow(
                     color: shadowColor.withOpacity(shadowOpacity),
-                    spreadRadius: glowStrength.spreadRadius,
-                    blurRadius: glowStrength.blurRadius,
-                    offset: const Offset(0, 12),
+                    spreadRadius: glowStrength.spreadRadius * 2.5,
+                    blurRadius: glowStrength.blurRadius * 2.5,
+                    offset: const Offset(0, 30),
                   ),
                 ],
               ),

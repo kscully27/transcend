@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trancend/src/ui/glass_icon_button.dart';
-import 'package:trancend/src/ui/glass_container.dart';
+import 'package:trancend/src/ui/glass/glass_container.dart';
 
 enum AnimationSpeed {
   slow,
@@ -140,6 +140,11 @@ class GlassBottomSheet extends StatelessWidget {
         opacity: opacity ?? 0.3,
         fade: fade,
         border: border ?? Border.all(color: Colors.white12, width: 0.5),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(20),
+          bottom: Radius.circular(20),
+        ),
+        isFrosted: true,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

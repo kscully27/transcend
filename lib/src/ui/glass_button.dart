@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:trancend/src/ui/glass_container.dart';
+import 'package:trancend/src/ui/glass/glass_container.dart';
 import 'package:simple_shadow/simple_shadow.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 

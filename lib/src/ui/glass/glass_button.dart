@@ -1,16 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:trancend/src/ui/glass_container.dart';
 import 'package:simple_shadow/simple_shadow.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:trancend/src/ui/glass/glass_container.dart';
 
-enum GlassButtonVariant { outlined, text }
+enum GlassButtonVariant {
+  outlined,
+  filled,
+}
 
-enum GlassButtonSize { xsmall, small, medium, large, xlarge }
+enum GlassButtonSize {
+  xsmall,
+  small,
+  medium,
+  large,
+  xlarge,
+}
 
-enum GlassButtonAlign { left, center, right }
+enum GlassButtonAlign {
+  left,
+  center,
+  right,
+}
 
-enum GlowAmount { none, light, medium, strong, heavy }
+enum GlowAmount {
+  none,
+  light,
+  medium,
+  heavy,
+}
 
 class GlassButton extends StatelessWidget {
   final String text;
@@ -38,6 +55,7 @@ class GlassButton extends StatelessWidget {
   final GlowAmount glowAmount;
   final Color? glowColor;
   final bool hasDivider;
+  final double opacity;
 
   const GlassButton({
     super.key,
@@ -66,6 +84,7 @@ class GlassButton extends StatelessWidget {
     this.glowAmount = GlowAmount.none,
     this.glowColor,
     this.hasDivider = false,
+    this.opacity = 0.3,
   });
 
   double get _fontSize {
@@ -83,91 +102,34 @@ class GlassButton extends StatelessWidget {
     }
   }
 
-  double get _iconSize {
+  FontWeight get _fontWeight {
     switch (size) {
       case GlassButtonSize.xsmall:
-        return 16;
+        return FontWeight.normal;
       case GlassButtonSize.small:
-        return 20;
+        return FontWeight.normal;
       case GlassButtonSize.medium:
-        return 24;
+        return FontWeight.w500;
       case GlassButtonSize.large:
-        return 32;
+        return FontWeight.w600;
       case GlassButtonSize.xlarge:
-        return 40;
+        return FontWeight.w700;
     }
   }
 
   EdgeInsets get _defaultPadding {
     switch (size) {
       case GlassButtonSize.xsmall:
-        return const EdgeInsets.symmetric(horizontal: 8, vertical: 4);
-      case GlassButtonSize.small:
         return const EdgeInsets.symmetric(horizontal: 12, vertical: 6);
-      case GlassButtonSize.medium:
+      case GlassButtonSize.small:
         return const EdgeInsets.symmetric(horizontal: 16, vertical: 8);
+      case GlassButtonSize.medium:
+        return const EdgeInsets.symmetric(horizontal: 20, vertical: 10);
       case GlassButtonSize.large:
         return const EdgeInsets.symmetric(horizontal: 24, vertical: 12);
       case GlassButtonSize.xlarge:
         return const EdgeInsets.symmetric(horizontal: 32, vertical: 16);
     }
-  }
-
-  double get _glowOpacity {
-    switch (glowAmount) {
-      case GlowAmount.none:
-        return 0;
-      case GlowAmount.light:
-        return 0.3;
-      case GlowAmount.medium:
-        return 0.5;
-      case GlowAmount.strong:
-        return 0.7;
-      case GlowAmount.heavy:
-        return 1.0;
-    }
-  }
-
-  double get _glowSigma {
-    switch (glowAmount) {
-      case GlowAmount.none:
-        return 0;
-      case GlowAmount.light:
-        return 2;
-      case GlowAmount.medium:
-        return 4;
-      case GlowAmount.strong:
-        return 6;
-      case GlowAmount.heavy:
-        return 8;
-    }
-  }
-
-  Offset get _glowOffset {
-    double base = size == GlassButtonSize.xsmall ? 1 : 2;
-    double multiplier;
-    switch (glowAmount) {
-      case GlowAmount.none:
-        multiplier = 0;
-        break;
-      case GlowAmount.light:
-        multiplier = 0.5;
-        break;
-      case GlowAmount.medium:
-        multiplier = 1.0;
-        break;
-      case GlowAmount.strong:
-        multiplier = 1.5;
-        break;
-      case GlowAmount.heavy:
-        multiplier = 2.0;
-        break;
-    }
-    return Offset(base * multiplier, base * multiplier);
-  }
-
-  FontWeight get _fontWeight {
-    return size == GlassButtonSize.xsmall ? FontWeight.w500 : FontWeight.w200;
   }
 
   MainAxisAlignment get _mainAxisAlignment {
@@ -199,127 +161,119 @@ class GlassButton extends StatelessWidget {
       case GlassButtonSize.small:
         return 8;
       case GlassButtonSize.medium:
-        return 12;
+        return 10;
       case GlassButtonSize.large:
-        return 14;
+        return 12;
       case GlassButtonSize.xlarge:
         return 16;
     }
   }
 
+  double get _glowOpacity {
+    switch (glowAmount) {
+      case GlowAmount.none:
+        return 0;
+      case GlowAmount.light:
+        return 0.3;
+      case GlowAmount.medium:
+        return 0.5;
+      case GlowAmount.heavy:
+        return 0.7;
+    }
+  }
+
+  Offset get _glowOffset {
+    switch (glowAmount) {
+      case GlowAmount.none:
+        return Offset.zero;
+      case GlowAmount.light:
+        return const Offset(0, 1);
+      case GlowAmount.medium:
+        return const Offset(0, 2);
+      case GlowAmount.heavy:
+        return const Offset(0, 3);
+    }
+  }
+
+  double get _glowSigma {
+    switch (glowAmount) {
+      case GlowAmount.none:
+        return 0;
+      case GlowAmount.light:
+        return 2;
+      case GlowAmount.medium:
+        return 4;
+      case GlowAmount.heavy:
+        return 6;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: margin,
-      child: GestureDetector(
-        onTap: onPressed,
-        child: GlassContainer(
-          width: width,
-          height: height,
-          backgroundColor: glassColor,
+    return Padding(
+      padding: margin,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
           borderRadius: BorderRadius.circular(borderRadius),
-          child: Container(
-            decoration: BoxDecoration(
-              border: variant == GlassButtonVariant.outlined
-                  ? Border.all(
-                      color: borderColor ?? textColor,
-                      width: borderWidth,
+          child: GlassContainer(
+            width: width,
+            height: height,
+            backgroundColor: glassColor,
+            opacity: opacity,
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: variant == GlassButtonVariant.outlined
+                ? Border.all(
+                    color: borderColor ?? textColor,
+                    width: borderWidth,
+                  )
+                : null,
+            padding: padding ?? _defaultPadding,
+            isFrosted: true,
+            child: Row(
+              mainAxisSize: mainAxisSize,
+              mainAxisAlignment: _mainAxisAlignment,
+              crossAxisAlignment: crossAxisAlignment,
+              children: [
+                if (icon != null) ...[
+                  if (glowAmount != GlowAmount.none)
+                    Container(
+                      child: SimpleShadow(
+                        opacity: _glowOpacity,
+                        color: glowColor ?? textColor,
+                        offset: _glowOffset,
+                        sigma: _glowSigma,
+                        child: Icon(
+                          icon,
+                          color: textColor,
+                          size: _fontSize * 1.2,
+                        ),
+                      ),
                     )
-                  : null,
-              borderRadius: BorderRadius.circular(borderRadius),
-            ),
-            child: Padding(
-              padding: padding ?? _defaultPadding,
-              child: Row(
-                mainAxisSize: mainAxisSize,
-                mainAxisAlignment: _mainAxisAlignment,
-                crossAxisAlignment: crossAxisAlignment,
-                children: [
-                  if (icon != null) ...[
-                    if (glowAmount != GlowAmount.none)
-                      Container(
-                        child: SimpleShadow(
-                          opacity: _glowOpacity,
-                          color: glowColor ?? textColor,
-                          offset: _glowOffset,
-                          sigma: _glowSigma,
-                          child: Icon(
-                            icon,
-                            color: textColor,
-                            size: _iconSize,
-                          ),
-                        ),
-                      )
-                    else
-                      Icon(
-                        icon,
-                        color: textColor,
-                        size: _iconSize,
-                      ),
-                    if (hasDivider) ...[
-                      SizedBox(width: _iconSpacing),
-                      Container(
-                        width: 1,
-                        height: _iconSize * 0.8,
-                        color: (borderColor ?? textColor).withOpacity(0.5),
-                      ),
-                    ],
-                    SizedBox(width: _iconSpacing),
-                  ] else if (iconUrl != null) ...[
-                    if (glowAmount != GlowAmount.none)
-                      SizedBox(
-                        width: _iconSize,
-                        height: _iconSize,
-                        child: SimpleShadow(
-                          opacity: _glowOpacity,
-                          color: glowColor ?? textColor,
-                          offset: _glowOffset,
-                          sigma: _glowSigma,
-                          child: SvgPicture.network(
-                            iconUrl!,
-                            colorFilter: ColorFilter.mode(
-                              textColor,
-                              BlendMode.srcIn,
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      SvgPicture.network(
-                        iconUrl!,
-                        width: _iconSize,
-                        height: _iconSize,
-                        colorFilter: ColorFilter.mode(
-                          textColor,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                    if (hasDivider) ...[
-                      SizedBox(width: _iconSpacing),
-                      Container(
-                        width: 1,
-                        height: _iconSize * 0.8,
-                        color: (borderColor ?? textColor).withOpacity(0.5),
-                      ),
-                    ],
-                    SizedBox(width: _iconSpacing),
-                  ],
-                  Flexible(
-                    fit: FlexFit.loose,
-                    child: glowAmount != GlowAmount.none
-                        ? Container(
-                            child: SimpleShadow(
-                              opacity: _glowOpacity,
-                              color: glowColor ?? textColor,
-                              offset: _glowOffset,
-                              sigma: _glowSigma,
-                              child: _buildText(),
-                            ),
-                          )
-                        : _buildText(),
-                  ),
+                  else
+                    Icon(
+                      icon,
+                      color: textColor,
+                      size: _fontSize * 1.2,
+                    ),
+                  SizedBox(width: _iconSpacing),
                 ],
-              ),
+                Flexible(
+                  fit: FlexFit.loose,
+                  child: glowAmount != GlowAmount.none
+                      ? Container(
+                          child: SimpleShadow(
+                            opacity: _glowOpacity,
+                            color: glowColor ?? textColor,
+                            offset: _glowOffset,
+                            sigma: _glowSigma,
+                            child: _buildText(),
+                          ),
+                        )
+                      : _buildText(),
+                ),
+              ],
             ),
           ),
         ),
