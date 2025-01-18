@@ -315,13 +315,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   const SizedBox(height: 8),
                   CandyContainer(
                     margin: const EdgeInsets.only(bottom: 16),
-                    baseColor: AppColors.flat("blue").withOpacity(0.5),
+                    baseColor: AppColors.flat("purple"),
                     highlightColor: theme.colorScheme.surfaceTint,
                     shadowColor: parentColor,
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Text(
-                        'Candy Container Example',
+                        'Candy Container Example2',
                         style: TextStyle(color: theme.colorScheme.onSurface),
                       ),
                     ),
@@ -610,62 +610,68 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     // Watch color updates
     ref.watch(colorUpdateProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Wrap(
+      spacing: 24,
+      runSpacing: 24,
       children: colorKeys.map((key) {
         final color = _getColorFromMap(themeColors, key);
         final hexCode =
             '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
+        return SizedBox(
+          width: 200,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Color name (1/4 of space)
-              SizedBox(
-                width: 150,
-                child: Text(
-                  key,
-                  style: theme.textTheme.bodyMedium,
+              Text(
+                key,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              // Color box and hex code
+              const SizedBox(height: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InkWell(
-                    onTap: () => _showColorPicker(
-                      context,
-                      color,
-                      key,
-                      (newColor) async {
-                        ref
-                            .read(themeColorsProvider.notifier)
-                            .updateColor(mode, key, newColor);
-                        await AppColors.loadColorScheme(
-                            ref.read(themeProvider));
-                        ref.read(colorUpdateProvider.notifier).triggerUpdate();
-                      },
-                    ),
-                    child: _buildColorBox(
-                      color,
-                      (newColor) async {
-                        ref
-                            .read(themeColorsProvider.notifier)
-                            .updateColor(mode, key, newColor);
-                        await AppColors.loadColorScheme(
-                            ref.read(themeProvider));
-                        ref.read(colorUpdateProvider.notifier).triggerUpdate();
-                      },
+                  Row(
+                    children: [
+                      InkWell(
+                        onTap: () => _showColorPicker(
+                          context,
+                          color,
+                          key,
+                          (newColor) async {
+                            ref
+                                .read(themeColorsProvider.notifier)
+                                .updateColor(mode, key, newColor);
+                            await AppColors.loadColorScheme(
+                                ref.read(themeProvider));
+                            ref.read(colorUpdateProvider.notifier).triggerUpdate();
+                          },
+                        ),
+                        child: _buildColorBox(
+                          color,
+                          (newColor) async {
+                            ref
+                                .read(themeColorsProvider.notifier)
+                                .updateColor(mode, key, newColor);
+                            await AppColors.loadColorScheme(
+                                ref.read(themeProvider));
+                            ref.read(colorUpdateProvider.notifier).triggerUpdate();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    hexCode,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontFamily: 'monospace',
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(hexCode,
-                      style: const TextStyle(
-                          fontSize: 10, fontFamily: 'monospace')),
                 ],
               ),
-              // Space for future content
-              Expanded(child: Container()),
             ],
           ),
         );

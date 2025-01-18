@@ -359,11 +359,10 @@ class _TopicsListViewState extends ConsumerState<TopicsListView>
                               glassColor: Colors.white12.withOpacity(0.5),
                               textColor: Colors.white,
                               opacity: isSelected ? 0.1 : 0.0,
-                              glowColor: Colors.green,
-                              icon: Remix.arrow_right_line,
+                              glowColor: Colors.white,
                               glowAmount: isSelected
                                   ? GlowAmount.heavy
-                                  : GlowAmount.medium,
+                                  : GlowAmount.light,
                               hasDivider: true,
                               size: GlassButtonSize.xsmall,
                               onPressed: () {
