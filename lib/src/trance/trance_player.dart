@@ -75,7 +75,7 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
       }
     });
 
-    // Start the trance session
+    // Initialize the trance session without auto-playing
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(tranceStateProvider.notifier).startTranceSession(
         topic: widget.topic,
@@ -90,6 +90,7 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
     final tranceState = ref.watch(tranceStateProvider.notifier);
     final sessionState = ref.watch(tranceStateProvider);
     final isLoading = sessionState.isLoading;
+    final isLoadingAudio = tranceState.isLoadingAudio;
     final isPlaying = tranceState.isPlaying;
     
     // Control animation based on play state
@@ -217,13 +218,13 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                             emboss: isPlaying,
                             child: IconButton(
                               iconSize: innerSize * 0.4,
-                              icon: sessionState.isLoading 
+                              icon: isLoading || isLoadingAudio
                                 ? CircularProgressIndicator(color: theme.colorScheme.onSurface.withOpacity(0.7))
                                 : Icon(
                                     isPlaying ? Icons.pause : Icons.play_arrow,
                                     color: theme.colorScheme.onSurface.withOpacity(0.7),
                                   ),
-                              onPressed: sessionState.isLoading || tranceState.isLoadingAudio 
+                              onPressed: isLoading || isLoadingAudio
                                 ? null 
                                 : () => tranceState.togglePlayPause(),
                             ),

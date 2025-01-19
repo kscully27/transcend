@@ -76,14 +76,51 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       // Load tracks if needed
       await _loadTracks(topic);
       
-      // Play first track
+      // Don't auto-play, just prepare the first track
       if (_tracks.isNotEmpty) {
-        await _playNextTrack();
+        await _prepareNextTrack();
       }
 
     } catch (e, st) {
       if (!mounted) return;
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> _prepareNextTrack() async {
+    if (_tracks.isEmpty || _currentTrackIndex >= _tracks.length) {
+      _currentTrackIndex = 0;
+      state = AsyncValue.data(state.value);
+      return;
+    }
+
+    try {
+      // Store the previous track duration before loading the next track
+      if (_currentTrackIndex > 0) {
+        _previousTracksDuration += _audioPlayer.duration?.inMilliseconds ?? 0;
+      }
+      
+      _isLoadingAudio = true;
+      state = AsyncValue.data(state.value);
+
+      final track = _tracks[_currentTrackIndex];
+      await _audioPlayer.setUrl(track.url!);
+      
+      _isLoadingAudio = false;
+      state = AsyncValue.data(state.value);
+
+      // Set up listener for track completion
+      _audioPlayer.playerStateStream.listen((playerState) {
+        if (playerState.processingState == ProcessingState.completed) {
+          _playNextTrack();
+        }
+      });
+
+    } catch (e) {
+      print('Error preparing track: $e');
+      _isLoadingAudio = false;
+      if (!mounted) return;
+      state = AsyncValue.data(state.value);
     }
   }
 
@@ -95,11 +132,8 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     }
 
     try {
-      // Store the previous track duration before loading the next track
+      // Add delay between tracks
       if (_currentTrackIndex > 0) {
-        _previousTracksDuration += _audioPlayer.duration?.inMilliseconds ?? 0;
-        
-        // Add delay between tracks
         _isLoadingAudio = true;
         state = AsyncValue.data(state.value);
         await Future.delayed(const Duration(seconds: 4));
@@ -107,7 +141,6 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       }
       
       _isLoadingAudio = true;
-      _isPlaying = true;
       _lastTrackStartTime = DateTime.now();
       
       // Ensure timer is running
