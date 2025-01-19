@@ -22,6 +22,9 @@ enum TranceType {
 
 enum TranceMethod {
   Hypnotherapy,
+  Sleep,
+  Breathing,
+  Meditation,
   Active;
 
   String get string => name;
@@ -53,6 +56,14 @@ class Session {
   int? finishedTime;
   int? totalSeconds;
   bool? isComplete;
+  String? inductionId;
+  String? awakeningId;
+  int? totalMinutes;
+  String? goalId;
+  String? goalName;
+  TranceMethod? tranceMethod;
+  int? startedTime;
+  int? totalTracks;
 
   Session({
     this.id,
@@ -62,6 +73,14 @@ class Session {
     this.finishedTime,
     this.totalSeconds,
     this.isComplete,
+    this.inductionId,
+    this.awakeningId,
+    this.totalMinutes,
+    this.goalId,
+    this.goalName,
+    this.tranceMethod,
+    this.startedTime,
+    this.totalTracks, 
   });
 
   Session copyWith({
@@ -69,12 +88,28 @@ class Session {
     String? topicId,
     int? startTime,
     bool? isComplete,
+    String? inductionId,
+    String? awakeningId,
+    int? totalMinutes,
+    String? goalId,
+    String? goalName,
+    TranceMethod? tranceMethod,
+    int? startedTime,
+    int? totalTracks,
   }) {
     return Session(
       uid: uid ?? this.uid,
       topicId: topicId ?? this.topicId,
       startTime: startTime ?? this.startTime,
       isComplete: isComplete ?? this.isComplete,
+      inductionId: inductionId ?? this.inductionId,
+      awakeningId: awakeningId ?? this.awakeningId,
+      totalMinutes: totalMinutes ?? this.totalMinutes,
+      goalId: goalId ?? this.goalId,
+      goalName: goalName ?? this.goalName,
+      tranceMethod: tranceMethod ?? this.tranceMethod,
+      startedTime: startedTime ?? this.startedTime,
+      totalTracks: totalTracks ?? this.totalTracks,
     );
   }
 
@@ -88,6 +123,14 @@ class Session {
       finishedTime: data['finishedTime'],
       totalSeconds: data['totalSeconds'],
       isComplete: data['isComplete'] ?? false,
+      inductionId: data['inductionId'],
+      awakeningId: data['awakeningId'],
+      totalMinutes: data['totalMinutes'],
+      goalId: data['goalId'],
+      goalName: data['goalName'],
+      tranceMethod: TranceMethod.fromString(data['tranceMethod']),
+      startedTime: data['startedTime'],
+      totalTracks: data['totalTracks'],
     );
   }
 
@@ -100,6 +143,14 @@ class Session {
       'finishedTime': finishedTime,
       'totalSeconds': totalSeconds,
       'isComplete': isComplete,
+      'inductionId': inductionId,
+      'awakeningId': awakeningId,
+      'totalMinutes': totalMinutes,
+      'goalId': goalId,
+      'goalName': goalName,
+      'tranceMethod': tranceMethod?.string,
+      'startedTime': startedTime,
+      'totalTracks': totalTracks,
     };
     result.removeWhere((String key, dynamic value) => value == null);
     return result;

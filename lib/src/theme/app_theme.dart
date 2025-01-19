@@ -5,11 +5,8 @@ import '../constants/app_colors.dart';
 class AppTheme {
 
   static Color _getRequiredColor(Map<String, dynamic> colors, String key) {
-    print('Getting color for key: $key');
-    print('Available colors: ${colors.keys}');
     final value = colors[key];
     if (value == null) {
-      print('Color $key not found in theme');
       // Default to a safe color if missing
       switch (key) {
         case 'scrim':

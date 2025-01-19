@@ -218,15 +218,11 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                             emboss: isPlaying,
                             child: IconButton(
                               iconSize: innerSize * 0.4,
-                              icon: isLoading || isLoadingAudio
-                                ? CircularProgressIndicator(color: theme.colorScheme.onSurface.withOpacity(0.7))
-                                : Icon(
-                                    isPlaying ? Icons.pause : Icons.play_arrow,
-                                    color: theme.colorScheme.onSurface.withOpacity(0.7),
-                                  ),
-                              onPressed: isLoading || isLoadingAudio
-                                ? null 
-                                : () => tranceState.togglePlayPause(),
+                              icon: Icon(
+                                isPlaying ? Icons.pause : Icons.play_arrow,
+                                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                              ),
+                              onPressed: () => tranceState.togglePlayPause(),
                             ),
                           ),
                         ),

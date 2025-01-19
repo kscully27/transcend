@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -115,8 +116,8 @@ class CandyTopicItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final baseColor = AppColors.flat(topic.appColor).withOpacity(0.5);
-    final highlightColor =
-        Color.lerp(baseColor.withOpacity(0.1), theme.colorScheme.surfaceTint, 0.9)!;
+    final highlightColor = Color.lerp(
+        baseColor.withOpacity(0.1), theme.colorScheme.surfaceTint, 0.9)!;
     // final midColor = Color.lerp(baseColor, highlightColor, 0.6)!;
     final midColor = baseColor.withOpacity(0.2);
     // final shadowColor = theme.colorScheme.shadow.withOpacity(0.8);
@@ -126,7 +127,7 @@ class CandyTopicItem extends StatelessWidget {
       GlassBottomSheet.show(
         context: context,
         heightPercent: 0.6,
-        backgroundColor: theme.colorScheme.surfaceTint.withOpacity(0.55  ),
+        backgroundColor: theme.colorScheme.surfaceTint.withOpacity(0.55),
         // backgroundColor: theme.colorScheme.surfaceTint.withOpacity(0.4),
         barrierColor: const Color.fromARGB(255, 37, 24, 60).withOpacity(0.45),
         closeButtonColor: Colors.white70,
@@ -152,12 +153,21 @@ class CandyTopicItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AutoSizeText(
                     topic.title,
-                    style: const TextStyle(
+                    style: GoogleFonts.titilliumWeb(
                       fontSize: 24,
-                      fontWeight: FontWeight.w400,
+                      letterSpacing: -0.5,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
+                      height: 1.1,
+                      shadows: [
+                        Shadow(
+                          color: highlightColor.withOpacity(0.5),
+                          offset: const Offset(2, 3),
+                          blurRadius: 3,
+                        ),
+                      ],
                     ),
                   ),
                   Text(
@@ -370,17 +380,18 @@ class CandyTopicItem extends StatelessWidget {
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(
+                                  AutoSizeText(
                                     topic.title,
                                     style: GoogleFonts.titilliumWeb(
-                                      fontSize: 32,
+                                      fontSize: 24,
                                       letterSpacing: -0.5,
                                       fontWeight: FontWeight.w800,
                                       color: Colors.white,
                                       height: 1.1,
                                       shadows: [
                                         Shadow(
-                                          color: highlightColor.withOpacity(0.5),
+                                          color:
+                                              highlightColor.withOpacity(0.5),
                                           offset: const Offset(2, 3),
                                           blurRadius: 3,
                                         ),

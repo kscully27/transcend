@@ -51,6 +51,7 @@ abstract class FirestoreService {
   Future<List<Track>> getTracksFromTopic(Topic topic);
   Future<UserSettings?> getUserSettings(String uid);
   Stream<UserSettings?> getUserSettingsStream(String uid);
+  Future<Track?> getAudioTrackById(String id);
 }
 
 class FirestoreServiceAdapter extends FirestoreService {
@@ -243,6 +244,16 @@ class FirestoreServiceAdapter extends FirestoreService {
       toFirestore: (topic, _) => topic.toJson(),
     );
   }
+
+  @override
+  Future<Track?> getAudioTrackById(String id) async {
+    var snapshot = await db.collection("tracks").doc(id).get();
+    if (!snapshot.exists) return null;
+    Track _track = Track.fromMap(snapshot.data());
+    return _track;
+  }
+
+
 
   @override
   Future<Goal> getGoal(String id) async {
