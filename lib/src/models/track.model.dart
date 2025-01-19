@@ -1,9 +1,11 @@
 class Track {
   String? id;
   String? topic;
-  String? title;
+  String? text;
   String? description;
   String? url;
+  String? category;
+  int? words;
   int? duration;
   bool? approved;
   int? created;
@@ -12,11 +14,13 @@ class Track {
   Track({
     this.id,
     this.topic,
-    this.title,
+    this.text,
     this.description,
     this.url,
+    this.words,
     this.duration,
     this.approved,
+    this.category,
     this.created,
     this.updated,
   });
@@ -37,11 +41,13 @@ class Track {
       return Track(
         id: data['id'],
         topic: data['topic'],
-        title: data['title'],
+        text: data['text'],
         description: data['description'],
         url: data['url'],
+        words: data['words'],
         duration: duration,
         approved: data['approved'] ?? false,
+        category: data['category'],
         created: data['created'],
         updated: data['updated'],
       );
@@ -55,11 +61,13 @@ class Track {
     Map<String, dynamic> result = {
       'id': id,
       'topic': topic,
-      'title': title,
+      'text': text,
       'description': description,
       'url': url,
+      'words': words,
       'duration': duration,
       'approved': approved,
+      'category': category,
       'created': created,
       'updated': updated,
     };

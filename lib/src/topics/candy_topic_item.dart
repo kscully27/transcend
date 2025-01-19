@@ -68,37 +68,38 @@ class _RenderInnerShadow extends RenderProxyBox {
   late bool rightShadow;
 
   @override
+  bool get alwaysNeedsCompositing => true;
+
+  @override
   void paint(PaintingContext context, Offset offset) {
     if (child == null) return;
 
-    final Rect rectOuter = offset & size;
-    final Rect rectInner = Rect.fromLTWH(
-      offset.dx + (leftShadow ? dx.abs() : 0),
-      offset.dy + (topShadow ? dy.abs() : 0),
-      size.width - (leftShadow ? dx.abs() : 0) - (rightShadow ? dx.abs() : 0),
-      size.height - (topShadow ? dy.abs() : 0) - (bottomShadow ? dy.abs() : 0),
-    );
-
-    final Canvas canvas = context.canvas..saveLayer(rectOuter, Paint());
+    // Create a picture recorder
+    final recorder = PictureRecorder();
+    final Canvas canvas = Canvas(recorder);
+    
+    // Calculate the extended bounds to account for shadow blur
+    final Rect bounds = offset & size;
+    final Rect extended = bounds.inflate(blur);
+    
+    // Paint child
     context.paintChild(child!, offset);
+    
+    // Create shadow paint
     final Paint shadowPaint = Paint()
       ..blendMode = BlendMode.srcATop
       ..imageFilter = ImageFilter.blur(sigmaX: blur, sigmaY: blur)
       ..colorFilter = ColorFilter.mode(color, BlendMode.srcOut);
-
-    canvas
-      ..saveLayer(rectOuter, shadowPaint)
-      ..saveLayer(rectInner, Paint())
-      ..translate(dx, dy);
+    
+    // Apply the shadow using a single layer
+    context.canvas.saveLayer(extended, shadowPaint);
+    context.canvas.translate(dx, dy);
     context.paintChild(child!, offset);
-    context.canvas
-      ..restore()
-      ..restore()
-      ..restore();
+    context.canvas.restore();
   }
 }
 
-class CandyTopicItem extends StatelessWidget {
+class CandyTopicItem extends StatefulWidget {
   final Topic topic;
   final VoidCallback? onTap;
   final bool isFavorite;
@@ -113,9 +114,17 @@ class CandyTopicItem extends StatelessWidget {
   });
 
   @override
+  _CandyTopicItemState createState() => _CandyTopicItemState();
+}
+
+class _CandyTopicItemState extends State<CandyTopicItem> {
+  final _innerShadowKey1 = GlobalKey();
+  final _innerShadowKey2 = GlobalKey();
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final baseColor = AppColors.flat(topic.appColor).withOpacity(0.5);
+    final baseColor = AppColors.flat(widget.topic.appColor).withOpacity(0.5);
     final highlightColor = Color.lerp(
         baseColor.withOpacity(0.1), theme.colorScheme.surfaceTint, 0.9)!;
     // final midColor = Color.lerp(baseColor, highlightColor, 0.6)!;
@@ -154,7 +163,7 @@ class CandyTopicItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AutoSizeText(
-                    topic.title,
+                    widget.topic.title,
                     style: GoogleFonts.titilliumWeb(
                       fontSize: 24,
                       letterSpacing: -0.5,
@@ -171,7 +180,7 @@ class CandyTopicItem extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    topic.description,
+                    widget.topic.description,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w300,
@@ -180,10 +189,10 @@ class CandyTopicItem extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   GlassButton(
-                    text: isFavorite
+                    text: widget.isFavorite
                         ? "Remove from Favorites"
                         : "Add to Favorites",
-                    icon: isFavorite ? Remix.heart_fill : Remix.heart_line,
+                    icon: widget.isFavorite ? Remix.heart_fill : Remix.heart_line,
                     // width: double.infinity,
                     // variant: GlassButtonVariant.text,
                     size: GlassButtonSize.small,
@@ -196,7 +205,7 @@ class CandyTopicItem extends StatelessWidget {
                         .onSurface
                         .withOpacity(0.2),
                     onPressed: () {
-                      onFavoritePressed();
+                      widget.onFavoritePressed();
                       Navigator.pop(context);
                     },
                   ),
@@ -230,7 +239,7 @@ class CandyTopicItem extends StatelessWidget {
                             pageBuilder:
                                 (context, animation, secondaryAnimation) =>
                                     TrancePlayer(
-                              topic: topic,
+                              topic: widget.topic,
                               tranceMethod: session.TranceMethod.Hypnotherapy,
                             ),
                             transitionsBuilder: (context, animation,
@@ -304,7 +313,7 @@ class CandyTopicItem extends StatelessWidget {
                     ).createShader(bounds);
                   },
                   child: InnerShadow(
-                    key: GlobalKey(),
+                    key: _innerShadowKey1,
                     blur: 20,
                     color: shadowColor.withOpacity(0.4),
                     offset: const Offset(0, 35),
@@ -312,9 +321,8 @@ class CandyTopicItem extends StatelessWidget {
                     leftShadow: false,
                     rightShadow: false,
                     child: InnerShadow(
-                      key: GlobalKey(),
+                      key: _innerShadowKey2,
                       blur: 30,
-                      // color: theme.colorScheme.surfaceTint.withOpacity(0.3),
                       color: theme.colorScheme.surfaceTint.withOpacity(0.1),
                       offset: const Offset(-24, 12),
                       bottomShadow: false,
@@ -345,7 +353,7 @@ class CandyTopicItem extends StatelessWidget {
                                   offset: Offset(2, 2), // Default: Offset(2, 2)
                                   sigma: 2,
                                   child: SvgPicture.network(
-                                    topic.svg,
+                                    widget.topic.svg,
                                     width: 60,
                                     height: 60,
                                     colorFilter: const ColorFilter.mode(
@@ -363,7 +371,7 @@ class CandyTopicItem extends StatelessWidget {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    topic.group,
+                                    widget.topic.group,
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontFamily: 'TitilliumWeb',
@@ -381,7 +389,7 @@ class CandyTopicItem extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 4),
                                   AutoSizeText(
-                                    topic.title,
+                                    widget.topic.title,
                                     style: GoogleFonts.titilliumWeb(
                                       fontSize: 24,
                                       letterSpacing: -0.5,

@@ -1,3 +1,4 @@
+import 'package:trancend/src/models/played_track.model.dart';
 
 enum SessionType {
   Active,
@@ -50,20 +51,21 @@ enum SuggestionType { Playlist, Topic }
 
 class Session {
   String? id;
-  String? uid;
-  String? topicId;
-  int? startTime;
+  final String? uid;
+  final String? topicId;
+  final int? startTime;
   int? finishedTime;
   int? totalSeconds;
-  bool? isComplete;
-  String? inductionId;
-  String? awakeningId;
-  int? totalMinutes;
-  String? goalId;
-  String? goalName;
-  TranceMethod? tranceMethod;
-  int? startedTime;
-  int? totalTracks;
+  final bool? isComplete;
+  final String? inductionId;
+  final String? awakeningId;
+  final int? totalMinutes;
+  final String? goalId;
+  final String? goalName;
+  final TranceMethod? tranceMethod;
+  final int? startedTime;
+  final int? totalTracks;
+  final List<PlayedTrack>? playedTracks;
 
   Session({
     this.id,
@@ -80,7 +82,8 @@ class Session {
     this.goalName,
     this.tranceMethod,
     this.startedTime,
-    this.totalTracks, 
+    this.totalTracks,
+    this.playedTracks,
   });
 
   Session copyWith({
@@ -96,11 +99,15 @@ class Session {
     TranceMethod? tranceMethod,
     int? startedTime,
     int? totalTracks,
+    List<PlayedTrack>? playedTracks,
   }) {
     return Session(
+      id: id,
       uid: uid ?? this.uid,
       topicId: topicId ?? this.topicId,
       startTime: startTime ?? this.startTime,
+      finishedTime: finishedTime,
+      totalSeconds: totalSeconds,
       isComplete: isComplete ?? this.isComplete,
       inductionId: inductionId ?? this.inductionId,
       awakeningId: awakeningId ?? this.awakeningId,
@@ -110,6 +117,7 @@ class Session {
       tranceMethod: tranceMethod ?? this.tranceMethod,
       startedTime: startedTime ?? this.startedTime,
       totalTracks: totalTracks ?? this.totalTracks,
+      playedTracks: playedTracks ?? this.playedTracks,
     );
   }
 
@@ -131,6 +139,11 @@ class Session {
       tranceMethod: TranceMethod.fromString(data['tranceMethod']),
       startedTime: data['startedTime'],
       totalTracks: data['totalTracks'],
+      playedTracks: data['playedTracks'] != null
+          ? (data['playedTracks'] as List)
+              .map((t) => PlayedTrack.fromMap(t))
+              .toList()
+          : null,
     );
   }
 
@@ -151,6 +164,7 @@ class Session {
       'tranceMethod': tranceMethod?.string,
       'startedTime': startedTime,
       'totalTracks': totalTracks,
+      'playedTracks': playedTracks?.map((t) => t.toJson()).toList(),
     };
     result.removeWhere((String key, dynamic value) => value == null);
     return result;

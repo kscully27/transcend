@@ -12,6 +12,7 @@ import 'package:trancend/src/models/trance.model.dart';
 import 'package:trancend/src/models/session.model.dart';
 import 'package:trancend/src/models/played_track.model.dart';
 import 'package:trancend/src/models/track.model.dart';
+import 'package:trancend/src/models/played_track.model.dart';
 
 abstract class FirestoreService {
   late FirebaseFirestore db;

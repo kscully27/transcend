@@ -26,6 +26,7 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
   late Animation<double> _scaleAnimation1;
   late Animation<double> _scaleAnimation2;
   double backgroundVolume = 0.4;
+  double voiceVolume = 0.5;
   int _currentMillisecond = 0;
 
   @override
@@ -58,30 +59,70 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
       curve: Curves.easeInOut,
     ));
 
-    // Start animations with a slight offset
-    _animationController1.repeat(reverse: true);
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted) {
-        _animationController2.repeat(reverse: true);
-      }
-    });
-
-    // Start listening to audio position
-    ref.read(tranceStateProvider.notifier).positionStream.listen((position) {
-      if (mounted) {
-        setState(() {
-          _currentMillisecond = position.inMilliseconds;
-        });
-      }
-    });
-
     // Initialize the trance session without auto-playing
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       ref.read(tranceStateProvider.notifier).startTranceSession(
         topic: widget.topic,
         tranceMethod: widget.tranceMethod,
-      );
+      ).then((_) {
+        // Auto-play after session is initialized
+        if (mounted) {
+          ref.read(tranceStateProvider.notifier).togglePlayPause();
+        }
+      });
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (mounted) {
+      // Start animations with a slight offset
+      _animationController1.repeat(reverse: true);
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted) {
+          _animationController2.repeat(reverse: true);
+        }
+      });
+
+      // Start listening to audio position
+      ref.read(tranceStateProvider.notifier).positionStream.listen((position) {
+        if (mounted) {
+          setState(() {
+            _currentMillisecond = position.inMilliseconds;
+          });
+        }
+      });
+    }
+  }
+
+  @override
+  void deactivate() {
+    _animationController1.stop();
+    _animationController2.stop();
+    super.deactivate();
+  }
+
+  @override
+  void dispose() {
+    // Stop and dispose animations
+    _animationController1.stop();
+    _animationController2.stop();
+    _animationController1.dispose();
+    _animationController2.dispose();
+    
+    // Safely cleanup trance state
+    if (mounted) {
+      try {
+        final tranceState = ref.read(tranceStateProvider.notifier);
+        tranceState.pauseCombinedAudio();
+      } catch (e) {
+        print('Error during trance cleanup: $e');
+      }
+    }
+    
+    super.dispose();
   }
 
   @override
@@ -118,184 +159,236 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
           ),
         ),
         child: SafeArea(
-          child: Stack(
-            children: [
-              // Close button
-              Positioned(
-                top: 16,
-                right: 16,
-                child: ClayContainer(
-                  color: theme.colorScheme.surfaceTint,
-                  height: 40,
-                  width: 40,
-                  borderRadius: 20,
-                  depth: 20,
-                  spread: 2,
-                  child: IconButton(
-                    icon: Icon(Icons.close, color: theme.colorScheme.onSurface.withOpacity(0.7)),
-                    onPressed: () => Navigator.of(context).pop(),
+          child: SingleChildScrollView(
+            child: Stack(
+              children: [
+                // Close button
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: Row(
+                    children: [
+                      ClayContainer(
+                        color: theme.colorScheme.surfaceTint,
+                        height: 40,
+                        width: 40,
+                        borderRadius: 20,
+                        depth: 20,
+                        spread: 2,
+                        child: IconButton(
+                          icon: Icon(Icons.list, color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                          onPressed: () => _showPlayedTracks(context),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ClayContainer(
+                        color: theme.colorScheme.surfaceTint,
+                        height: 40,
+                        width: 40,
+                        borderRadius: 20,
+                        depth: 20,
+                        spread: 2,
+                        child: IconButton(
+                          icon: Icon(Icons.close, color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              
-              // Session Type Title
-              Positioned(
-                top: 24,
-                left: 24,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClayText(
-                      widget.tranceMethod.name,
-                      emboss: false,
-                      size: 32,
-                      parentColor: theme.colorScheme.surface,
-                      textColor: theme.colorScheme.onSurface.withOpacity(0.7),
-                      color: theme.colorScheme.surface,
-                      spread: 2,
-                      style: const TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.topic.title,
-                      style: TextStyle(
-                        color: theme.colorScheme.onSurface.withOpacity(0.7),
-                        fontSize: 20,
-                        fontWeight: FontWeight.w300,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Animated circles and play button
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 120),
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Outer circle
-                        ScaleTransition(
-                          scale: _scaleAnimation1,
-                          child: ClayContainer(
-                            color: theme.colorScheme.surface,
-                            height: outerSize,
-                            width: outerSize,
-                            borderRadius: outerSize / 2,
-                            depth: 30,
-                            spread: 30,
-                          ),
-                        ),
-                        
-                        // Progress indicator
-                        ScaleTransition(
-                          scale: _scaleAnimation1,
-                          child: SizedBox(
-                            height: outerSize * 0.85,
-                            width: outerSize * 0.85,
-                            child: CircularProgressIndicator(
-                              value: tranceState.currentMillisecond / (TranceState.DEFAULT_SESSION_MINUTES * 60 * 1000),
-                              strokeWidth: 40,
-                              color: theme.colorScheme.onSurface.withOpacity(0.7),
-                              backgroundColor: theme.colorScheme.onSurface.withOpacity(0.1),
-                            ),
-                          ),
-                        ),
-                        
-                        // Inner circle with play button
-                        ScaleTransition(
-                          scale: _scaleAnimation2,
-                          child: ClayContainer(
-                            color: theme.colorScheme.surface,
-                            height: innerSize,
-                            width: innerSize,
-                            borderRadius: innerSize / 2,
-                            depth: 25,
-                            spread: 8,
-                            emboss: isPlaying,
-                            child: IconButton(
-                              iconSize: innerSize * 0.4,
-                              icon: Icon(
-                                isPlaying ? Icons.pause : Icons.play_arrow,
-                                color: theme.colorScheme.onSurface.withOpacity(0.7),
-                              ),
-                              onPressed: () => tranceState.togglePlayPause(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 40),
-                    
-                    // Volume slider
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: ClaySlider(
-                        value: backgroundVolume,
-                        onChanged: (value) {
-                          setState(() {
-                            backgroundVolume = value;
-                          });
-                        },
+                
+                // Session Type Title
+                Positioned(
+                  top: 24,
+                  left: 24,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClayText(
+                        widget.tranceMethod.name,
+                        emboss: false,
+                        size: 32,
                         parentColor: theme.colorScheme.surface,
-                        activeSliderColor: theme.colorScheme.onSurface.withOpacity(0.7),
-                        hasKnob: false,
+                        textColor: theme.colorScheme.onSurface.withOpacity(0.7),
+                        color: theme.colorScheme.surface,
+                        spread: 2,
+                        style: const TextStyle(fontWeight: FontWeight.w500),
                       ),
-                    ),
-                    
-                    // Progress indicator
-                    if (!isLoading) ...[
                       const SizedBox(height: 8),
+                      Text(
+                        widget.topic.title,
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          fontSize: 20,
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Animated circles and play button
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 120),
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Outer circle
+                          ScaleTransition(
+                            scale: _scaleAnimation1,
+                            child: ClayContainer(
+                              color: theme.colorScheme.surface,
+                              height: outerSize,
+                              width: outerSize,
+                              borderRadius: outerSize / 2,
+                              depth: 30,
+                              spread: 30,
+                            ),
+                          ),
+                          
+                          // Progress indicator
+                          ScaleTransition(
+                            scale: _scaleAnimation1,
+                            child: SizedBox(
+                              height: outerSize * 0.85,
+                              width: outerSize * 0.85,
+                              child: CircularProgressIndicator(
+                                value: (tranceState.currentMillisecond.toDouble()) / (TranceState.DEFAULT_SESSION_MINUTES * 60 * 1000),
+                                strokeWidth: 40,
+                                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                backgroundColor: theme.colorScheme.onSurface.withOpacity(0.1),
+                              ),
+                            ),
+                          ),
+                          
+                          // Inner circle with play button
+                          ScaleTransition(
+                            scale: _scaleAnimation2,
+                            child: ClayContainer(
+                              color: theme.colorScheme.surface,
+                              height: innerSize,
+                              width: innerSize,
+                              borderRadius: innerSize / 2,
+                              depth: 25,
+                              spread: 8,
+                              emboss: isPlaying,
+                              child: isLoadingAudio
+                                ? Center(
+                                    child: SizedBox(
+                                      width: innerSize * 0.4,
+                                      height: innerSize * 0.4,
+                                      child: CircularProgressIndicator(
+                                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                        strokeWidth: 3,
+                                      ),
+                                    ),
+                                  )
+                                : IconButton(
+                                    iconSize: innerSize * 0.4,
+                                    icon: Icon(
+                                      isPlaying ? Icons.pause : Icons.play_arrow,
+                                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                    ),
+                                    onPressed: () => tranceState.togglePlayPause(),
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
                       
-                      // Duration text
+                      const SizedBox(height: 40),
+                      
+                      // Current track display
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 40),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Column(
                           children: [
                             Text(
-                              _formatDuration(tranceState.currentMillisecond),
-                              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
-                            ),
-                            Text(
-                              _formatDuration(TranceState.DEFAULT_SESSION_MINUTES * 60 * 1000),
-                              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                              ((tranceState.currentTrack!.text?.length ?? 0 )> 30 ? tranceState.currentTrack?.text?.substring(0, 30) : tranceState.currentTrack?.text) ?.replaceAll("\n", " ") ?? 'Loading...',
+                              // tranceState.currentTrack?.text?.replaceAll("\n", " ") ?? 'Loading...',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
                           ],
                         ),
                       ),
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Progress indicator
+                      // if (!isLoading) ...[
+                      //   // Duration text
+                      //   Padding(
+                      //     padding: const EdgeInsets.symmetric(horizontal: 40),
+                      //     child: Row(
+                      //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //       children: [
+                      //         Text(
+                      //           _formatDuration(tranceState.currentMillisecond),
+                      //           style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                      //         ),
+                      //         Text(
+                      //           _formatDuration(TranceState.DEFAULT_SESSION_MINUTES * 60 * 1000),
+                      //           style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   ),
+                      // ],
+                      
+                      // const SizedBox(height: 40),
+                      
+                      // Settings button
+                      ClayContainer(
+                        color: theme.colorScheme.surface,
+                        height: 50,
+                        borderRadius: 25,
+                        width: 200,
+                        depth: 20,
+                        spread: 2,
+                        child: GestureDetector(
+                          onTap: () => _showTranceSettings(context),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.settings,
+                                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Trance Settings',
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 40),
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    // First dispose animation controllers
-    _animationController1.dispose();
-    _animationController2.dispose();
-    
-    // Safely cleanup trance state if mounted
-    if (mounted) {
-      try {
-        final tranceState = ref.read(tranceStateProvider.notifier);
-        tranceState.pauseCombinedAudio();
-      } catch (e) {
-        print('Error during trance cleanup: $e');
-      }
-    }
-    
-    super.dispose();
   }
   
   String _formatDuration(int milliseconds) {
@@ -303,5 +396,158 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
     final minutes = (seconds / 60).floor();
     final remainingSeconds = seconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  void _showPlayedTracks(BuildContext context) {
+    final theme = Theme.of(context);
+    final session = ref.read(tranceStateProvider).value;
+    final playedTracks = session?.playedTracks ?? [];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            Text(
+              'Played Tracks (${playedTracks.length})',
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: playedTracks.length,
+                itemBuilder: (context, index) {
+                  final track = playedTracks[index];
+                  final minutes = track.startedTime! ~/ (60 * 1000);
+                  final seconds = (track.startedTime! % (60 * 1000)) ~/ 1000;
+                  final tranceText = (track.text!.length > 30 ? track.text!.substring(0, 30) : track.text) ?.replaceAll("\n", " ");
+                  return ListTile(
+                    title: Text(
+                      tranceText ?? 'Unknown Text',
+                      style: TextStyle(color: theme.colorScheme.onSurface),
+                    ),
+                    subtitle: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Started at ${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+                          style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                        ),
+                        Text(
+                          '${track.words ?? 0} words',
+                          style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                        ),
+                        Text(
+                          '${track.duration} seconds',
+                          style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTranceSettings(BuildContext context) {
+    final theme = Theme.of(context);
+    final tranceState = ref.read(tranceStateProvider.notifier);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 16),
+              Text(
+                'Trance Settings',
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Background Volume',
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ClaySlider(
+                      value: backgroundVolume,
+                      onChanged: (value) {
+                        setState(() {
+                          backgroundVolume = value;
+                        });
+                        tranceState.setBackgroundVolume(value);
+                      },
+                      parentColor: theme.colorScheme.surface,
+                      activeSliderColor: theme.colorScheme.onSurface.withOpacity(0.7),
+                      hasKnob: false,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Voice Volume',
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ClaySlider(
+                      value: voiceVolume,
+                      onChanged: (value) {
+                        setState(() {
+                          voiceVolume = value;
+                        });
+                        tranceState.setVoiceVolume(value);
+                      },
+                      parentColor: theme.colorScheme.surface,
+                      activeSliderColor: theme.colorScheme.onSurface.withOpacity(0.7),
+                      hasKnob: false,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 } 

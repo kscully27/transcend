@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:trancend/src/constants/strings.dart';
 import 'package:trancend/src/models/goal.model.dart';
+import 'package:trancend/src/models/played_track.model.dart';
 import 'package:trancend/src/models/session.model.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/track.model.dart';
@@ -32,7 +33,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   Timer? _timer;
   bool _isPlaying = false;
-  bool _isLoadingAudio = false;
+  bool _isLoadingAudio = true;
   final int _currentMillisecond = 0;
   int _cumulativeMilliseconds = 0;
   int _previousTracksDuration = 0;
@@ -43,16 +44,25 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   Topic? _currentTopic;
   Track? _inductionTrack;
   Track? _awakeningTrack;
+  Track? _currentTrack;
   int _inductionDuration = 0;
   int _awakeningDuration = 0;
+  double _backgroundVolume = 0.4;
+  double _voiceVolume = 0.5;
 
   TranceState(this._firestoreService, this._uid)
-      : super(AsyncValue<Session?>.data(null));
+      : super(AsyncValue<Session?>.data(null)) {
+    // Set initial volumes
+    _audioPlayer.setVolume(_voiceVolume);
+  }
 
   bool get isPlaying => _isPlaying;
   bool get isLoadingAudio => _isLoadingAudio;
   Stream<Duration> get positionStream => _audioPlayer.positionStream;
   int get currentMillisecond => _cumulativeMilliseconds;
+  Track? get currentTrack => _currentTrack;
+  double get backgroundVolume => _backgroundVolume;
+  double get voiceVolume => _voiceVolume;
 
   int getTranceTime() {
     return state.value?.totalMinutes ?? DEFAULT_SESSION_MINUTES;
@@ -107,77 +117,132 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       if (!mounted) return;
       state = AsyncValue.data(createdSession);
 
-      // Load tracks if needed
+      // Load tracks and set up initial state
       await _loadTracks(createdSession, topic);
-
-      // Don't auto-play, just prepare the first track
-      if (_tracks.isNotEmpty) {
-        await _prepareNextTrack();
-      }
+      _isLoadingAudio = false;
+      state = AsyncValue.data(state.value);
     } catch (e, st) {
       if (!mounted) return;
       state = AsyncValue.error(e, st);
     }
   }
 
-  Future<void> _prepareNextTrack() async {
-    if (_tracks.isEmpty || _currentTrackIndex >= _tracks.length) {
-      _currentTrackIndex = 0;
-      state = AsyncValue.data(state.value);
-      return;
-    }
+  Future<void> _loadTracks(Session session, Topic topic) async {
+    if (_currentTopic?.id != topic.id || _tracks.isEmpty) {
+      _currentTopic = topic;
+      _tracks = [];
 
-    try {
-      // Store the previous track duration before loading the next track
-      if (_currentTrackIndex > 0) {
-        _previousTracksDuration += _audioPlayer.duration?.inMilliseconds ?? 0;
-      }
+      // Load and shuffle suggestion tracks first
+      List<Track> suggestions = await _firestoreService.getTracksFromTopic(topic);
+      suggestions.shuffle();
+      _tracks = suggestions; // Only suggestion tracks go in _tracks
 
-      final track = _tracks[_currentTrackIndex];
-      await _audioPlayer.setUrl(track.url!);
+      // Load induction and awakening for hypnotherapy
+      if (session.tranceMethod == TranceMethod.Hypnotherapy) {
+        _inductionTrack = await _firestoreService.getAudioTrackById(session.inductionId!);
+        _awakeningTrack = await _firestoreService.getAudioTrackById(session.awakeningId!);
 
-      // Set up listener for track completion
-      _audioPlayer.playerStateStream.listen((playerState) {
-        if (playerState.processingState == ProcessingState.completed) {
-          _playNextTrack();
+        if (_inductionTrack == null || _awakeningTrack == null) {
+          throw Exception('Failed to load induction or awakening track');
         }
-      });
 
-      // If we were playing before, continue playing
-      if (_isPlaying) {
-        await _audioPlayer.play();
+        // Get durations from metadata
+        await _audioPlayer.setUrl(_inductionTrack!.url!);
+        _inductionDuration = (await _audioPlayer.duration)?.inMilliseconds ?? 0;
+
+        await _audioPlayer.setUrl(_awakeningTrack!.url!);
+        _awakeningDuration = (await _audioPlayer.duration)?.inMilliseconds ?? 0;
+
+        // Calculate available time for suggestions
+        final totalSessionMs = getTranceTime() * 60 * 1000;
+        final availableForSuggestions = totalSessionMs - _inductionDuration - _awakeningDuration;
+
+        // Check if we have enough time for suggestions
+        if (availableForSuggestions < 120000) { // 2 minutes in ms
+          throw Exception('Session time too short. Please extend your session duration to accommodate induction (${_inductionDuration ~/ 60000}min) and awakening (${_awakeningDuration ~/ 60000}min).');
+        }
+
+        // Start with induction track
+        _currentTrack = _inductionTrack;
+        await _audioPlayer.setUrl(_inductionTrack!.url!);
+        
+        // Set up completion listener for track transitions
+        _audioPlayer.playerStateStream.listen((playerState) {
+          if (playerState.processingState == ProcessingState.completed) {
+            print('Track completed, moving to next track');
+            _playNextTrack();
+          }
+        });
+      } else {
+        // For non-hypnotherapy, start with first suggestion track
+        if (_tracks.isNotEmpty) {
+          _currentTrack = _tracks[0];
+          await _audioPlayer.setUrl(_currentTrack!.url!);
+          
+          // Set up completion listener for track transitions
+          _audioPlayer.playerStateStream.listen((playerState) {
+            if (playerState.processingState == ProcessingState.completed) {
+              print('Track completed, moving to next track');
+              _playNextTrack();
+            }
+          });
+        }
       }
 
-      state = AsyncValue.data(state.value);
-    } catch (e) {
-      print('Error preparing track: $e');
-      if (!mounted) return;
-      state = AsyncValue.data(state.value);
+      _currentTrackIndex = 0;
     }
   }
 
   Future<void> _playNextTrack() async {
-    if (_tracks.isEmpty) {
-      state = AsyncValue.data(state.value);
-      return;
-    }
-
     try {
-      // Check if it's time for awakening
-      if (_awakeningTrack != null && _currentTrackIndex < _tracks.length) {
-        final totalSessionMs = getTranceTime() * 60 * 1000;
-        final elapsedTime = _cumulativeMilliseconds;
-        final timeUntilEnd = totalSessionMs - elapsedTime;
-        
-        // If less than 10 seconds until session end, play awakening
-        if (timeUntilEnd <= 10000) {
-          _tracks.add(_awakeningTrack!);
-          _currentTrackIndex = _tracks.length - 1;
+      print('Playing next track');
+      
+      // Special handling for hypnotherapy sequence
+      if (state.value?.tranceMethod == TranceMethod.Hypnotherapy) {
+        // If we're playing induction
+        if (_currentTrack == _inductionTrack) {
+          print('Finished induction, moving to suggestions');
+          _currentTrackIndex = 0; // Start with first suggestion
+          if (_tracks.isNotEmpty) {
+            _currentTrack = _tracks[_currentTrackIndex];
+            _currentTrackIndex++;
+            await _audioPlayer.setUrl(_currentTrack!.url!);
+          }
         }
+        // If we're at the end of suggestions
+        else if (_currentTrackIndex >= _tracks.length && _awakeningTrack != null) {
+          print('Finished suggestions, moving to awakening');
+          _currentTrack = _awakeningTrack;
+          _currentTrackIndex = _tracks.length + 1; // Past the end to indicate we're in awakening
+          await _audioPlayer.setUrl(_currentTrack!.url!);
+        }
+        // If we're done with awakening
+        else if (_currentTrack == _awakeningTrack) {
+          print('Finished awakening, ending session');
+          _isPlaying = false;
+          state = AsyncValue.data(state.value);
+          return;
+        }
+        // Otherwise, play next suggestion
+        else if (_currentTrackIndex < _tracks.length) {
+          print('Playing next suggestion');
+          _currentTrack = _tracks[_currentTrackIndex];
+          _currentTrackIndex++;
+          await _audioPlayer.setUrl(_currentTrack!.url!);
+        }
+      } else {
+        // Non-hypnotherapy simple sequence
+        if (_currentTrackIndex >= _tracks.length) {
+          _isPlaying = false;
+          state = AsyncValue.data(state.value);
+          return;
+        }
+        _currentTrack = _tracks[_currentTrackIndex];
+        _currentTrackIndex++;
+        await _audioPlayer.setUrl(_currentTrack!.url!);
       }
 
-      // Handle end of track list
-      if (_currentTrackIndex >= _tracks.length) {
+      if (_currentTrack == null) {
         _isPlaying = false;
         state = AsyncValue.data(state.value);
         return;
@@ -186,21 +251,14 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       _lastTrackStartTime = DateTime.now();
       _ensureTimerIsRunning();
 
-      final track = _tracks[_currentTrackIndex];
-      await _audioPlayer.setUrl(track.url!);
+      print('Set current track: ${_currentTrack!.id}');
+      await _updateSession();
 
       if (_isPlaying) {
         await _audioPlayer.play();
       }
 
-      _currentTrackIndex++;
       state = AsyncValue.data(state.value);
-
-      _audioPlayer.playerStateStream.listen((playerState) {
-        if (playerState.processingState == ProcessingState.completed) {
-          _playNextTrack();
-        }
-      });
     } catch (e) {
       print('Error playing track: $e');
       if (!mounted) return;
@@ -236,6 +294,37 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     });
   }
 
+  Future<void> _updateSession() async {
+    // Record the track as played right before it starts playing
+    if (state.value != null && _currentTrack != null) {
+      print('Recording track as played: ${_currentTrack!.id}');
+      final playedTrack = PlayedTrack(
+        trackId: _currentTrack!.id!,
+        uid: _uid,
+        sessionId: state.value!.id,
+        text: _currentTrack!.text,
+        duration: _currentTrack!.duration,
+        words: _currentTrack!.words,
+        created: DateTime.now().millisecondsSinceEpoch,
+        startedTime: _cumulativeMilliseconds,
+      );
+      print('Played track: ${playedTrack.toJson()}');
+      final updatedSession = state.value!.copyWith(
+        playedTracks: [...(state.value!.playedTracks ?? []), playedTrack],
+      );
+      print('Updated session: ${updatedSession.toJson()}');
+      await _firestoreService.updateSession(updatedSession);
+      print('Session updated');
+      state = AsyncValue.data(updatedSession);
+    }
+  }
+
+  Future<void> _playAndUpdateSession() async {
+    await _updateSession();
+    _ensureTimerIsRunning();
+    await _audioPlayer.play();
+  }
+
   Future<void> playCombinedAudio() async {
     if (!mounted) return;
 
@@ -250,10 +339,8 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
             .subtract(Duration(milliseconds: _cumulativeMilliseconds));
       }
 
-      // Ensure timer is running
-      _ensureTimerIsRunning();
-
-      await _audioPlayer.play();
+      print('Playing and updating session in playCombinedAudio');
+      await _playAndUpdateSession();
 
       if (!mounted) return;
       state = AsyncValue.data(state.value);
@@ -284,54 +371,24 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     }
   }
 
-  Future<void> _loadTracks(Session session, Topic topic) async {
-    if (_currentTopic?.id != topic.id || _tracks.isEmpty) {
-      _currentTopic = topic;
-      _tracks = [];
-      
-      // Load induction and awakening for hypnotherapy
-      if (session.tranceMethod == TranceMethod.Hypnotherapy) {
-        _inductionTrack = await _firestoreService.getAudioTrackById(session.inductionId!);
-        _awakeningTrack = await _firestoreService.getAudioTrackById(session.awakeningId!);
-        
-        if (_inductionTrack == null || _awakeningTrack == null) {
-          throw Exception('Failed to load induction or awakening track');
-        }
-
-        // Get durations from metadata
-        await _audioPlayer.setUrl(_inductionTrack!.url!);
-        _inductionDuration = (await _audioPlayer.duration)?.inMilliseconds ?? 0;
-        
-        await _audioPlayer.setUrl(_awakeningTrack!.url!);
-        _awakeningDuration = (await _audioPlayer.duration)?.inMilliseconds ?? 0;
-        
-        // Calculate available time for suggestions
-        final totalSessionMs = getTranceTime() * 60 * 1000;
-        final availableForSuggestions = totalSessionMs - _inductionDuration - _awakeningDuration;
-        
-        // Check if we have enough time for suggestions
-        if (availableForSuggestions < 120000) { // 2 minutes in ms
-          throw Exception('Session time too short. Please extend your session duration to accommodate induction (${_inductionDuration ~/ 60000}min) and awakening (${_awakeningDuration ~/ 60000}min).');
-        }
-
-        _tracks.add(_inductionTrack!);
-      }
-      
-      // Load and shuffle suggestion tracks
-      List<Track> suggestions = await _firestoreService.getTracksFromTopic(topic);
-      suggestions.shuffle();
-      _tracks.addAll(suggestions);
-      
-      _currentTrackIndex = 0;
-    }
-  }
-
   Future<void> togglePlayPause() async {
     if (_isPlaying) {
       await pauseCombinedAudio();
     } else {
       await playCombinedAudio();
     }
+  }
+
+  Future<void> setBackgroundVolume(double volume) async {
+    _backgroundVolume = volume;
+    // TODO: Implement background volume control when background audio is added
+    state = AsyncValue.data(state.value);
+  }
+
+  Future<void> setVoiceVolume(double volume) async {
+    _voiceVolume = volume;
+    await _audioPlayer.setVolume(volume);
+    state = AsyncValue.data(state.value);
   }
 
   @override
