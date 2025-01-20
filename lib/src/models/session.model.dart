@@ -50,46 +50,93 @@ extension SessionTypeX on SessionType {
 enum SuggestionType { Playlist, Topic }
 
 class Session {
-  String? id;
-  final String? uid;
-  final String? topicId;
-  final int? startTime;
-  int? finishedTime;
-  int? totalSeconds;
-  final bool? isComplete;
+  final String? id;
+  final String uid;
+  final String topicId;
+  final int startTime;
+  final int? endTime;
+  final bool isComplete;
   final String? inductionId;
   final String? awakeningId;
-  final int? totalMinutes;
+  final int totalMinutes;
   final String? goalId;
   final String? goalName;
-  final TranceMethod? tranceMethod;
-  final int? startedTime;
-  final int? totalTracks;
+  final TranceMethod tranceMethod;
+  final int startedTime;
+  final int totalTracks;
   final List<PlayedTrack>? playedTracks;
 
   Session({
     this.id,
-    this.uid,
-    this.topicId,
-    this.startTime,
-    this.finishedTime,
-    this.totalSeconds,
-    this.isComplete,
+    required this.uid,
+    required this.topicId,
+    required this.startTime,
+    this.endTime,
+    required this.isComplete,
     this.inductionId,
     this.awakeningId,
-    this.totalMinutes,
+    required this.totalMinutes,
     this.goalId,
     this.goalName,
-    this.tranceMethod,
-    this.startedTime,
-    this.totalTracks,
+    required this.tranceMethod,
+    required this.startedTime,
+    required this.totalTracks,
     this.playedTracks,
   });
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'uid': uid,
+      'topicId': topicId,
+      'startTime': startTime,
+      'endTime': endTime,
+      'isComplete': isComplete,
+      'inductionId': inductionId,
+      'awakeningId': awakeningId,
+      'totalMinutes': totalMinutes,
+      'goalId': goalId,
+      'goalName': goalName,
+      'tranceMethod': tranceMethod.name,
+      'startedTime': startedTime,
+      'totalTracks': totalTracks,
+      'playedTracks': playedTracks?.map((track) => track.toJson()).toList(),
+    };
+  }
+
+  factory Session.fromJson(Map<String, dynamic> json) {
+    return Session(
+      id: json['id'],
+      uid: json['uid'],
+      topicId: json['topicId'],
+      startTime: json['startTime'],
+      endTime: json['endTime'],
+      isComplete: json['isComplete'],
+      inductionId: json['inductionId'],
+      awakeningId: json['awakeningId'],
+      totalMinutes: json['totalMinutes'],
+      goalId: json['goalId'],
+      goalName: json['goalName'],
+      tranceMethod: TranceMethod.values.firstWhere(
+        (e) => e.name == json['tranceMethod'],
+        orElse: () => TranceMethod.Hypnotherapy,
+      ),
+      startedTime: json['startedTime'],
+      totalTracks: json['totalTracks'],
+      playedTracks: json['playedTracks'] != null
+          ? (json['playedTracks'] as List)
+              .map((track) => PlayedTrack.fromJson(track))
+              .toList()
+          : null,
+    );
+  }
+
   Session copyWith({
+    String? id,
     String? uid,
     String? topicId,
     int? startTime,
+    int? endTime,
     bool? isComplete,
     String? inductionId,
     String? awakeningId,
@@ -102,12 +149,11 @@ class Session {
     List<PlayedTrack>? playedTracks,
   }) {
     return Session(
-      id: id,
+      id: id ?? this.id,
       uid: uid ?? this.uid,
       topicId: topicId ?? this.topicId,
       startTime: startTime ?? this.startTime,
-      finishedTime: finishedTime,
-      totalSeconds: totalSeconds,
+      endTime: endTime ?? this.endTime,
       isComplete: isComplete ?? this.isComplete,
       inductionId: inductionId ?? this.inductionId,
       awakeningId: awakeningId ?? this.awakeningId,
@@ -119,54 +165,5 @@ class Session {
       totalTracks: totalTracks ?? this.totalTracks,
       playedTracks: playedTracks ?? this.playedTracks,
     );
-  }
-
-  factory Session.fromMap(Map? data) {
-    if (data == null) return Session();
-    return Session(
-      id: data['id'],
-      uid: data['uid'],
-      topicId: data['topicId'],
-      startTime: data['startTime'],
-      finishedTime: data['finishedTime'],
-      totalSeconds: data['totalSeconds'],
-      isComplete: data['isComplete'] ?? false,
-      inductionId: data['inductionId'],
-      awakeningId: data['awakeningId'],
-      totalMinutes: data['totalMinutes'],
-      goalId: data['goalId'],
-      goalName: data['goalName'],
-      tranceMethod: TranceMethod.fromString(data['tranceMethod']),
-      startedTime: data['startedTime'],
-      totalTracks: data['totalTracks'],
-      playedTracks: data['playedTracks'] != null
-          ? (data['playedTracks'] as List)
-              .map((t) => PlayedTrack.fromMap(t))
-              .toList()
-          : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {
-      'id': id,
-      'uid': uid,
-      'topicId': topicId,
-      'startTime': startTime,
-      'finishedTime': finishedTime,
-      'totalSeconds': totalSeconds,
-      'isComplete': isComplete,
-      'inductionId': inductionId,
-      'awakeningId': awakeningId,
-      'totalMinutes': totalMinutes,
-      'goalId': goalId,
-      'goalName': goalName,
-      'tranceMethod': tranceMethod?.string,
-      'startedTime': startedTime,
-      'totalTracks': totalTracks,
-      'playedTracks': playedTracks?.map((t) => t.toJson()).toList(),
-    };
-    result.removeWhere((String key, dynamic value) => value == null);
-    return result;
   }
 }

@@ -21,7 +21,7 @@ final tranceStateProvider =
   (ref) {
     final auth = ref.watch(userProvider);
     final user = auth.value;
-    return TranceState(ref.watch(firestoreServiceProvider), user?.uid);
+    return TranceState(ref.watch(firestoreServiceProvider), user?.uid, ref);
   },
 );
 
@@ -31,6 +31,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   final FirestoreService _firestoreService;
   final String? _uid;
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final Ref ref;
   Timer? _timer;
   bool _isPlaying = false;
   bool _isLoadingAudio = true;
@@ -50,10 +51,18 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   double _backgroundVolume = 0.4;
   double _voiceVolume = 0.5;
 
-  TranceState(this._firestoreService, this._uid)
+  TranceState(this._firestoreService, this._uid, this.ref)
       : super(AsyncValue<Session?>.data(null)) {
     // Set initial volumes
     _audioPlayer.setVolume(_voiceVolume);
+    
+    // Register cleanup when provider is disposed
+    ref.onDispose(() {
+      print('Disposing TranceState');
+      _timer?.cancel();
+      _audioPlayer.stop();
+      _audioPlayer.dispose();
+    });
   }
 
   bool get isPlaying => _isPlaying;
@@ -133,14 +142,17 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       _tracks = [];
 
       // Load and shuffle suggestion tracks first
-      List<Track> suggestions = await _firestoreService.getTracksFromTopic(topic);
+      List<Track> suggestions =
+          await _firestoreService.getTracksFromTopic(topic);
       suggestions.shuffle();
       _tracks = suggestions; // Only suggestion tracks go in _tracks
 
       // Load induction and awakening for hypnotherapy
       if (session.tranceMethod == TranceMethod.Hypnotherapy) {
-        _inductionTrack = await _firestoreService.getAudioTrackById(session.inductionId!);
-        _awakeningTrack = await _firestoreService.getAudioTrackById(session.awakeningId!);
+        _inductionTrack =
+            await _firestoreService.getAudioTrackById(session.inductionId!);
+        _awakeningTrack =
+            await _firestoreService.getAudioTrackById(session.awakeningId!);
 
         if (_inductionTrack == null || _awakeningTrack == null) {
           throw Exception('Failed to load induction or awakening track');
@@ -155,17 +167,20 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
 
         // Calculate available time for suggestions
         final totalSessionMs = getTranceTime() * 60 * 1000;
-        final availableForSuggestions = totalSessionMs - _inductionDuration - _awakeningDuration;
+        final availableForSuggestions =
+            totalSessionMs - _inductionDuration - _awakeningDuration;
 
         // Check if we have enough time for suggestions
-        if (availableForSuggestions < 120000) { // 2 minutes in ms
-          throw Exception('Session time too short. Please extend your session duration to accommodate induction (${_inductionDuration ~/ 60000}min) and awakening (${_awakeningDuration ~/ 60000}min).');
+        if (availableForSuggestions < 120000) {
+          // 2 minutes in ms
+          throw Exception(
+              'Session time too short. Please extend your session duration to accommodate induction (${_inductionDuration ~/ 60000}min) and awakening (${_awakeningDuration ~/ 60000}min).');
         }
 
         // Start with induction track
         _currentTrack = _inductionTrack;
         await _audioPlayer.setUrl(_inductionTrack!.url!);
-        
+
         // Set up completion listener for track transitions
         _audioPlayer.playerStateStream.listen((playerState) {
           if (playerState.processingState == ProcessingState.completed) {
@@ -178,7 +193,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
         if (_tracks.isNotEmpty) {
           _currentTrack = _tracks[0];
           await _audioPlayer.setUrl(_currentTrack!.url!);
-          
+
           // Set up completion listener for track transitions
           _audioPlayer.playerStateStream.listen((playerState) {
             if (playerState.processingState == ProcessingState.completed) {
@@ -196,9 +211,11 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   Future<void> _playNextTrack() async {
     try {
       print('Playing next track');
-      
+
       // Special handling for hypnotherapy sequence
       if (state.value?.tranceMethod == TranceMethod.Hypnotherapy) {
+        final totalSessionMs = getTranceTime() * 60 * 1000;
+
         // If we're playing induction
         if (_currentTrack == _inductionTrack) {
           print('Finished induction, moving to suggestions');
@@ -209,11 +226,15 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
             await _audioPlayer.setUrl(_currentTrack!.url!);
           }
         }
-        // If we're at the end of suggestions
-        else if (_currentTrackIndex >= _tracks.length && _awakeningTrack != null) {
-          print('Finished suggestions, moving to awakening');
+        // Check if it's time for awakening
+        else if (_currentTrackIndex >= _tracks.length ||
+            (_cumulativeMilliseconds >=
+                    (totalSessionMs -
+                        _awakeningDuration -
+                        5000) && // 5 second buffer
+                _currentTrack != _awakeningTrack)) {
+          print('Time for awakening, moving to awakening track');
           _currentTrack = _awakeningTrack;
-          _currentTrackIndex = _tracks.length + 1; // Past the end to indicate we're in awakening
           await _audioPlayer.setUrl(_currentTrack!.url!);
         }
         // If we're done with awakening
@@ -391,9 +412,8 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     state = AsyncValue.data(state.value);
   }
 
-  @override
-  void dispose() {
-    print('Disposing trance state');
+  void clearState() {
+    print('Clearing trance state');
     _timer?.cancel();
     _isPlaying = false;
     _isLoadingAudio = false;
@@ -410,6 +430,12 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     _awakeningDuration = 0;
     _audioPlayer.stop();
     _audioPlayer.dispose();
+  }
+
+  @override
+  void dispose() {
+    print('Disposing trance state');
+    clearState();
     super.dispose();
   }
 }

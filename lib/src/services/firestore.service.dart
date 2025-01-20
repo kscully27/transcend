@@ -432,7 +432,7 @@ class FirestoreServiceAdapter extends FirestoreService {
   @override
   Future<Session> getSession(String id) async {
     var snapshot = await db.collection("sessions").doc(id).get();
-    return Session.fromMap(snapshot.data() as Map<String, dynamic>);
+    return Session.fromJson(snapshot.data() as Map<String, dynamic>);
   }
 
   @override
@@ -445,7 +445,7 @@ class FirestoreServiceAdapter extends FirestoreService {
         .where("finishedTime", isGreaterThan: startDate?.millisecondsSinceEpoch)
         .where("finishedTime", isLessThan: endDate.millisecondsSinceEpoch)
         .get();
-    return _snap.docs.map((doc) => Session.fromMap(doc.data() as Map<String, dynamic>)).toList();
+    return _snap.docs.map((doc) => Session.fromJson(doc.data() as Map<String, dynamic>)).toList();
   }
 
   @override
@@ -485,7 +485,7 @@ class FirestoreServiceAdapter extends FirestoreService {
         .where("created", isGreaterThan: startDate?.millisecondsSinceEpoch)
         .where("created", isLessThan: endDate.millisecondsSinceEpoch)
         .get();
-    return _snap.docs.map((doc) => PlayedTrack.fromMap(doc.data() as Map<String, dynamic>)).toList();
+    return _snap.docs.map((doc) => PlayedTrack.fromJson(doc.data() as Map<String, dynamic>)).toList();
   }
 
   @override

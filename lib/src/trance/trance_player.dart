@@ -106,29 +106,22 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
 
   @override
   void dispose() {
+    print('dispose in trance player');
+    
     // Stop and dispose animations
     _animationController1.stop();
     _animationController2.stop();
     _animationController1.dispose();
     _animationController2.dispose();
-    
-    // Safely cleanup trance state
-    if (mounted) {
-      try {
-        final tranceState = ref.read(tranceStateProvider.notifier);
-        tranceState.pauseCombinedAudio();
-      } catch (e) {
-        print('Error during trance cleanup: $e');
-      }
-    }
-    
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     final tranceState = ref.watch(tranceStateProvider.notifier);
+    
     final sessionState = ref.watch(tranceStateProvider);
     final isLoading = sessionState.isLoading;
     final isLoadingAudio = tranceState.isLoadingAudio;
@@ -144,6 +137,11 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
     final size = MediaQuery.of(context).size;
     final outerSize = size.width * 0.9;
     final innerSize = outerSize * 0.7;
+
+    void _handleClose() {
+      tranceState.dispose();
+      Navigator.of(context).pop();
+    }
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -190,7 +188,7 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                         spread: 2,
                         child: IconButton(
                           icon: Icon(Icons.close, color: theme.colorScheme.onSurface.withOpacity(0.7)),
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: () => _handleClose(),
                         ),
                       ),
                     ],
@@ -307,8 +305,7 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                         child: Column(
                           children: [
                             Text(
-                              ((tranceState.currentTrack!.text?.length ?? 0 )> 30 ? tranceState.currentTrack?.text?.substring(0, 30) : tranceState.currentTrack?.text) ?.replaceAll("\n", " ") ?? 'Loading...',
-                              // tranceState.currentTrack?.text?.replaceAll("\n", " ") ?? 'Loading...',
+                              _formatTrackText(tranceState.currentTrack?.text),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: theme.colorScheme.onSurface.withOpacity(0.7),
@@ -323,27 +320,27 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                       const SizedBox(height: 20),
                       
                       // Progress indicator
-                      // if (!isLoading) ...[
-                      //   // Duration text
-                      //   Padding(
-                      //     padding: const EdgeInsets.symmetric(horizontal: 40),
-                      //     child: Row(
-                      //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      //       children: [
-                      //         Text(
-                      //           _formatDuration(tranceState.currentMillisecond),
-                      //           style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
-                      //         ),
-                      //         Text(
-                      //           _formatDuration(TranceState.DEFAULT_SESSION_MINUTES * 60 * 1000),
-                      //           style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
-                      //         ),
-                      //       ],
-                      //     ),
-                      //   ),
-                      // ],
+                      if (!isLoading) ...[
+                        // Duration text
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatDuration(tranceState.currentMillisecond),
+                                style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                              ),
+                              Text(
+                                _formatDuration(TranceState.DEFAULT_SESSION_MINUTES * 60 * 1000),
+                                style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       
-                      // const SizedBox(height: 40),
+                      const SizedBox(height: 40),
                       
                       // Settings button
                       ClayContainer(
@@ -549,5 +546,11 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
         ),
       ),
     );
+  }
+
+  String _formatTrackText(String? text) {
+    if (text == null) return 'Loading...';
+    final cleanText = text.replaceAll("\n", " ");
+    return cleanText.length > 30 ? cleanText.substring(0, 30) + "..." : cleanText;
   }
 } 
