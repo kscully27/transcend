@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
 import 'package:trancend/src/models/topic.model.dart';
-import 'package:trancend/src/models/user.model.dart';
+import 'package:trancend/src/models/user.model.dart' as user_model;
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/providers/trance_provider.dart';
 import 'package:trancend/src/trance/trance_player.dart';
@@ -49,7 +49,7 @@ class _TranceViewState extends ConsumerState<TranceView> {
     );
   }
 
-  int _getDefaultMinutes(session.TranceMethod method, AsyncValue<User?> userAsync) {
+  int _getDefaultMinutes(session.TranceMethod method, AsyncValue<user_model.User?> userAsync) {
     final user = userAsync.value;
     if (user == null) return 10;
 

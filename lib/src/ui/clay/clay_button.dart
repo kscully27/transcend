@@ -141,7 +141,7 @@ class ClayButton extends StatelessWidget {
             width: width,
             height: height,
             color: color,
-            parentColor: parentColor ?? color,
+            parentColor: parentColor,
             spread: spread,
             depth: depth,
             curveType: curveType ?? CurveType.concave,
@@ -163,7 +163,8 @@ class ClayButton extends StatelessWidget {
                   : null,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   if (icon != null) ...[
                     Icon(

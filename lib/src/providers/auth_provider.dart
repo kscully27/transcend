@@ -10,14 +10,18 @@ import 'package:trancend/src/services/firestore.service.dart';
 part 'auth_provider.g.dart';
 
 @Riverpod(keepAlive: true)
-Stream<user_model.User?> user(Ref ref) {
-  final firestoreService = locator<FirestoreService>();
-  return auth.FirebaseAuth.instance.authStateChanges().asyncMap((firebaseUser) async {
+class User extends AsyncNotifier<user_model.User?> {
+  @override
+  Future<user_model.User?> build() async {
+    final firestoreService = locator<FirestoreService>();
+    final firebaseUser = auth.FirebaseAuth.instance.currentUser;
+    
     if (firebaseUser == null) return null;
+    
     try {
       return await firestoreService.getUser(firebaseUser.uid);
     } catch (e) {
-      print("🚀 ~ returnauth.FirebaseAuth.instance.authStateChanges ~ e: $e");
+      print("🚀 ~ error getting user: $e");
       return user_model.User(
         uid: firebaseUser.uid,
         email: firebaseUser.email ?? '',
@@ -26,7 +30,20 @@ Stream<user_model.User?> user(Ref ref) {
         isAnonymous: firebaseUser.isAnonymous,
       );
     }
-  });
+  }
+
+  Future<void> updateBackgroundSound(user_model.BackgroundSound sound) async {
+    final user = state.value;
+    if (user == null) return;
+
+    final firestoreService = locator<FirestoreService>();
+    await firestoreService.updateUserFromData(user.uid, {
+      'backgroundSound': sound.toString().split('.').last
+    });
+    
+    // Refresh user data after saving
+    state = await AsyncValue.guard(() => build());
+  }
 }
 
 @Riverpod(keepAlive: true)
@@ -47,4 +64,25 @@ Stream<UserSettings?> userSettings(Ref ref) {
 @Riverpod(keepAlive: true)
 AuthenticationService authService(Ref ref) {
   return AuthenticationServiceAdapter(ref);
+}
+
+final backgroundSoundProvider = StateNotifierProvider<BackgroundSoundNotifier, user_model.BackgroundSound>((ref) {
+  final user = ref.read(userProvider).value;
+  return BackgroundSoundNotifier(user?.backgroundSound ?? user_model.BackgroundSound.Waves);
+});
+
+class BackgroundSoundNotifier extends StateNotifier<user_model.BackgroundSound> {
+  BackgroundSoundNotifier(user_model.BackgroundSound initialState) : super(initialState);
+
+  Future<void> updateSound(user_model.BackgroundSound sound) async {
+    state = sound;
+  }
+}
+
+@riverpod
+class UserRefresh extends _$UserRefresh {
+  @override
+  int build() => 0;
+
+  void refresh() => state++;
 } 

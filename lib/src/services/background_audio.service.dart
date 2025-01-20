@@ -5,7 +5,7 @@ class BackgroundAudioService {
   factory BackgroundAudioService() => _instance;
   BackgroundAudioService._internal();
 
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  final AudioPlayer _player = AudioPlayer();
   bool _isPlaying = false;
   double _volume = 0.4;
   String? _currentSoundUrl;
@@ -18,9 +18,9 @@ class BackgroundAudioService {
   Future<void> initialize(String soundUrl) async {
     try {
       _currentSoundUrl = soundUrl;
-      await _audioPlayer.setUrl(soundUrl);
-      await _audioPlayer.setLoopMode(LoopMode.one); // Loop the background sound
-      await _audioPlayer.setVolume(_volume);
+      await _player.setUrl(soundUrl);
+      await _player.setLoopMode(LoopMode.one); // Loop the background sound
+      await _player.setVolume(_volume);
     } catch (e) {
       print('Error initializing background audio: $e');
       rethrow;
@@ -28,22 +28,21 @@ class BackgroundAudioService {
   }
 
   /// Start playing the background audio
-  Future<void> play() async {
+  Future<void> play(String url) async {
     try {
-      if (_currentSoundUrl != null) {
-        await _audioPlayer.play();
-        _isPlaying = true;
-      }
+      await _player.setUrl(url);
+      await _player.setLoopMode(LoopMode.one);
+      await _player.play();
+      _isPlaying = true;
     } catch (e) {
       print('Error playing background audio: $e');
-      rethrow;
     }
   }
 
   /// Pause the background audio
   Future<void> pause() async {
     try {
-      await _audioPlayer.pause();
+      await _player.pause();
       _isPlaying = false;
     } catch (e) {
       print('Error pausing background audio: $e');
@@ -56,7 +55,7 @@ class BackgroundAudioService {
     if (_isPlaying) {
       await pause();
     } else {
-      await play();
+      await play(_currentSoundUrl!);
     }
   }
 
@@ -65,7 +64,7 @@ class BackgroundAudioService {
     try {
       if (newVolume >= 0 && newVolume <= 1) {
         _volume = newVolume;
-        await _audioPlayer.setVolume(_volume);
+        await _player.setVolume(_volume);
       }
     } catch (e) {
       print('Error updating background audio volume: $e');
@@ -80,16 +79,16 @@ class BackgroundAudioService {
       _currentSoundUrl = newSoundUrl;
       
       // Stop current playback
-      await _audioPlayer.stop();
+      await _player.stop();
       
       // Set up new sound
-      await _audioPlayer.setUrl(newSoundUrl);
-      await _audioPlayer.setLoopMode(LoopMode.one);
-      await _audioPlayer.setVolume(_volume);
+      await _player.setUrl(newSoundUrl);
+      await _player.setLoopMode(LoopMode.one);
+      await _player.setVolume(_volume);
       
       // Resume playback if it was playing before
       if (wasPlaying) {
-        await play();
+        await play(newSoundUrl);
       }
     } catch (e) {
       print('Error changing background sound: $e');
@@ -97,16 +96,23 @@ class BackgroundAudioService {
     }
   }
 
+  /// Stop the background audio
+  Future<void> stop() async {
+    try {
+      await _player.stop();
+      _isPlaying = false;
+    } catch (e) {
+      print('Error stopping background audio: $e');
+    }
+  }
+
   /// Clean up resources
   Future<void> dispose() async {
     try {
-      await _audioPlayer.stop();
-      await _audioPlayer.dispose();
-      _isPlaying = false;
-      _currentSoundUrl = null;
+      await stop();
+      await _player.dispose();
     } catch (e) {
       print('Error disposing background audio: $e');
-      rethrow;
     }
   }
 }

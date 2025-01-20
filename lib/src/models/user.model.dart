@@ -1,6 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:trancend/src/constants/enums.dart';
 import 'package:trancend/src/models/breath.model.dart';
-
+import 'package:trancend/src/shared/icons.dart';
+import 'package:recase/recase.dart';
+import 'package:trancend/src/constants/background_icons.dart';
 part 'user.model.freezed.dart';
 part 'user.model.g.dart';
 
@@ -59,6 +63,36 @@ enum ActiveBackgroundSound {
   None
 }
 
+
+Map<ActiveBackgroundSound, IconData> activeBackgroundIcons = {
+  ActiveBackgroundSound.Fire: AppIcons.fire,
+  ActiveBackgroundSound.Electricity: AppIcons.electricity,
+  ActiveBackgroundSound.Encouragement: AppIcons.encouragement,
+  ActiveBackgroundSound.Energy: AppIcons.energy,
+  ActiveBackgroundSound.Enhance: AppIcons.enhance,
+  ActiveBackgroundSound.Flight: AppIcons.flight,
+  ActiveBackgroundSound.Force: AppIcons.force,
+  ActiveBackgroundSound.Ignition: AppIcons.ignition,
+  ActiveBackgroundSound.Motivation: AppIcons.motivation,
+  ActiveBackgroundSound.Passion: AppIcons.passion,
+  ActiveBackgroundSound.Power: AppIcons.power,
+  ActiveBackgroundSound.Spark: AppIcons.spark,
+  ActiveBackgroundSound.Stamina: AppIcons.stamina,
+  ActiveBackgroundSound.Strength: AppIcons.strength,
+  ActiveBackgroundSound.None: AppIcons.none,
+};
+
+extension ActiveBackgroundSoundX on ActiveBackgroundSound {
+  ActiveBackgroundSound fromString(String string) =>
+      enumFromString(string, ActiveBackgroundSound.values);
+  String get string => enumToString(this);
+  String get id => enumToString(this).toLowerCase();
+  IconData get icon => activeBackgroundIcons[this] ?? AppIcons.none;
+  // String get mp3Path => 'assets/audio/loops/active/$id.mp3';
+  String get path => 'active/$id.mp3';
+}
+
+
 enum BackgroundSound {
   Waves,
   Rain,
@@ -76,6 +110,37 @@ enum BackgroundSound {
   Nature,
   None,
 }
+
+
+Map<BackgroundSound, IconData> backgroundIcons = {
+  BackgroundSound.Waves: AppIcons.waves_1,
+  BackgroundSound.Rain: AppIcons.rain,
+  BackgroundSound.Campfire: AppIcons.campfire,
+  BackgroundSound.Chimes: AppIcons.chimes,
+  BackgroundSound.Stream: AppIcons.stream,
+  BackgroundSound.Saturn: AppIcons.saturn,
+  BackgroundSound.Sun: AppIcons.sun,
+  BackgroundSound.City: AppIcons.city,
+  BackgroundSound.Farm: AppIcons.farm,
+  BackgroundSound.Wetlands: AppIcons.wetlands,
+  BackgroundSound.Forest: AppIcons.forest,
+  BackgroundSound.Train: AppIcons.train,
+  BackgroundSound.Rainforest: AppIcons.rainforest,
+  BackgroundSound.Nature: AppIcons.nature,
+  BackgroundSound.None: AppIcons.none,
+};
+
+extension BackgroundSoundX on BackgroundSound {
+  BackgroundSound fromString(String string) =>
+      enumFromString(string, BackgroundSound.values);
+  String get string => enumToString(this);
+  String get id => enumToString(this).toLowerCase();
+  IconData get icon => backgroundIcons[this] ?? AppIcons.none;
+  // String get mp3Path => 'assets/audio/loops/relaxed/$id.mp3';
+  String get path => 'relaxed/$id.mp3';
+}
+
+
 
 enum AlarmSound {
   Default,
@@ -120,6 +185,14 @@ enum AppSound {
   Upbeat,
   Vinyl_Rewind,
   Water_Drop,
+}
+
+extension AppSoundsX on AppSound {
+  AppSound fromString(String string) => enumFromString(string, AppSound.values);
+  String get string => enumToString(this);
+  String get id => this.string.toLowerCase();
+  String get file => '/audio/${this.id}.mp3';
+  String get title => ReCase(this.string).titleCase;
 }
 
 @freezed
@@ -220,4 +293,38 @@ class User with _$User {
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+}
+
+class UserModel {
+  final String? uid;
+  final String? email;
+  final String? displayName;
+  final BackgroundSound? backgroundSound;
+  // ... other fields ...
+
+  UserModel({
+    this.uid,
+    this.email,
+    this.displayName,
+    this.backgroundSound,
+    // ... other fields ...
+  });
+
+  UserModel copyWith({
+    String? uid,
+    String? email,
+    String? displayName,
+    BackgroundSound? backgroundSound,
+    // ... other fields ...
+  }) {
+    return UserModel(
+      uid: uid ?? this.uid,
+      email: email ?? this.email,
+      displayName: displayName ?? this.displayName,
+      backgroundSound: backgroundSound ?? this.backgroundSound,
+      // ... other fields ...
+    );
+  }
+
+  // ... other methods ...
 }

@@ -2,7 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/settings.model.dart';
 import 'package:trancend/src/models/topic.model.dart';
-import 'package:trancend/src/models/user.model.dart';
+import 'package:trancend/src/models/user.model.dart' as user_model;
 import 'package:trancend/src/models/user_topic.model.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/services/authentication.service.dart';
@@ -17,8 +17,8 @@ class AppState extends _$AppState {
   @override
   Stream<AppStateData> build() async* {
     final authService = locator<AuthenticationService>();
-    final user = ref.watch(userProvider).value;
-    if (user == null) {
+    final user = ref.watch(userProvider);
+    if (user.value == null) {
       await authService.signinAnonymously();
       yield AppStateData(
         isInitialized: true,
@@ -31,45 +31,49 @@ class AppState extends _$AppState {
     }
 
     try {
-      // First ensure the user exists in Firestore
-
-      await for (final updatedUser in _firestoreService.watchUser(user.uid)) {
-        final settings = await _firestoreService.getSettings(updatedUser.uid);
-
-        try {
-          final topics = await _firestoreService.getTopics();
-          final userTopics =
-              await _firestoreService.getUserTopics(updatedUser.uid);
-          yield AppStateData(
-            isInitialized: true,
-            user: updatedUser,
-            settings: settings,
-            userTopics: userTopics,
-            topics: AsyncValue.data(topics),
-          );
-        } catch (e, st) {
-          yield AppStateData(
-            isInitialized: true,
-            user: updatedUser,
-            settings: settings,
-            userTopics: [],
-            topics: AsyncValue.error(e, st),
-          );
-        }
+      final settings = await _firestoreService.getSettings(user.value!.uid);
+      try {
+        final topics = await _firestoreService.getTopics();
+        final userTopics = await _firestoreService.getUserTopics(user.value!.uid);
+        yield AppStateData(
+          isInitialized: true,
+          user: user.value,
+          settings: settings,
+          userTopics: userTopics,
+          topics: AsyncValue.data(topics),
+        );
+      } catch (e, st) {
+        yield AppStateData(
+          isInitialized: true,
+          user: user.value,
+          settings: settings,
+          userTopics: [],
+          topics: AsyncValue.error(e, st),
+        );
       }
     } catch (e) {
       // If user doesn't exist in Firestore yet, create them
-      final newUser = User(
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoUrl: user.photoUrl,
+      final newUser = user_model.User(
+        uid: user.value!.uid,
+        email: user.value!.email,
+        displayName: user.value!.displayName,
+        photoUrl: user.value!.photoUrl,
         isAnonymous: true,
       );
       await _firestoreService.createUser(newUser);
 
-      // Restart the stream to pick up the new user
-      yield* build();
+      // Get the initial state after creating user
+      final settings = await _firestoreService.getSettings(user.value!.uid);
+      final topics = await _firestoreService.getTopics();
+      final userTopics = await _firestoreService.getUserTopics(user.value!.uid);
+      
+      yield AppStateData(
+        isInitialized: true,
+        user: newUser,
+        settings: settings,
+        userTopics: userTopics,
+        topics: AsyncValue.data(topics),
+      );
     }
   }
 
@@ -92,7 +96,7 @@ class AppState extends _$AppState {
 
 class AppStateData {
   final bool isInitialized;
-  final User? user;
+  final user_model.User? user;
   final UserSettings? settings;
   final List<UserTopic> userTopics;
   final AsyncValue<List<Topic>> topics;
@@ -107,7 +111,7 @@ class AppStateData {
 
   AppStateData copyWith({
     bool? isInitialized,
-    User? user,
+    user_model.User? user,
     UserSettings? settings,
     List<UserTopic>? userTopics,
     AsyncValue<List<Topic>>? topics,
