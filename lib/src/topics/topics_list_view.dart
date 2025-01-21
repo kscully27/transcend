@@ -46,56 +46,67 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
 
     return topicsAsync.when(
       data: (topics) {
+        final categories = ref.read(topicsProvider.notifier).getCategories();
         final selectedCategory = ref.watch(topicsProvider.notifier).selectedCategory;
+        final selectedIndex = categories.indexOf(selectedCategory);
 
-        final filteredTopics = topics
-            .where((t) => selectedCategory == 'All' || t.group == selectedCategory)
-            .toList();
+        return PageView(
+          controller: _pageController,
+          onPageChanged: (index) {
+            ref.read(topicsProvider.notifier).setSelectedCategory(categories[index]);
+            _scrollToCategory(index);
+          },
+          children: categories.map((category) {
+            final filteredTopics = topics
+                .where((t) => category == 'All' || t.group == category)
+                .toList();
 
-        if (filteredTopics.isEmpty) {
-          return Center(
-            child: Text(
-              'No topics found for $selectedCategory',
-              style: TextStyle(color: Colors.white70),
-            ),
-          );
-        }
-
-        return ListView.builder(
-          key: ValueKey<String>(selectedCategory),
-          controller: _scrollController,
-          padding: const EdgeInsets.only(
-            left: 8.0,
-            right: 8.0,
-            top: 200.0,
-            bottom: 96.0,
-          ),
-          itemCount: filteredTopics.length,
-          itemBuilder: (context, index) {
-            final topic = filteredTopics[index];
-            final userTopicsAsync = ref.watch(userTopicsProvider);
-
-            return userTopicsAsync.when(
-              data: (userTopics) {
-                final favoriteMap = {
-                  for (var ut in userTopics) ut.topicId: ut.isFavorite
-                };
-
-                return CandyTopicItem(
-                        topic: topic,
-                        isFavorite: favoriteMap[topic.id] ?? false,
-                        onFavoritePressed: () => _toggleFavorite(topic.id),
-                      );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(
+            if (filteredTopics.isEmpty) {
+              return Center(
                 child: Text(
-                  'Error loading user topics: $error',
+                  'No topics found for $category',
                   style: TextStyle(color: Colors.white70),
                 ),
+              );
+            }
+
+            return ListView.builder(
+              key: ValueKey<String>(category),
+              controller: _scrollController,
+              padding: const EdgeInsets.only(
+                left: 8.0,
+                right: 8.0,
+                top: 200.0,
+                bottom: 96.0,
               ),
+              itemCount: filteredTopics.length,
+              itemBuilder: (context, index) {
+                final topic = filteredTopics[index];
+                final userTopicsAsync = ref.watch(userTopicsProvider);
+
+                return userTopicsAsync.when(
+                  data: (userTopics) {
+                    final favoriteMap = {
+                      for (var ut in userTopics) ut.topicId: ut.isFavorite
+                    };
+
+                    return CandyTopicItem(
+                      topic: topic,
+                      isFavorite: favoriteMap[topic.id] ?? false,
+                      onFavoritePressed: () => _toggleFavorite(topic.id),
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(
+                    child: Text(
+                      'Error loading user topics: $error',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                );
+              },
             );
-          },
+          }).toList(),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -182,9 +193,11 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
   }
 
   void _scrollToCategory(int index) {
-    final buttonWidth = 120.0;
-    final padding = 4.0;
-    final targetScroll = (buttonWidth + (padding * 2)) * index;
+    if (!_categoriesScrollController.hasClients) return;
+    
+    final buttonWidth = 120.0;  // Approximate width of each button
+    final padding = 4.0;  // Left margin of each button
+    final targetScroll = (buttonWidth + padding) * index;
 
     _categoriesScrollController.animateTo(
       targetScroll.clamp(0.0, _categoriesScrollController.position.maxScrollExtent),
@@ -202,6 +215,7 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
+      _scrollToCategory(index);
     }
   }
 
