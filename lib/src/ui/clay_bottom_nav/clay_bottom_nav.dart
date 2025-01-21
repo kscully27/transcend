@@ -349,17 +349,18 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
     ];
 
     return SizedBox(
-      height: 140,
+      height: 160,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           Positioned(
             left: 0,
             right: 0,
-            bottom: 0,
+            bottom: -40,
             child: CustomPaint(
               painter: painter,
               child: SizedBox(
-                height: 100,
+                height: 140,
                 width: MediaQuery.of(context).size.width,
               ),
             ),
@@ -367,7 +368,7 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
           Positioned(
             left: 0,
             right: 0,
-            bottom: 0,
+            bottom: -20,
             child: ClipShadowPath(
               clipper: clipper,
               shadow: shadowList,
@@ -385,6 +386,7 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
                   ),
                   child: Material(
                     color: Colors.transparent,
+                    clipBehavior: Clip.none,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: items,

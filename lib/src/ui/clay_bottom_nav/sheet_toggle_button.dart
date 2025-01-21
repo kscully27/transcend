@@ -37,7 +37,7 @@ class _SheetToggleButton extends StatelessWidget {
             spread: 8,
             depth: 16,
             borderRadius: 50,
-            curveType: CurveType.concave,
+            curveType: CurveType.none,
             child: Icon(
               icon,
               color: fgColor,
