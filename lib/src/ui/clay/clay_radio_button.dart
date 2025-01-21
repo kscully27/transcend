@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clay_containers/clay_containers.dart';
+import 'package:trancend/src/ui/clay/clay_container.dart';
 
 class ClayRadioButton<T> extends StatelessWidget {
   final T value;
@@ -45,7 +45,7 @@ class ClayRadioButton<T> extends StatelessWidget {
           child: ClayContainer(
             color: color,
             parentColor: parentColor,
-            depth: depth.toInt(),
+            depth: depth,
             spread: spread,
             borderRadius: borderRadius,
             emboss: isSelected,
@@ -59,34 +59,35 @@ class ClayRadioButton<T> extends StatelessWidget {
                     Icon(icon, color: Theme.of(context).colorScheme.onSurface),
                     const SizedBox(width: 8),
                   ],
-                  if (title != null) 
+                  if (title != null)
                     Expanded(
                       child: Text(
                         title!,
-                        style: titleStyle ?? TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 16,
-                        ),
+                        style: titleStyle ??
+                            TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 16,
+                            ),
                       ),
                     ),
                   ClayContainer(
                     color: color,
                     parentColor: parentColor,
-                    depth: (depth / 2).toInt(),
+                    depth: (depth / 2),
                     spread: spread / 2,
                     borderRadius: 15,
                     height: 30,
                     width: 30,
                     emboss: !isSelected,
                     child: isSelected
-                      ? Center(
-                          child: Icon(
-                            Icons.check,
-                            size: 25,
-                            color: Colors.white,
-                          ),
-                        )
-                      : null,
+                        ? Center(
+                            child: Icon(
+                              Icons.check,
+                              size: 25,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Container(),
                   ),
                   const SizedBox(width: 4),
                 ],
@@ -97,4 +98,4 @@ class ClayRadioButton<T> extends StatelessWidget {
       ),
     );
   }
-} 
+}

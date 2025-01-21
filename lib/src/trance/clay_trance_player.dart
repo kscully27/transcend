@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clay_containers/clay_containers.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/session.model.dart';
 import 'package:trancend/src/providers/trance_provider.dart';
 import 'package:trancend/src/constants/app_colors.dart';
+import 'package:trancend/src/ui/clay/clay_container.dart';
+import 'package:trancend/src/ui/clay/clay_text.dart';
 
 class ClayTrancePlayer extends ConsumerStatefulWidget {
   final Topic topic;
@@ -120,6 +121,7 @@ class _ClayTrancePlayerState extends ConsumerState<ClayTrancePlayer> with Ticker
                 borderRadius: 20,
                 depth: 20,
                 spread: 2,
+                parentColor: baseColor,
                 child: IconButton(
                   icon: const Icon(Icons.close, color: Colors.white70),
                   onPressed: () => Navigator.of(context).pop(),
@@ -171,11 +173,13 @@ class _ClayTrancePlayerState extends ConsumerState<ClayTrancePlayer> with Ticker
                         scale: _scaleAnimation1,
                         child: ClayContainer(
                           color: baseColor,
+                          parentColor: baseColor,
                           height: outerSize,
                           width: outerSize,
                           borderRadius: outerSize / 2,
                           depth: 30,
                           spread: 30,
+                          child: Container(),
                         ),
                       ),
                       
@@ -199,6 +203,7 @@ class _ClayTrancePlayerState extends ConsumerState<ClayTrancePlayer> with Ticker
                         scale: _scaleAnimation2,
                         child: ClayContainer(
                           color: baseColor,
+                          parentColor: baseColor,
                           height: innerSize,
                           width: innerSize,
                           borderRadius: innerSize / 2,

@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:clay_containers/widgets/clay_container.dart' as clay_containers;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trancend/src/pages/settings.dart' show darkModeProvider;
+import 'package:trancend/src/ui/clay/clay_container.dart';
 import 'package:trancend/src/ui/glass/glass_icon_button.dart';
 
 import '../constants/app_colors.dart';
@@ -282,7 +282,7 @@ class _ThemeEditorState extends ConsumerState<ThemeEditor> {
                   // Clay Components
                   Text('Clay Components', style: theme.textTheme.titleMedium),
                   const SizedBox(height: 8),
-                  clay_containers.ClayContainer(
+                  ClayContainer(
                     color: parentColor,
                     parentColor: parentColor,
                     spread: 2,

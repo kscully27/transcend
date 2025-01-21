@@ -1,4 +1,3 @@
-import 'package:clay_containers/clay_containers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
@@ -9,6 +8,7 @@ import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/providers/trance_provider.dart';
 import 'package:trancend/src/trance/trance_player.dart';
 import 'package:trancend/src/ui/clay/clay_button.dart';
+import 'package:trancend/src/ui/clay/clay_container.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
 
 Color baseColor = const Color(0xFFD59074);
@@ -108,6 +108,7 @@ class _TranceViewState extends ConsumerState<TranceView> {
                       ),
                       ClayContainer(
                         color: baseColor,
+                        parentColor: baseColor,
                         height: 40,
                         width: 40,
                         borderRadius: 20,

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clay_containers/clay_containers.dart';
-import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/session.model.dart';
+import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/providers/trance_provider.dart';
+import 'package:trancend/src/ui/clay/clay_container.dart';
 import 'package:trancend/src/ui/clay/clay_slider.dart';
+import 'package:trancend/src/ui/clay/clay_text.dart';
 
 class TrancePlayer extends ConsumerStatefulWidget {
   final Topic topic;
@@ -168,11 +169,12 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                     children: [
                       ClayContainer(
                         color: theme.colorScheme.surfaceTint,
+                        parentColor: theme.colorScheme.surfaceTint,
                         height: 40,
                         width: 40,
                         borderRadius: 20,
                         depth: 20,
-                        spread: 2,
+                          spread: 2,
                         child: IconButton(
                           icon: Icon(Icons.list, color: theme.colorScheme.onSurface.withOpacity(0.7)),
                           onPressed: () => _showPlayedTracks(context),
@@ -181,6 +183,7 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                       const SizedBox(width: 8),
                       ClayContainer(
                         color: theme.colorScheme.surfaceTint,
+                        parentColor: theme.colorScheme.surfaceTint,
                         height: 40,
                         width: 40,
                         borderRadius: 20,
@@ -239,11 +242,13 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                             scale: _scaleAnimation1,
                             child: ClayContainer(
                               color: theme.colorScheme.surface,
+                              parentColor: theme.colorScheme.surface,
                               height: outerSize,
                               width: outerSize,
                               borderRadius: outerSize / 2,
                               depth: 30,
                               spread: 30,
+                              child: Container(),
                             ),
                           ),
                           
@@ -267,6 +272,7 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                             scale: _scaleAnimation2,
                             child: ClayContainer(
                               color: theme.colorScheme.surface,
+                              parentColor: theme.colorScheme.surface,
                               height: innerSize,
                               width: innerSize,
                               borderRadius: innerSize / 2,
@@ -345,6 +351,7 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                       // Settings button
                       ClayContainer(
                         color: theme.colorScheme.surface,
+                        parentColor: theme.colorScheme.surface,
                         height: 50,
                         borderRadius: 25,
                         width: 200,

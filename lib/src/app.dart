@@ -1,6 +1,3 @@
-import 'package:clay_containers/theme/clay_text_theme.dart';
-import 'package:clay_containers/theme/clay_theme.dart';
-import 'package:clay_containers/theme/clay_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -8,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/pages/home.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
 import 'package:trancend/src/theme/app_theme.dart';
+import 'package:trancend/src/ui/clay/theme/clay_text_theme.dart';
+import 'package:trancend/src/ui/clay/theme/clay_theme.dart';
+import 'package:trancend/src/ui/clay/theme/clay_theme_data.dart';
 
 import 'settings/settings_controller.dart';
 

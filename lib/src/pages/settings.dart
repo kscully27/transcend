@@ -50,6 +50,16 @@ class _SettingsState extends ConsumerState<SettingsPage> {
   final _firestoreService = locator<FirestoreService>();
   bool _isPlaying = false;
 
+  // Add controllers
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
+
+  String? _errorMessage;
+  final _formKey = GlobalKey<FormState>();
+  final Map<String, String> _fieldErrors = {};
+  String? _serverError;
+
   Future<void> _stopAudio() async {
     if (_isPlaying) {
       await _backgroundAudioService.stop();
@@ -60,10 +70,22 @@ class _SettingsState extends ConsumerState<SettingsPage> {
   @override
   void dispose() {
     _stopAudio();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
   void _showAuthSheet(BuildContext context, {bool isSignUp = false}) {
+    // Clear form state when showing sheet
+    setState(() {
+      _emailController.clear();
+      _passwordController.clear();
+      _nameController.clear();
+      _fieldErrors.clear();
+      _serverError = null;
+    });
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -74,7 +96,11 @@ class _SettingsState extends ConsumerState<SettingsPage> {
           backgroundColor: Theme.of(context).colorScheme.surfaceTint.withOpacity(0.5),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
-            child: isSignUp ? _buildSignUpContent(context) : _buildLoginContent(context),
+            child: StatefulBuilder(
+              builder: (context, setModalState) {
+                return isSignUp ? _buildSignUpContent(context, setModalState) : _buildLoginContent(context, setModalState);
+              },
+            ),
           ),
         ),
       ),
@@ -123,14 +149,242 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                 ],
               ),
             ),
-            IconButton(
-              icon: Icon(Remix.logout_box_r_line, 
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleLogout(BuildContext context) async {
+    final authService = ref.read(authServiceProvider);
+    await authService.signOut();
+    
+    // Force app reload by invalidating all providers
+    ref.invalidate(userProvider);
+    ref.invalidate(backgroundSoundProvider);
+    
+    // Rebuild the entire app
+    if (mounted) {
+      Navigator.pushNamedAndRemoveUntil(
+        context, 
+        '/', 
+        (route) => false
+      );
+    }
+  }
+
+  Future<void> _handleAuthSuccess(BuildContext context) async {
+    // Force app reload by invalidating all providers
+    ref.invalidate(userProvider);
+    ref.invalidate(backgroundSoundProvider);
+    
+    // Rebuild the entire app
+    if (mounted) {
+      Navigator.pushNamedAndRemoveUntil(
+        context, 
+        '/', 
+        (route) => false
+      );
+    }
+  }
+
+  Widget _buildLoginContent(BuildContext context, StateSetter setModalState) {
+    return SingleChildScrollView(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Welcome Back',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
-              onPressed: () async {
-                final authService = ref.read(authServiceProvider);
-                await authService.signOut();
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            TextField(
+              controller: _emailController,
+              onChanged: (value) {
+                setModalState(() {
+                  _validateEmail(value);
+                  _serverError = null;
+                });
               },
+              decoration: InputDecoration(
+                hintText: 'Email',
+                prefixIcon: const Icon(Remix.mail_line, color: Colors.white70),
+                filled: true,
+                fillColor: Colors.white12,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: _fieldErrors['email'] != null ? Colors.white : Colors.transparent,
+                  ),
+                ),
+                errorText: _fieldErrors['email'],
+                errorStyle: const TextStyle(color: Colors.white),
+              ),
+              style: const TextStyle(color: Colors.white),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _passwordController,
+              obscureText: true,
+              onChanged: (value) {
+                setModalState(() {
+                  _validatePassword(value);
+                  _serverError = null;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Password',
+                prefixIcon: const Icon(Remix.lock_line, color: Colors.white70),
+                filled: true,
+                fillColor: Colors.white12,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: _fieldErrors['password'] != null ? Colors.white : Colors.transparent,
+                  ),
+                ),
+                errorText: _fieldErrors['password'],
+                errorStyle: const TextStyle(color: Colors.white),
+              ),
+              style: const TextStyle(color: Colors.white),
+            ),
+            if (_serverError != null) ...[
+              const SizedBox(height: 16),
+              Text(
+                _serverError!,
+                style: const TextStyle(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+            ],
+            const SizedBox(height: 24),
+            GlassButton(
+              text: 'Login',
+              onPressed: () async {
+                setModalState(() {
+                  _fieldErrors.clear();
+                  _serverError = null;
+                });
+                
+                bool isValid = _validateEmail(_emailController.text) &
+                             _validatePassword(_passwordController.text);
+                
+                if (!isValid) {
+                  setModalState(() {});
+                  return;
+                }
+
+                final authService = ref.read(authServiceProvider);
+                final result = await authService.loginWithEmail(
+                  email: _emailController.text,
+                  password: _passwordController.text,
+                );
+                
+                if (result.success) {
+                  Navigator.pop(context);
+                  await _handleAuthSuccess(context);
+                } else {
+                  setModalState(() {
+                    _serverError = result.errorMessage;
+                  });
+                }
+              },
+              glassColor: Colors.white24,
+              textColor: Colors.white,
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Or continue with',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _socialLoginButton(
+                  icon: Remix.google_fill,
+                  onPressed: () async {
+                    final authService = ref.read(authServiceProvider);
+                    final result = await authService.googleSignIn();
+                    if (result.success) {
+                      Navigator.pop(context);
+                      await _handleAuthSuccess(context);
+                    } else {
+                      setModalState(() {
+                        _serverError = result.errorMessage;
+                      });
+                    }
+                  },
+                ),
+                _socialLoginButton(
+                  icon: Remix.apple_fill,
+                  onPressed: () async {
+                    final authService = ref.read(authServiceProvider);
+                    final result = await authService.appleLogin();
+                    if (result.success) {
+                      Navigator.pop(context);
+                      await _handleAuthSuccess(context);
+                    } else {
+                      setModalState(() {
+                        _serverError = result.errorMessage;
+                      });
+                    }
+                  },
+                ),
+                _socialLoginButton(
+                  icon: Remix.facebook_fill,
+                  onPressed: () async {
+                    final authService = ref.read(authServiceProvider);
+                    final result = await authService.facebookLogin();
+                    if (result.success) {
+                      Navigator.pop(context);
+                      await _handleAuthSuccess(context);
+                    } else {
+                      setModalState(() {
+                        _serverError = result.errorMessage;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _showAuthSheet(context, isSignUp: true);
+              },
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: const TextStyle(color: Colors.white70),
+                  children: [
+                    const TextSpan(text: "Don't have an account? "),
+                    TextSpan(
+                      text: 'Sign up',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -138,233 +392,252 @@ class _SettingsState extends ConsumerState<SettingsPage> {
     );
   }
 
-  Widget _buildLoginContent(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'Welcome Back',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 32),
-        TextField(
-          decoration: InputDecoration(
-            hintText: 'Email',
-            prefixIcon: const Icon(Remix.mail_line, color: Colors.white70),
-            filled: true,
-            fillColor: Colors.white12,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-          ),
-          style: const TextStyle(color: Colors.white),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          obscureText: true,
-          decoration: InputDecoration(
-            hintText: 'Password',
-            prefixIcon: const Icon(Remix.lock_line, color: Colors.white70),
-            filled: true,
-            fillColor: Colors.white12,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-          ),
-          style: const TextStyle(color: Colors.white),
-        ),
-        const SizedBox(height: 24),
-        GlassButton(
-          text: 'Login',
-          onPressed: () {
-            // TODO: Implement email login
-          },
-          glassColor: Colors.white24,
-          textColor: Colors.white,
-        ),
-        const SizedBox(height: 24),
-        const Text(
-          'Or continue with',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white70),
-        ),
-        const SizedBox(height: 24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _socialLoginButton(
-              icon: Remix.google_fill,
-              onPressed: () {
-                // TODO: Implement Google login
-              },
-            ),
-            _socialLoginButton(
-              icon: Remix.apple_fill,
-              onPressed: () {
-                // TODO: Implement Apple login
-              },
-            ),
-            _socialLoginButton(
-              icon: Remix.facebook_fill,
-              onPressed: () {
-                // TODO: Implement Facebook login
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-            _showAuthSheet(context, isSignUp: true);
-          },
-          child: RichText(
-            textAlign: TextAlign.center,
-            text: TextSpan(
-              style: const TextStyle(color: Colors.white70),
-              children: [
-                const TextSpan(text: "Don't have an account? "),
-                TextSpan(
-                  text: 'Sign up',
-                  style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
+  bool _validateEmail(String value) {
+    if (value.isEmpty) {
+      _fieldErrors['email'] = 'Email is required';
+      return false;
+    }
+    if (!value.contains('@')) {
+      _fieldErrors['email'] = 'Please enter a valid email';
+      return false;
+    }
+    _fieldErrors.remove('email');
+    return true;
   }
 
-  Widget _buildSignUpContent(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'Create Account',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 32),
-        TextField(
-          decoration: InputDecoration(
-            hintText: 'Full Name',
-            prefixIcon: const Icon(Remix.user_line, color: Colors.white70),
-            filled: true,
-            fillColor: Colors.white12,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-          ),
-          style: const TextStyle(color: Colors.white),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          decoration: InputDecoration(
-            hintText: 'Email',
-            prefixIcon: const Icon(Remix.mail_line, color: Colors.white70),
-            filled: true,
-            fillColor: Colors.white12,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-          ),
-          style: const TextStyle(color: Colors.white),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          obscureText: true,
-          decoration: InputDecoration(
-            hintText: 'Password',
-            prefixIcon: const Icon(Remix.lock_line, color: Colors.white70),
-            filled: true,
-            fillColor: Colors.white12,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-          ),
-          style: const TextStyle(color: Colors.white),
-        ),
-        const SizedBox(height: 24),
-        GlassButton(
-          text: 'Sign Up',
-          onPressed: () {
-            // TODO: Implement email signup
-          },
-          glassColor: Colors.white24,
-          textColor: Colors.white,
-        ),
-        const SizedBox(height: 24),
-        const Text(
-          'Or sign up with',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white70),
-        ),
-        const SizedBox(height: 24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  bool _validatePassword(String value) {
+    if (value.isEmpty) {
+      _fieldErrors['password'] = 'Password is required';
+      return false;
+    }
+    if (value.length < 6) {
+      _fieldErrors['password'] = 'Password must be at least 6 characters';
+      return false;
+    }
+    _fieldErrors.remove('password');
+    return true;
+  }
+
+  bool _validateName(String value) {
+    if (value.isEmpty) {
+      _fieldErrors['name'] = 'Name is required';
+      return false;
+    }
+    _fieldErrors.remove('name');
+    return true;
+  }
+
+  Widget _buildSignUpContent(BuildContext context, StateSetter setModalState) {
+    return SingleChildScrollView(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _socialLoginButton(
-              icon: Remix.google_fill,
-              onPressed: () {
-                // TODO: Implement Google signup
-              },
+            Text(
+              'Create Account',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
-            _socialLoginButton(
-              icon: Remix.apple_fill,
-              onPressed: () {
-                // TODO: Implement Apple signup
+            const SizedBox(height: 32),
+            TextField(
+              controller: _nameController,
+              onChanged: (value) {
+                setModalState(() {
+                  _validateName(value);
+                  _serverError = null;
+                });
               },
-            ),
-            _socialLoginButton(
-              icon: Remix.facebook_fill,
-              onPressed: () {
-                // TODO: Implement Facebook signup
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-            _showAuthSheet(context);
-          },
-          child: RichText(
-            textAlign: TextAlign.center,
-            text: TextSpan(
-              style: const TextStyle(color: Colors.white70),
-              children: [
-                const TextSpan(text: 'Already have an account? '),
-                TextSpan(
-                  text: 'Login',
-                  style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.bold,
+              decoration: InputDecoration(
+                hintText: 'Full Name',
+                prefixIcon: const Icon(Remix.user_line, color: Colors.white70),
+                filled: true,
+                fillColor: Colors.white12,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: _fieldErrors['name'] != null ? Colors.white : Colors.transparent,
                   ),
+                ),
+                errorText: _fieldErrors['name'],
+                errorStyle: const TextStyle(color: Colors.white),
+              ),
+              style: const TextStyle(color: Colors.white),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _emailController,
+              onChanged: (value) {
+                setModalState(() {
+                  _validateEmail(value);
+                  _serverError = null;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Email',
+                prefixIcon: const Icon(Remix.mail_line, color: Colors.white70),
+                filled: true,
+                fillColor: Colors.white12,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: _fieldErrors['email'] != null ? Colors.white : Colors.transparent,
+                  ),
+                ),
+                errorText: _fieldErrors['email'],
+                errorStyle: const TextStyle(color: Colors.white),
+              ),
+              style: const TextStyle(color: Colors.white),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _passwordController,
+              obscureText: true,
+              onChanged: (value) {
+                setModalState(() {
+                  _validatePassword(value);
+                  _serverError = null;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Password',
+                prefixIcon: const Icon(Remix.lock_line, color: Colors.white70),
+                filled: true,
+                fillColor: Colors.white12,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: _fieldErrors['password'] != null ? Colors.white : Colors.transparent,
+                  ),
+                ),
+                errorText: _fieldErrors['password'],
+                errorStyle: const TextStyle(color: Colors.white),
+              ),
+              style: const TextStyle(color: Colors.white),
+            ),
+            if (_serverError != null) ...[
+              const SizedBox(height: 16),
+              Text(
+                _serverError!,
+                style: const TextStyle(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+            ],
+            const SizedBox(height: 24),
+            GlassButton(
+              text: 'Sign Up',
+              onPressed: () async {
+                setModalState(() {
+                  _fieldErrors.clear();
+                  _serverError = null;
+                });
+                
+                bool isValid = _validateName(_nameController.text) &
+                             _validateEmail(_emailController.text) &
+                             _validatePassword(_passwordController.text);
+                
+                if (!isValid) {
+                  setModalState(() {});
+                  return;
+                }
+
+                final authService = ref.read(authServiceProvider);
+                final newUser = user_model.User(
+                  uid: '',
+                  email: _emailController.text,
+                  displayName: _nameController.text,
+                  photoUrl: '',
+                );
+                
+                final result = await authService.signUpWithEmail(
+                  user: newUser,
+                  password: _passwordController.text,
+                );
+                
+                if (result.success) {
+                  Navigator.pop(context);
+                  await _handleAuthSuccess(context);
+                } else {
+                  setModalState(() {
+                    _serverError = result.errorMessage;
+                  });
+                }
+              },
+              glassColor: Colors.white24,
+              textColor: Colors.white,
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Or sign up with',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _socialLoginButton(
+                  icon: Remix.google_fill,
+                  onPressed: () {
+                    // TODO: Implement Google signup
+                  },
+                ),
+                _socialLoginButton(
+                  icon: Remix.apple_fill,
+                  onPressed: () {
+                    // TODO: Implement Apple signup
+                  },
+                ),
+                _socialLoginButton(
+                  icon: Remix.facebook_fill,
+                  onPressed: () {
+                    // TODO: Implement Facebook signup
+                  },
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 24),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _showAuthSheet(context);
+              },
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: const TextStyle(color: Colors.white70),
+                  children: [
+                    const TextSpan(text: 'Already have an account? '),
+                    TextSpan(
+                      text: 'Login',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -433,12 +706,12 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () => _showAuthSheet(context),
+                        onTap: () => _showAuthSheet(context, isSignUp: true),
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16.0),
                           child: Text(
-                            'Sign In',
+                            'Sign Up',
                             style: TextStyle(
                               color: theme.colorScheme.onSurface,
                               fontSize: 16,
@@ -447,6 +720,26 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                             textAlign: TextAlign.center,
                           ),
                         ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () => _showAuthSheet(context),
+                    child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: const TextStyle(color: Colors.white70),
+                        children: [
+                          const TextSpan(text: 'Already have an account? '),
+                          TextSpan(
+                            text: 'Log in',
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -598,6 +891,44 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                                 Icons.arrow_forward_ios,
                                 color: theme.colorScheme.onSurface,
                                 size: 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ClayContainer(
+                    color: theme.colorScheme.errorContainer,
+                    parentColor: theme.colorScheme.errorContainer,
+                    borderRadius: 12,
+                    width: double.infinity,
+                    height: 60,
+                    depth: 20,
+                    spread: 2,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => _handleLogout(context),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Remix.logout_box_r_line,
+                                color: theme.colorScheme.onErrorContainer,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Log Out',
+                                style: TextStyle(
+                                  color: theme.colorScheme.onErrorContainer,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ],
                           ),

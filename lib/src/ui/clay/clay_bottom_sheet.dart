@@ -1,5 +1,5 @@
-import 'package:clay_containers/clay_containers.dart';
 import 'package:flutter/material.dart';
+import 'package:trancend/src/ui/clay/clay_container.dart';
 import 'package:trancend/src/ui/glass/glass_icon_button.dart';
 
 class ClayBottomSheet extends StatelessWidget {
@@ -78,6 +78,7 @@ class ClayBottomSheet extends StatelessWidget {
         borderRadius: const BorderRadius.all(Radius.circular(20)),
         child: ClayContainer(
           color: Colors.white,
+          parentColor: Colors.white,
           borderRadius: 20,
           depth: 50,
           spread: 5,

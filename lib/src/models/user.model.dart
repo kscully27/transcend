@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:recase/recase.dart';
 import 'package:trancend/src/constants/enums.dart';
 import 'package:trancend/src/models/breath.model.dart';
 import 'package:trancend/src/shared/icons.dart';
-import 'package:recase/recase.dart';
-import 'package:trancend/src/constants/background_icons.dart';
+
 part 'user.model.freezed.dart';
 part 'user.model.g.dart';
 
