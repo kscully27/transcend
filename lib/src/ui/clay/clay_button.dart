@@ -44,7 +44,7 @@ class ClayButton extends StatelessWidget {
     required this.parentColor,
     this.textColor = Colors.white,
     this.borderColor,
-    this.borderWidth = 0,
+    this.borderWidth = 0.8,
     this.padding,
     this.margin = const EdgeInsets.all(0),
     this.borderRadius = 30,
@@ -149,6 +149,7 @@ class ClayButton extends StatelessWidget {
             emboss: emboss,
             child: Container(
               padding: padding ?? _defaultPadding,
+              width: width,
               height: height,
               alignment: Alignment.center,
               decoration: variant == ClayButtonVariant.outlined
@@ -162,7 +163,7 @@ class ClayButton extends StatelessWidget {
                   : null,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   if (icon != null) ...[

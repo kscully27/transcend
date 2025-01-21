@@ -337,12 +337,12 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
         widget.parentColor ?? Theme.of(context).colorScheme.surface;
     var shadowList = <BoxShadow>[
       BoxShadow(
-        color: _adjustColor(parentColorValue, 0.1),
+        color: parentColorValue.withOpacity(0.3),
         offset: Offset(-widget.spread.toDouble(), -widget.spread.toDouble()),
         blurRadius: widget.spread.toDouble(),
       ),
       BoxShadow(
-        color: _adjustColor(parentColorValue, -0.1),
+        color: parentColorValue.withOpacity(0.3),
         offset: Offset(widget.spread.toDouble(), widget.spread.toDouble()),
         blurRadius: widget.spread.toDouble(),
       ),
@@ -372,13 +372,10 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
             child: ClipShadowPath(
               clipper: clipper,
               shadow: shadowList,
-              child: ClayContainer(
+              child: Material(
                 color: bgColor,
-                parentColor: widget.parentColor ?? Theme.of(context).colorScheme.surface,
-                depth: widget.depth.toDouble(),
-                spread: widget.spread.toDouble(),
-                curveType: CurveType.convex,
-                borderRadius: 30,
+                elevation: widget.depth.toDouble(),
+                shadowColor: Colors.black.withOpacity(0.3),
                 child: Padding(
                   padding: EdgeInsets.only(
                     top: 12,
