@@ -22,7 +22,7 @@ class ClayContainer extends StatelessWidget {
     required this.parentColor,
     this.depth = 20,
     this.spread = 2,
-    this.curveType = CurveType.convex,
+    this.curveType = CurveType.none,
     this.borderRadius = 0,
     this.emboss = false,
     this.customBorderRadius,

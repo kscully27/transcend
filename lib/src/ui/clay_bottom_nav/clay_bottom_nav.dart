@@ -349,34 +349,47 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
     ];
 
     return SizedBox(
-      height: 96,
+      height: 140,
       child: Stack(
         children: [
-          CustomPaint(
-            painter: painter,
-            child: Container(),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: CustomPaint(
+              painter: painter,
+              child: SizedBox(
+                height: 100,
+                width: MediaQuery.of(context).size.width,
+              ),
+            ),
           ),
-          ClipShadowPath(
-            clipper: clipper,
-            shadow: shadowList,
-            // shadow: Shadow(
-            //   color: Colors.white.withOpacity(0.6),
-            //   offset: Offset(-5, -5),
-            //   blurRadius: 16,
-            //   // spreadRadius: 1,
-            // ),
-            child: ClayContainer(
-              color: bgColor,
-              parentColor: widget.parentColor ?? Theme.of(context).colorScheme.surface,
-              depth: widget.depth.toDouble(),
-              spread: widget.spread.toDouble(),
-              curveType: CurveType.convex,
-              borderRadius: 30,
-              child: Material(
-                color: Colors.transparent,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: items,
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: ClipShadowPath(
+              clipper: clipper,
+              shadow: shadowList,
+              child: ClayContainer(
+                color: bgColor,
+                parentColor: widget.parentColor ?? Theme.of(context).colorScheme.surface,
+                depth: widget.depth.toDouble(),
+                spread: widget.spread.toDouble(),
+                curveType: CurveType.convex,
+                borderRadius: 30,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    top: 12,
+                    bottom: MediaQuery.of(context).padding.bottom + 24
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: items,
+                    ),
+                  ),
                 ),
               ),
             ),

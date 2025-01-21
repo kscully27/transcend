@@ -207,13 +207,14 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                     children: [
                       ClayText(
                         widget.tranceMethod.name,
-                        emboss: false,
+                        // emboss: false,
+                        style: theme.textTheme.titleLarge,
                         size: 32,
-                        parentColor: theme.colorScheme.surface,
+                        parentColor: theme.colorScheme.surfaceTint,
                         textColor: theme.colorScheme.onSurface.withOpacity(0.7),
                         color: theme.colorScheme.surface,
                         spread: 2,
-                        style: const TextStyle(fontWeight: FontWeight.w500),
+                        // style: const TextStyle(fontWeight: FontWeight.w500),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -351,12 +352,13 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                       // Settings button
                       ClayContainer(
                         color: theme.colorScheme.surface,
-                        parentColor: theme.colorScheme.surface,
+                        parentColor: theme.colorScheme.surfaceTint,
                         height: 50,
                         borderRadius: 25,
-                        width: 200,
-                        depth: 20,
-                        spread: 2,
+                        width: 240,
+                        depth: 3,
+                        spread: 3,
+                        curveType: CurveType.none,
                         child: GestureDetector(
                           onTap: () => _showTranceSettings(context),
                           child: Padding(

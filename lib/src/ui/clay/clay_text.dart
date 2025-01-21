@@ -1,51 +1,119 @@
+
 import 'package:flutter/material.dart';
-import 'package:trancend/src/ui/clay/clay_container.dart';
+import 'package:trancend/src/ui/clay/extensions/clay_extensions.dart';
+import 'package:trancend/src/ui/clay/utils/clay_utils.dart';
 
-class ClayText extends StatelessWidget {
-  final String text;
-  final Color color;
-  final Color parentColor;
-  final Color? textColor;
-  final double size;
-  final bool emboss;
-  final double depth;
-  final double spread;
-  final TextStyle? style;
-
+class ClayText extends StatefulWidget {
   const ClayText(
     this.text, {
     super.key,
-    required this.color,
-    required this.parentColor,
+    this.parentColor,
     this.textColor,
-    this.size = 16,
-    this.emboss = false,
-    this.depth = 20,
-    this.spread = 2,
+    this.color,
+    this.spread,
+    this.depth,
+    this.size,
     this.style,
+    this.emboss,
   });
+
+  final String text;
+  final Color? color;
+  final Color? parentColor;
+  final Color? textColor;
+  final TextStyle? style;
+  final double? spread;
+  final int? depth;
+  final double? size;
+  final bool? emboss;
+
+  @override
+  State<ClayText> createState() => _ClayTextState();
+}
+
+class _ClayTextState extends State<ClayText> {
+  late Color color;
+  late Color? parentColor;
+  late Color? textColor;
+  late TextStyle style;
+  late double? spread;
+  late int depth;
+  late double size;
+  late bool emboss;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final textTheme = context.clayTheme?.textTheme;
+    color = widget.color ?? textTheme?.color ?? const Color(0xFFf0f0f0);
+    parentColor = widget.parentColor ?? textTheme?.parentColor;
+    textColor = widget.textColor ?? textTheme?.textColor;
+    style = widget.style ?? textTheme?.style ?? const TextStyle();
+    spread = widget.spread ?? textTheme?.spread;
+    depth = widget.depth ?? textTheme?.depth ?? 40;
+    size = widget.size ?? textTheme?.size ?? 14;
+    emboss = widget.emboss ?? textTheme?.emboss ?? false;
+  }
+
+  @override
+  void didUpdateWidget(covariant ClayText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final textTheme = context.clayTheme?.textTheme;
+    color = widget.color ?? textTheme?.color ?? const Color(0xFFf0f0f0);
+    parentColor = widget.parentColor ?? textTheme?.parentColor;
+    textColor = widget.textColor ?? textTheme?.textColor;
+    style = widget.style ?? textTheme?.style ?? const TextStyle();
+    spread = widget.spread ?? textTheme?.spread;
+    depth = widget.depth ?? textTheme?.depth ?? 40;
+    size = widget.size ?? textTheme?.size ?? 14;
+    emboss = widget.emboss ?? textTheme?.emboss ?? false;
+  }
+
+  double? _getSpread(double base) {
+    final calculated = (base / 10).floor().toDouble();
+    return calculated == 0 ? 1 : calculated;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final effectiveStyle = (style ?? const TextStyle()).copyWith(
-      fontSize: size,
-      color: textColor ?? (emboss ? Colors.black54 : Colors.white),
-    );
+    var colorValue = color;
+    final outerColorValue = parentColor ?? colorValue;
+    var fontSizeValue = size;
+    fontSizeValue = style.fontSize ?? fontSizeValue;
+    final spreadValue = spread ?? _getSpread(fontSizeValue)!;
 
-    return ClayContainer(
-      color: color,
-      parentColor: parentColor,
-      depth: depth,
-      spread: spread,
-      curveType: emboss ? CurveType.concave : CurveType.convex,
-      emboss: emboss,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Text(
-          text,
-          style: effectiveStyle,
+    var shadowList = <Shadow>[
+      Shadow(
+        color: ClayUtils.getAdjustColor(
+          outerColorValue,
+          emboss ? 0 - depth : depth,
         ),
+        offset: Offset(0 - spreadValue / 2, 0 - spreadValue / 2),
+        blurRadius: spreadValue,
+      ),
+      Shadow(
+        color: ClayUtils.getAdjustColor(
+          outerColorValue,
+          emboss ? depth : 0 - depth,
+        ),
+        offset: Offset(spreadValue / 2, spreadValue / 2),
+        blurRadius: spreadValue,
+      ),
+    ];
+
+    if (emboss) shadowList = shadowList.reversed.toList();
+    if (emboss) {
+      colorValue = ClayUtils.getAdjustColor(colorValue, 0 - depth);
+    }
+    if (textColor != null) colorValue = textColor!;
+
+    return Text(
+      widget.text,
+      style: style.copyWith(
+        color: colorValue,
+        shadows: shadowList,
+        fontSize: fontSizeValue,
       ),
     );
   }
-} 
+}

@@ -1,6 +1,6 @@
 part of 'clay_bottom_nav.dart';
 
-/// Clip background of [ClayBottomNavNSheet] when sheet is disabled
+/// Clipper for [ClayBottomNavNSheet] when sheet is disabled
 class _BottomClipperPlain extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -9,16 +9,15 @@ class _BottomClipperPlain extends CustomClipper<Path> {
     path.quadraticBezierTo(size.width / 2, 0, size.width, 35);
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
+    path.close();
     return path;
   }
 
   @override
-  bool shouldReclip(covariant _BottomClipperPlain oldClipper) {
-    return false;
-  }
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
-/// Clip background of [ClayBottomNavNSheet] when sheet is enabled
+/// Clipper for [ClayBottomNavNSheet] when sheet is enabled
 class _BottomClipper extends CustomClipper<Path> {
   final double value;
 
@@ -39,11 +38,10 @@ class _BottomClipper extends CustomClipper<Path> {
         (size.width / 1.5) + 36, value * 3, size.width, (value * 3) + 5);
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
+    path.close();
     return path;
   }
 
   @override
-  bool shouldReclip(covariant _BottomClipper oldClipper) {
-    return oldClipper.value != value;
-  }
+  bool shouldReclip(CustomClipper<Path> oldClipper) => oldClipper is! _BottomClipper;
 }

@@ -131,8 +131,9 @@ class AppTheme {
         headlineLarge: TextStyle(color: _getRequiredColor(themeMap, 'onSurface')),
         headlineMedium: TextStyle(color: _getRequiredColor(themeMap, 'onSurface')),
         headlineSmall: TextStyle(color: _getRequiredColor(themeMap, 'onSurface')),
-        titleLarge: TextStyle(color: _getRequiredColor(themeMap, 'onSurface')),
-        titleMedium: TextStyle(color: _getRequiredColor(themeMap, 'onSurface')),
+        // titleLarge: TextStyle(color: _getRequiredColor(themeMap, 'onSurface')),
+        titleLarge: TextStyle(color: _getRequiredColor(themeMap, 'onSurface'), fontFamily: 'TitilliumWebLight', fontWeight: FontWeight.w900, fontSize: 32, letterSpacing: 0.2, height: 1.2,),
+        titleMedium: TextStyle(color: _getRequiredColor(themeMap, 'onSurface'), fontFamily: 'TitilliumWebLight', fontWeight: FontWeight.w700, fontSize: 24, letterSpacing: 0.2, height: 1.2,),
         titleSmall: TextStyle(color: _getRequiredColor(themeMap, 'onSurface')),
         bodyLarge: TextStyle(color: _getRequiredColor(themeMap, 'onSurface')),
         bodyMedium: TextStyle(color: _getRequiredColor(themeMap, 'onSurface')),
@@ -174,7 +175,8 @@ class AppTheme {
       primaryColor: _getRequiredColor(colors, 'primary'),
       primaryColorLight: _getRequiredColor(colors, 'primaryContainer'),
       primaryColorDark: _getRequiredColor(colors, 'onPrimary'),
-      
+      fontFamily: 'TitilliumWeb',
+
       // Color Scheme
       colorScheme: ColorScheme.dark(
         primary: _getRequiredColor(colors, 'primary'),

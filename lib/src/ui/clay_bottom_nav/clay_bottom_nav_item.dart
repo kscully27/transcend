@@ -84,7 +84,7 @@ class _ClayBottomNavItem extends StatelessWidget {
             size: selected ? 24 : 21,
           ),
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 2),
         // AnimatedDefaultTextStyle(
         //   duration: const Duration(milliseconds: 150),
         //   style: (theme.textTheme.bodyMedium ?? const TextStyle()).copyWith(

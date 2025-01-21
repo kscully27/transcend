@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -140,7 +141,7 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text(
+                  AutoSizeText(
                     user.email,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
@@ -900,12 +901,12 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                   ),
                   const SizedBox(height: 24),
                   ClayContainer(
-                    color: theme.colorScheme.errorContainer,
-                    parentColor: theme.colorScheme.errorContainer,
+                    color: theme.colorScheme.surfaceTint,
+                    parentColor: theme.colorScheme.surfaceTint,
                     borderRadius: 12,
                     width: double.infinity,
                     height: 60,
-                    depth: 20,
+                    depth: 10,
                     spread: 2,
                     child: Material(
                       color: Colors.transparent,

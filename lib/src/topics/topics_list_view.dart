@@ -32,27 +32,20 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
   @override
   void initState() {
     super.initState();
-    debugPrint('🔍 TopicsListView: Initializing...');
     _pageController = PageController(initialPage: 0);
     
     // Initialize both providers
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      debugPrint('🔍 TopicsListView: Post frame callback - initializing providers');
       ref.read(userProvider);
-      final topics = ref.read(topicsProvider);
-      debugPrint('🔍 TopicsListView: Topics provider state: $topics');
+      ref.read(topicsProvider);
     });
   }
 
   Widget _buildTopicsList() {
-    debugPrint('🔍 TopicsListView: Building topics list');
     final topicsAsync = ref.watch(topicsProvider);
-    debugPrint('🔍 TopicsListView: Topics state: $topicsAsync');
 
     return topicsAsync.when(
       data: (topics) {
-        debugPrint('🔍 TopicsListView: Got ${topics.length} topics');
-        final categories = ref.read(topicsProvider.notifier).getCategories();
         final selectedCategory = ref.watch(topicsProvider.notifier).selectedCategory;
 
         final filteredTopics = topics
