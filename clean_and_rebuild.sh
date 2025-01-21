@@ -18,17 +18,26 @@ xcodebuild clean
 # Delete derived data
 rm -rf ~/Library/Developer/Xcode/DerivedData
 
-# Run pod install
-pod install
-
 # Navigate back to the project root
 cd ..
+
+# Ensure proper permissions for the current user
+sudo chown -R $(whoami) .
 
 # Run flutter clean
 flutter clean
 
 # Run flutter pub get
 flutter pub get
+
+# Navigate to the iOS directory
+cd ios
+
+# Run pod install
+pod install
+
+# Navigate back to the project root
+cd ..
 
 # Run the Flutter app with the production environment
 flutter run -t lib/main_prod.dart
