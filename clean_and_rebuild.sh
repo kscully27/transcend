@@ -15,8 +15,23 @@ pod deintegrate
 # Clean the Xcode project
 xcodebuild clean
 
+# Delete the build directory if it exists
+if [ -d "build" ]; then
+    xattr -w com.apple.xcode.CreatedByBuildSystem true build
+    rm -rf build
+fi
+
 # Delete derived data
 rm -rf ~/Library/Developer/Xcode/DerivedData
+
+# Clean the Xcode project again
+xcodebuild clean
+
+# Delete the build directory again if it exists
+if [ -d "build" ]; then
+    xattr -w com.apple.xcode.CreatedByBuildSystem true build
+    rm -rf build
+fi
 
 # Navigate back to the project root
 cd ..
