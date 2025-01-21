@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/locator.dart';
-import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/providers/topics_provider.dart';
 import 'package:trancend/src/providers/user_topics_provider.dart';
 import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/topics/candy_topic_item.dart';
-import 'package:trancend/src/topics/glass_topic_item.dart';
-import 'package:trancend/src/ui/glass/glass_container.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
+import 'package:trancend/src/ui/glass/glass_container.dart';
 
 double firstDepth = 15;
 double secondDepth = 10;
@@ -31,86 +28,97 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
   final ScrollController _scrollController = ScrollController();
   final ScrollController _categoriesScrollController = ScrollController();
   late PageController _pageController;
-  final bool _useGlassItems = false;
 
   @override
   void initState() {
     super.initState();
+    debugPrint('🔍 TopicsListView: Initializing...');
     _pageController = PageController(initialPage: 0);
-    ref.read(userProvider);
+    
+    // Initialize both providers
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint('🔍 TopicsListView: Post frame callback - initializing providers');
+      ref.read(userProvider);
+      final topics = ref.read(topicsProvider);
+      debugPrint('🔍 TopicsListView: Topics provider state: $topics');
+    });
   }
 
   Widget _buildTopicsList() {
+    debugPrint('🔍 TopicsListView: Building topics list');
     final topicsAsync = ref.watch(topicsProvider);
-    final categories = ref.read(topicsProvider.notifier).getCategories();
+    debugPrint('🔍 TopicsListView: Topics state: $topicsAsync');
 
-    return PageView.builder(
-      controller: _pageController,
-      onPageChanged: (index) {
-        ref.read(topicsProvider.notifier).setCategory(categories[index]);
-        _scrollToCategory(index);
-      },
-      itemCount: categories.length,
-      itemBuilder: (context, pageIndex) {
-        return topicsAsync.when(
-          data: (topics) {
-            final category = categories[pageIndex];
-            final filteredTopics = topics
-                .where((t) => category == 'All' || t.group == category)
-                .toList();
+    return topicsAsync.when(
+      data: (topics) {
+        debugPrint('🔍 TopicsListView: Got ${topics.length} topics');
+        final categories = ref.read(topicsProvider.notifier).getCategories();
+        final selectedCategory = ref.watch(topicsProvider.notifier).selectedCategory;
 
-            return ListView.builder(
-              key: ValueKey<String>(category),
-              controller: _scrollController,
-              padding: const EdgeInsets.only(
-                left: 8.0,
-                right: 8.0,
-                top: 200.0,
-                bottom: 96.0,
-              ),
-              itemCount: filteredTopics.length,
-              itemBuilder: (context, index) {
-                final topic = filteredTopics[index];
-                final userTopicsAsync = ref.watch(userTopicsProvider);
+        final filteredTopics = topics
+            .where((t) => selectedCategory == 'All' || t.group == selectedCategory)
+            .toList();
 
-                return userTopicsAsync.when(
-                  data: (userTopics) {
-                    final favoriteMap = {
-                      for (var ut in userTopics) ut.topicId: ut.isFavorite
-                    };
+        if (filteredTopics.isEmpty) {
+          return Center(
+            child: Text(
+              'No topics found for $selectedCategory',
+              style: TextStyle(color: Colors.white70),
+            ),
+          );
+        }
 
-                    return _useGlassItems
-                        ? GlassTopicItem(
-                            index: index,
-                            shouldAnimate: false,
-                            topic: topic,
-                            isFavorite: favoriteMap[topic.id] ?? false,
-                            onFavoritePressed: () => _toggleFavorite(topic.id),
-                          )
-                        : CandyTopicItem(
-                            topic: topic,
-                            isFavorite: favoriteMap[topic.id] ?? false,
-                            onFavoritePressed: () => _toggleFavorite(topic.id),
-                          );
-                  },
-                  loading: () => const CircularProgressIndicator(),
-                  error: (error, stack) => Text('Error: $error'),
-                );
+        return ListView.builder(
+          key: ValueKey<String>(selectedCategory),
+          controller: _scrollController,
+          padding: const EdgeInsets.only(
+            left: 8.0,
+            right: 8.0,
+            top: 200.0,
+            bottom: 96.0,
+          ),
+          itemCount: filteredTopics.length,
+          itemBuilder: (context, index) {
+            final topic = filteredTopics[index];
+            final userTopicsAsync = ref.watch(userTopicsProvider);
+
+            return userTopicsAsync.when(
+              data: (userTopics) {
+                final favoriteMap = {
+                  for (var ut in userTopics) ut.topicId: ut.isFavorite
+                };
+
+                return CandyTopicItem(
+                        topic: topic,
+                        isFavorite: favoriteMap[topic.id] ?? false,
+                        onFavoritePressed: () => _toggleFavorite(topic.id),
+                      );
               },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(
+                child: Text(
+                  'Error loading user topics: $error',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(child: Text('Error: $error')),
         );
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(
+        child: Text(
+          'Error loading topics: $error',
+          style: TextStyle(color: Colors.white70),
+        ),
+      ),
     );
   }
 
   void _toggleFavorite(String topicId) async {
     final user = ref.read(userProvider).value;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please sign in to favorite topics')));
+      _showLoginPrompt();
       return;
     }
 
@@ -121,8 +129,63 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error updating favorite: ${e.toString()}')));
-      print('Error toggling favorite: $e');
+      debugPrint('Error toggling favorite: $e');
     }
+  }
+
+  void _showLoginPrompt() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => GlassContainer(
+        backgroundColor: Theme.of(context).colorScheme.surfaceTint.withOpacity(0.5),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Sign in Required',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'You need to sign in to save your favorite topics and track your progress.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white70,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  GlassButton(
+                    text: 'Not Now',
+                    onPressed: () => Navigator.pop(context),
+                    glassColor: Colors.white12,
+                    textColor: Colors.white70,
+                  ),
+                  GlassButton(
+                    text: 'Sign In',
+                    onPressed: () {
+                      Navigator.pop(context);
+                      // TODO: Navigate to sign in page
+                      // Navigator.pushNamed(context, '/signin');
+                    },
+                    glassColor: Colors.white24,
+                    textColor: Colors.white,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _scrollToCategory(int index) {

@@ -47,7 +47,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             child: _index == 0
                 ? data.topics.when(
                     data: (topics) => TopicsListView(),
-                    loading: () => const Center(child: CircularProgressIndicator()),
+                    loading: () => Material(color: theme.colorScheme.onSurface, child: const Center(child: CircularProgressIndicator())),
                     error: (error, stack) => Center(child: Text('Error loading topics: $error')),
                   )
                 : const SettingsPage(),

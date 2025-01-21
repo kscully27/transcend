@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/settings.model.dart';
@@ -16,64 +17,97 @@ class AppState extends _$AppState {
 
   @override
   Stream<AppStateData> build() async* {
-    final authService = locator<AuthenticationService>();
-    final user = ref.watch(userProvider);
-    if (user.value == null) {
-      await authService.signinAnonymously();
-      yield AppStateData(
-        isInitialized: true,
-        user: null,
-        settings: null,
-        userTopics: [],
-        topics: const AsyncValue.loading(),
-      );
+    debugPrint('🔍 AppState: build() called');
+    final user = ref.read(userProvider).value;
+    debugPrint('🔍 AppState: userProvider read');
+
+    if (user == null) {
+      debugPrint('🔍 AppState: user is null, loading topics only');
+      try {
+        final topics = await _firestoreService.getTopics();
+        debugPrint('🔍 AppState: fetched topics for unauthenticated user');
+        yield AppStateData(
+          isInitialized: true,
+          user: null,
+          settings: null,
+          userTopics: [],
+          topics: AsyncValue.data(topics),
+        );
+      } catch (e, st) {
+        debugPrint('🔍 AppState: error fetching topics for unauthenticated user: $e');
+        yield AppStateData(
+          isInitialized: true,
+          user: null,
+          settings: null,
+          userTopics: [],
+          topics: AsyncValue.error(e, st),
+        );
+      }
       return;
     }
 
+    debugPrint('🔍 AppState: user is authenticated, fetching all data');
     try {
-      final settings = await _firestoreService.getSettings(user.value!.uid);
+      final settings = await _firestoreService.getSettings(user.uid);
+      debugPrint('🔍 AppState: fetched settings');
       try {
+        debugPrint('🔍 AppState: fetching topics');
         final topics = await _firestoreService.getTopics();
-        final userTopics = await _firestoreService.getUserTopics(user.value!.uid);
+        debugPrint('🔍 AppState: fetched topics');
+        final userTopics = await _firestoreService.getUserTopics(user.uid);
+        debugPrint('🔍 AppState: fetched user topics');
         yield AppStateData(
           isInitialized: true,
-          user: user.value,
+          user: user,
           settings: settings,
           userTopics: userTopics,
           topics: AsyncValue.data(topics),
         );
       } catch (e, st) {
+        debugPrint('🔍 AppState: error fetching topics: $e');
         yield AppStateData(
           isInitialized: true,
-          user: user.value,
+          user: user,
           settings: settings,
           userTopics: [],
           topics: AsyncValue.error(e, st),
         );
       }
     } catch (e) {
-      // If user doesn't exist in Firestore yet, create them
-      final newUser = user_model.User(
-        uid: user.value!.uid,
-        email: user.value!.email,
-        displayName: user.value!.displayName,
-        photoUrl: user.value!.photoUrl,
-        isAnonymous: true,
+      debugPrint('🔍 AppState: error fetching settings: $e');
+      // Create default settings for new user
+      final settings = UserSettings(
+        uid: user.uid,
+        statsStartDate: DateTime.now().millisecondsSinceEpoch,
+        statsEndDate: DateTime.now().add(const Duration(days: 7)).millisecondsSinceEpoch,
+        delaySeconds: 3,
+        maxHours: 1,
+        useCellularData: false,
+        usesDeepening: true,
+        usesOwnDeepening: false,
       );
-      await _firestoreService.createUser(newUser);
+      debugPrint('🔍 AppState: created default settings');
 
-      // Get the initial state after creating user
-      final settings = await _firestoreService.getSettings(user.value!.uid);
-      final topics = await _firestoreService.getTopics();
-      final userTopics = await _firestoreService.getUserTopics(user.value!.uid);
-      
-      yield AppStateData(
-        isInitialized: true,
-        user: newUser,
-        settings: settings,
-        userTopics: userTopics,
-        topics: AsyncValue.data(topics),
-      );
+      try {
+        final topics = await _firestoreService.getTopics();
+        debugPrint('🔍 AppState: fetched topics for new user');
+        yield AppStateData(
+          isInitialized: true,
+          user: user,
+          settings: settings,
+          userTopics: [],
+          topics: AsyncValue.data(topics),
+        );
+      } catch (e, st) {
+        debugPrint('🔍 AppState: error fetching topics for new user: $e');
+        yield AppStateData(
+          isInitialized: true,
+          user: user,
+          settings: settings,
+          userTopics: [],
+          topics: AsyncValue.error(e, st),
+        );
+      }
     }
   }
 

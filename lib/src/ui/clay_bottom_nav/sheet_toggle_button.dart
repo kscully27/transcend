@@ -34,7 +34,6 @@ class _SheetToggleButton extends StatelessWidget {
             height: 56,
             color: bgColor,
             parentColor: parentColor ?? theme.colorScheme.surface,
-            surfaceColor: bgColor,
             spread: 8,
             depth: 16,
             borderRadius: 50,

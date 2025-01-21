@@ -1,5 +1,5 @@
-import 'package:clay_containers/clay_containers.dart';
 import 'package:flutter/material.dart';
+import 'package:trancend/src/ui/clay/clay_container.dart';
 
 class ClayBottomSheet2 {
   static Future<T?> show<T>({
@@ -40,12 +40,10 @@ class ClayBottomSheet2 {
                 child: ClayContainer(
                   color: color,
                   parentColor: parentColor,
-                  depth: emboss ? -depth : depth,
+                  depth: (emboss ? -depth : depth).toDouble(),
                   spread: spread,
                   curveType: curveType,
-                  surfaceColor: curveType == CurveType.none ? color : null,
                   borderRadius: 0,
-                  emboss: emboss,
                   customBorderRadius: BorderRadius.vertical(
                     top: Radius.circular(borderRadius),
                   ),

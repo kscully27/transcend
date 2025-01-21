@@ -12,6 +12,7 @@ import 'package:trancend/src/models/track.model.dart';
 import 'package:trancend/src/models/trance.model.dart';
 import 'package:trancend/src/models/user.model.dart';
 import 'package:trancend/src/models/user_topic.model.dart';
+import 'package:flutter/foundation.dart';
 
 abstract class FirestoreService {
   late FirebaseFirestore db;
@@ -135,15 +136,26 @@ class FirestoreServiceAdapter extends FirestoreService {
 
   @override
   Future<List<Topic>> getTopics() async {
-    var topicsData = await db
-        .collection('topics')
-        .where('totalTracks', isGreaterThan: 8)
-        .get();
-    print("topicsData $topicsData");
     try {
-      return topicsData.docs.map((doc) {
+      debugPrint('🔍 FirestoreService: Checking Firebase initialization...');
+      
+      if (FirebaseFirestore.instance == null) {
+        throw Exception('Firebase is not initialized');
+      }
+      
+      debugPrint('🔍 FirestoreService: Firebase is initialized, fetching topics...');
+      
+      // First try without the filter to see if we have any topics at all
+      var topicsData = await db.collection('topics').get();
+      debugPrint('🔍 FirestoreService: Found ${topicsData.docs.length} total topics');
+      
+      if (topicsData.docs.isEmpty) {
+        debugPrint('❌ FirestoreService: No topics found in the collection');
+        return [];
+      }
+
+      final topics = topicsData.docs.map((doc) {
         final data = doc.data();
-        print("data $data");
 
         // Handle numeric conversions safely
         double totalDuration = 0.0;
@@ -151,8 +163,7 @@ class FirestoreServiceAdapter extends FirestoreService {
           if (data['totalDuration'] is num) {
             totalDuration = (data['totalDuration'] as num).toDouble();
           } else if (data['totalDuration'] is String) {
-            totalDuration =
-                double.tryParse(data['totalDuration'] as String) ?? 0.0;
+            totalDuration = double.tryParse(data['totalDuration'] as String) ?? 0.0;
           }
         }
 
@@ -193,9 +204,13 @@ class FirestoreServiceAdapter extends FirestoreService {
           'isPriority': data['isPriority'] ?? false,
         });
       }).toList();
-    } catch (e) {
-      print("ERROR--->>$e");
-      return [];
+
+      debugPrint('🔍 FirestoreService: Successfully processed ${topics.length} topics');
+      return topics;
+    } catch (e, stackTrace) {
+      debugPrint('❌ FirestoreService Error: $e');
+      debugPrint('Stack trace: $stackTrace');
+      rethrow;
     }
   }
 

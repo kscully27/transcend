@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clay_containers/clay_containers.dart';
+import 'package:trancend/src/ui/clay/clay_container.dart';
 
 class ClaySlider extends StatelessWidget {
   final double value;
@@ -34,6 +34,7 @@ class ClaySlider extends StatelessWidget {
               // Track
               ClayContainer(
                 color: parentColor,
+                parentColor: parentColor,
                 height: 8,
                 width: double.infinity,
                 borderRadius: 4,
@@ -59,6 +60,7 @@ class ClaySlider extends StatelessWidget {
                   left: thumbPosition - 12,
                   child: ClayContainer(
                     color: parentColor,
+                    parentColor: parentColor,
                     height: 24,
                     width: 24,
                     borderRadius: 12,

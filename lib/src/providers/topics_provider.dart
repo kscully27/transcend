@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/topic.model.dart';
@@ -12,9 +13,28 @@ class Topics extends _$Topics {
   
   @override
   Future<List<Topic>> build() async {
-    final firestoreService = locator<FirestoreService>();
-    _allTopics = await firestoreService.getTopics();
-    return getFilteredTopics();
+    try {
+      debugPrint('🔍 Topics Provider: Starting build...');
+      
+      if (!locator.isRegistered<FirestoreService>()) {
+        throw Exception('FirestoreService not registered in locator');
+      }
+      
+      final firestoreService = locator<FirestoreService>();
+      debugPrint('🔍 Topics Provider: Got FirestoreService instance');
+      
+      debugPrint('🔍 Topics Provider: Fetching topics from Firestore...');
+      _allTopics = await firestoreService.getTopics();
+      debugPrint('🔍 Topics Provider: Fetched ${_allTopics.length} topics');
+      
+      final filtered = getFilteredTopics();
+      debugPrint('🔍 Topics Provider: Returning ${filtered.length} filtered topics');
+      return filtered;
+    } catch (e, stackTrace) {
+      debugPrint('❌ Topics Provider Error: $e');
+      debugPrint('Stack trace: $stackTrace');
+      rethrow;
+    }
   }
 
   List<String> getCategories() {

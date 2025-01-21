@@ -1,16 +1,19 @@
 library;
 
 import 'dart:math' show max, pi, sqrt;
-
-import 'package:clay_containers/clay_containers.dart';
-import 'package:clay_containers/utils/clay_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:trancend/src/ui/clay/clay_container.dart';
 import 'package:trancend/src/ui/glass/glass_bottom_sheet.dart';
 
 part 'clay_bottom_nav_item.dart';
 part 'bottom_clipper.dart';
 part 'bottom_painter.dart';
 part 'sheet_toggle_button.dart';
+
+Color _adjustColor(Color color, double amount) {
+  final hsl = HSLColor.fromColor(color);
+  return hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0)).toColor();
+}
 
 class ClipShadowPath extends StatelessWidget {
   final List<BoxShadow> shadow;
@@ -334,19 +337,12 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
         widget.parentColor ?? Theme.of(context).colorScheme.surface;
     var shadowList = <BoxShadow>[
       BoxShadow(
-        color: ClayUtils.getAdjustColor(
-          parentColorValue,
-          widget.emboss ? 0 - widget.depth : widget.depth,
-        ).withOpacity(0.3),
-        offset:
-            Offset(0 - widget.spread.toDouble(), 0 - widget.spread.toDouble()),
+        color: _adjustColor(parentColorValue, 0.1),
+        offset: Offset(-widget.spread.toDouble(), -widget.spread.toDouble()),
         blurRadius: widget.spread.toDouble(),
       ),
       BoxShadow(
-        color: ClayUtils.getAdjustColor(
-          parentColorValue,
-          widget.emboss ? widget.depth : 0 - widget.depth,
-        ).withOpacity(0.3),
+        color: _adjustColor(parentColorValue, -0.1),
         offset: Offset(widget.spread.toDouble(), widget.spread.toDouble()),
         blurRadius: widget.spread.toDouble(),
       ),
@@ -369,17 +365,13 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
             //   blurRadius: 16,
             //   // spreadRadius: 1,
             // ),
-            child: ClayAnimatedContainer(
+            child: ClayContainer(
               color: bgColor,
-              parentColor: bgColor,
-              spread: 20,
-              depth: 20,
-              borderRadius: 0,
-              width: double.infinity,
-              duration: const Duration(milliseconds: 300),
-              height: 96,
-              surfaceColor: bgColor,
-              curveType: CurveType.concave,
+              parentColor: widget.parentColor ?? Theme.of(context).colorScheme.surface,
+              depth: widget.depth.toDouble(),
+              spread: widget.spread.toDouble(),
+              curveType: CurveType.convex,
+              borderRadius: 30,
               child: Material(
                 color: Colors.transparent,
                 child: Row(
