@@ -1,4 +1,4 @@
-library storage_service;
+library;
 
 import 'dart:async';
 import 'dart:io' as io;

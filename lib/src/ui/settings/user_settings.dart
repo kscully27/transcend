@@ -89,11 +89,9 @@ class _UserSettingsState extends ConsumerState<UserSettings> {
                                   fileName: value.path,
                                 );
                                 
-                                if (result.url != null) {
-                                  await _backgroundAudioService.play(result.url!);
-                                  setState(() => _isPlaying = true);
-                                }
-
+                                await _backgroundAudioService.play(result.url!);
+                                setState(() => _isPlaying = true);
+                              
                                 // Update user preference
                                 await _firestoreService.updateUser(
                                   user.copyWith(backgroundSound: value),
@@ -112,11 +110,9 @@ class _UserSettingsState extends ConsumerState<UserSettings> {
                                 fileName: sound.path,
                               );
                               
-                              if (result.url != null) {
-                                await _backgroundAudioService.play(result.url!);
-                                setState(() => _isPlaying = true);
-                              }
-
+                              await _backgroundAudioService.play(result.url!);
+                              setState(() => _isPlaying = true);
+                            
                               // Update user preference
                               await _firestoreService.updateUser(
                                 user.copyWith(backgroundSound: sound),

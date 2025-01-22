@@ -197,7 +197,11 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
     
     final buttonWidth = 120.0;  // Approximate width of each button
     final padding = 4.0;  // Left margin of each button
-    final targetScroll = (buttonWidth + padding) * index;
+    final screenPadding = 12.0; // The horizontal padding of the ListView
+    
+    // Calculate the target scroll position by multiplying the index by the button width and padding
+    // Then subtract the screen padding to align with the left edge
+    final targetScroll = (buttonWidth + padding) * index - screenPadding;
 
     _categoriesScrollController.animateTo(
       targetScroll.clamp(0.0, _categoriesScrollController.position.maxScrollExtent),

@@ -163,10 +163,10 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
 
         // Get durations from metadata
         await _audioPlayer.setUrl(_inductionTrack!.url!);
-        _inductionDuration = (await _audioPlayer.duration)?.inMilliseconds ?? 0;
+        _inductionDuration = (_audioPlayer.duration)?.inMilliseconds ?? 0;
 
         await _audioPlayer.setUrl(_awakeningTrack!.url!);
-        _awakeningDuration = (await _audioPlayer.duration)?.inMilliseconds ?? 0;
+        _awakeningDuration = (_audioPlayer.duration)?.inMilliseconds ?? 0;
 
         // Calculate available time for suggestions
         final totalSessionMs = getTranceTime() * 60 * 1000;

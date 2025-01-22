@@ -1016,7 +1016,7 @@ class _BackgroundSoundBottomSheetState
                           );
 
                           if (mounted && result.url != null) {
-                            await _backgroundAudioService.play(result.url!);
+                            await _backgroundAudioService.play(result.url);
                             widget.onPlayStateChanged(true);
                           }
                         } catch (e) {

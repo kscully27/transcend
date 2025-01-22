@@ -189,10 +189,6 @@ class _ColorSettingsScreenState extends State<ColorSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (modifiedColors == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Color Settings'),

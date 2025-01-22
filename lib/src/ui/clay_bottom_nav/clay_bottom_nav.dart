@@ -3,7 +3,6 @@ library;
 import 'dart:math' show max, pi, sqrt;
 import 'package:flutter/material.dart';
 import 'package:trancend/src/ui/clay/clay_container.dart';
-import 'package:trancend/src/ui/glass/glass_bottom_sheet.dart';
 
 part 'clay_bottom_nav_item.dart';
 part 'bottom_clipper.dart';

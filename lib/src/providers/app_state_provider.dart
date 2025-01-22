@@ -6,7 +6,6 @@ import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/user.model.dart' as user_model;
 import 'package:trancend/src/models/user_topic.model.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
-import 'package:trancend/src/services/authentication.service.dart';
 import 'package:trancend/src/services/firestore.service.dart';
 
 part 'app_state_provider.g.dart';
