@@ -10,6 +10,10 @@ import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/track.model.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/services/firestore.service.dart';
+import 'package:trancend/src/services/audio_service.dart';
+import 'package:trancend/src/models/user.model.dart' hide TranceMethod;
+import 'package:trancend/src/services/storage_service.dart';
+import 'package:get_it/get_it.dart';
 
 // Provide the FirestoreService instance
 final firestoreServiceProvider = Provider<FirestoreService>((ref) {
@@ -21,7 +25,8 @@ final tranceStateProvider =
   (ref) {
     final auth = ref.watch(userProvider);
     final user = auth.value;
-    return TranceState(ref.watch(firestoreServiceProvider), user?.uid, ref);
+    final audioService = ref.watch(audioServiceProvider);
+    return TranceState(ref.watch(firestoreServiceProvider), user?.uid, ref, audioService);
   },
 );
 
@@ -29,8 +34,10 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   static const DEFAULT_SESSION_MINUTES = 20;
 
   final FirestoreService _firestoreService;
+  final CloudStorageService _cloudStorageService = GetIt.I<CloudStorageService>();
   final String? _uid;
   late AudioPlayer _audioPlayer;
+  final AudioService _audioService;
   final Ref ref;
   Timer? _timer;
   bool _isPlaying = false;
@@ -51,12 +58,13 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   double _backgroundVolume = 0.4;
   double _voiceVolume = 0.5;
 
-  TranceState(this._firestoreService, this._uid, this.ref)
+  TranceState(this._firestoreService, this._uid, this.ref, this._audioService)
       : super(AsyncValue<Session?>.data(null)) {
     // Initialize audio player
     _audioPlayer = AudioPlayer();
     // Set initial volumes
     _audioPlayer.setVolume(_voiceVolume);
+    _audioService.setBackgroundVolume(_backgroundVolume);
     
     // Register cleanup when provider is disposed
     ref.onDispose(() {
@@ -64,6 +72,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       _timer?.cancel();
       _audioPlayer.stop();
       _audioPlayer.dispose();
+      _audioService.dispose();
     });
   }
 
@@ -96,6 +105,21 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       if (!mounted) return;
       state = const AsyncValue.loading();
       _isLoadingAudio = true;  // Set loading state at start
+
+      // Start background audio without blocking
+      _firestoreService.getUser(_uid!).then((user) async {
+        if (user.backgroundSound != BackgroundSound.None) {
+          final result = await _cloudStorageService.getFile(
+            bucket: "background_loops",
+            fileName: user.backgroundSound.path,
+          );
+          
+          if (result.url != null) {
+            await _audioService.setUrl(result.url);
+            _audioService.playBackgroundAudio(); // Don't await this
+          }
+        }
+      }); // Don't await the entire background audio setup
 
       // Create initial session
       Session createdSession = Session(
@@ -321,7 +345,6 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   Future<void> _updateSession() async {
     // Record the track as played right before it starts playing
     if (state.value != null && _currentTrack != null) {
-      print('Recording track as played: ${_currentTrack!.id}');
       final playedTrack = PlayedTrack(
         trackId: _currentTrack!.id!,
         uid: _uid,
@@ -332,13 +355,10 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
         created: DateTime.now().millisecondsSinceEpoch,
         startedTime: _cumulativeMilliseconds,
       );
-      print('Played track: ${playedTrack.toJson()}');
       final updatedSession = state.value!.copyWith(
         playedTracks: [...(state.value!.playedTracks ?? []), playedTrack],
       );
-      print('Updated session: ${updatedSession.toJson()}');
       await _firestoreService.updateSession(updatedSession);
-      print('Session updated');
       state = AsyncValue.data(updatedSession);
     }
   }
@@ -354,6 +374,9 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
 
     try {
       _isPlaying = true;
+
+      // Start background audio if available
+      await _audioService.playBackgroundAudio();
 
       // Adjust session start time based on accumulated time
       if (_sessionStartTime == null) {
@@ -382,6 +405,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     try {
       _isPlaying = false;
       await _audioPlayer.pause();
+      await _audioService.pauseBackgroundAudio();
 
       // Store current progress before pausing
       if (_sessionStartTime != null) {
@@ -405,7 +429,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
 
   Future<void> setBackgroundVolume(double volume) async {
     _backgroundVolume = volume;
-    // TODO: Implement background volume control when background audio is added
+    await _audioService.setBackgroundVolume(volume);
     state = AsyncValue.data(state.value);
   }
 
@@ -433,6 +457,9 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     _inductionDuration = 0;
     _awakeningDuration = 0;
     
+    // Stop background audio
+    _audioService.stopBackgroundAudio();
+    
     // Properly dispose and recreate audio player
     _audioPlayer.stop();
     _audioPlayer.dispose();
@@ -446,6 +473,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     _timer?.cancel();
     _audioPlayer.stop();
     _audioPlayer.dispose();
+    _audioService.dispose();
     super.dispose();
   }
 }

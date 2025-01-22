@@ -14,6 +14,8 @@ class UserSettings with _$UserSettings {
     required bool useCellularData,
     required bool usesDeepening,
     required bool usesOwnDeepening,
+    @Default(0.8) double voiceVolume,
+    @Default(0.2) double backgroundVolume,
   }) = _UserSettings;
 
   factory UserSettings.fromJson(Map<String, dynamic> json) => _$UserSettingsFromJson(json);

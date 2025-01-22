@@ -97,7 +97,9 @@ class FirestoreServiceAdapter extends FirestoreService {
         maxHours: 1,
         useCellularData: false,
         usesDeepening: true,
-        usesOwnDeepening: false);
+        usesOwnDeepening: false,
+        voiceVolume: 0.5,
+        backgroundVolume: 0.4);
     await _userDataRef(user.uid).doc('settings').set(defaultSettings.toJson());
 
     // Initialize topics collection
@@ -568,6 +570,8 @@ class FirestoreServiceAdapter extends FirestoreService {
           useCellularData: true,
           usesDeepening: false,
           usesOwnDeepening: false,
+          voiceVolume: 0.5,
+          backgroundVolume: 0.4,
         );
         await db
             .collection('userSettings')

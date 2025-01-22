@@ -28,6 +28,8 @@ mixin _$UserSettings {
   bool get useCellularData => throw _privateConstructorUsedError;
   bool get usesDeepening => throw _privateConstructorUsedError;
   bool get usesOwnDeepening => throw _privateConstructorUsedError;
+  double get voiceVolume => throw _privateConstructorUsedError;
+  double get backgroundVolume => throw _privateConstructorUsedError;
 
   /// Serializes this UserSettings to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -53,7 +55,9 @@ abstract class $UserSettingsCopyWith<$Res> {
       int maxHours,
       bool useCellularData,
       bool usesDeepening,
-      bool usesOwnDeepening});
+      bool usesOwnDeepening,
+      double voiceVolume,
+      double backgroundVolume});
 }
 
 /// @nodoc
@@ -79,6 +83,8 @@ class _$UserSettingsCopyWithImpl<$Res, $Val extends UserSettings>
     Object? useCellularData = null,
     Object? usesDeepening = null,
     Object? usesOwnDeepening = null,
+    Object? voiceVolume = null,
+    Object? backgroundVolume = null,
   }) {
     return _then(_value.copyWith(
       uid: null == uid
@@ -113,6 +119,14 @@ class _$UserSettingsCopyWithImpl<$Res, $Val extends UserSettings>
           ? _value.usesOwnDeepening
           : usesOwnDeepening // ignore: cast_nullable_to_non_nullable
               as bool,
+      voiceVolume: null == voiceVolume
+          ? _value.voiceVolume
+          : voiceVolume // ignore: cast_nullable_to_non_nullable
+              as double,
+      backgroundVolume: null == backgroundVolume
+          ? _value.backgroundVolume
+          : backgroundVolume // ignore: cast_nullable_to_non_nullable
+              as double,
     ) as $Val);
   }
 }
@@ -133,7 +147,9 @@ abstract class _$$UserSettingsImplCopyWith<$Res>
       int maxHours,
       bool useCellularData,
       bool usesDeepening,
-      bool usesOwnDeepening});
+      bool usesOwnDeepening,
+      double voiceVolume,
+      double backgroundVolume});
 }
 
 /// @nodoc
@@ -157,6 +173,8 @@ class __$$UserSettingsImplCopyWithImpl<$Res>
     Object? useCellularData = null,
     Object? usesDeepening = null,
     Object? usesOwnDeepening = null,
+    Object? voiceVolume = null,
+    Object? backgroundVolume = null,
   }) {
     return _then(_$UserSettingsImpl(
       uid: null == uid
@@ -191,6 +209,14 @@ class __$$UserSettingsImplCopyWithImpl<$Res>
           ? _value.usesOwnDeepening
           : usesOwnDeepening // ignore: cast_nullable_to_non_nullable
               as bool,
+      voiceVolume: null == voiceVolume
+          ? _value.voiceVolume
+          : voiceVolume // ignore: cast_nullable_to_non_nullable
+              as double,
+      backgroundVolume: null == backgroundVolume
+          ? _value.backgroundVolume
+          : backgroundVolume // ignore: cast_nullable_to_non_nullable
+              as double,
     ));
   }
 }
@@ -206,7 +232,9 @@ class _$UserSettingsImpl implements _UserSettings {
       required this.maxHours,
       required this.useCellularData,
       required this.usesDeepening,
-      required this.usesOwnDeepening});
+      required this.usesOwnDeepening,
+      this.voiceVolume = 0.5,
+      this.backgroundVolume = 0.4});
 
   factory _$UserSettingsImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserSettingsImplFromJson(json);
@@ -227,10 +255,16 @@ class _$UserSettingsImpl implements _UserSettings {
   final bool usesDeepening;
   @override
   final bool usesOwnDeepening;
+  @override
+  @JsonKey()
+  final double voiceVolume;
+  @override
+  @JsonKey()
+  final double backgroundVolume;
 
   @override
   String toString() {
-    return 'UserSettings(uid: $uid, statsStartDate: $statsStartDate, statsEndDate: $statsEndDate, delaySeconds: $delaySeconds, maxHours: $maxHours, useCellularData: $useCellularData, usesDeepening: $usesDeepening, usesOwnDeepening: $usesOwnDeepening)';
+    return 'UserSettings(uid: $uid, statsStartDate: $statsStartDate, statsEndDate: $statsEndDate, delaySeconds: $delaySeconds, maxHours: $maxHours, useCellularData: $useCellularData, usesDeepening: $usesDeepening, usesOwnDeepening: $usesOwnDeepening, voiceVolume: $voiceVolume, backgroundVolume: $backgroundVolume)';
   }
 
   @override
@@ -252,7 +286,11 @@ class _$UserSettingsImpl implements _UserSettings {
             (identical(other.usesDeepening, usesDeepening) ||
                 other.usesDeepening == usesDeepening) &&
             (identical(other.usesOwnDeepening, usesOwnDeepening) ||
-                other.usesOwnDeepening == usesOwnDeepening));
+                other.usesOwnDeepening == usesOwnDeepening) &&
+            (identical(other.voiceVolume, voiceVolume) ||
+                other.voiceVolume == voiceVolume) &&
+            (identical(other.backgroundVolume, backgroundVolume) ||
+                other.backgroundVolume == backgroundVolume));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -266,7 +304,9 @@ class _$UserSettingsImpl implements _UserSettings {
       maxHours,
       useCellularData,
       usesDeepening,
-      usesOwnDeepening);
+      usesOwnDeepening,
+      voiceVolume,
+      backgroundVolume);
 
   /// Create a copy of UserSettings
   /// with the given fields replaced by the non-null parameter values.
@@ -293,7 +333,9 @@ abstract class _UserSettings implements UserSettings {
       required final int maxHours,
       required final bool useCellularData,
       required final bool usesDeepening,
-      required final bool usesOwnDeepening}) = _$UserSettingsImpl;
+      required final bool usesOwnDeepening,
+      final double voiceVolume,
+      final double backgroundVolume}) = _$UserSettingsImpl;
 
   factory _UserSettings.fromJson(Map<String, dynamic> json) =
       _$UserSettingsImpl.fromJson;
@@ -314,6 +356,10 @@ abstract class _UserSettings implements UserSettings {
   bool get usesDeepening;
   @override
   bool get usesOwnDeepening;
+  @override
+  double get voiceVolume;
+  @override
+  double get backgroundVolume;
 
   /// Create a copy of UserSettings
   /// with the given fields replaced by the non-null parameter values.
