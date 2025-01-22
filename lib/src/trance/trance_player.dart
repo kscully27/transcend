@@ -110,11 +110,12 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
   void dispose() {
     print('dispose in trance player');
     
-    // Stop and dispose animations
+    // Only handle animation cleanup in dispose
     _animationController1.stop();
     _animationController2.stop();
     _animationController1.dispose();
     _animationController2.dispose();
+    
     super.dispose();
   }
 

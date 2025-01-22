@@ -457,23 +457,38 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     _inductionDuration = 0;
     _awakeningDuration = 0;
     
-    // Stop background audio
+    // Stop background audio first
     _audioService.stopBackgroundAudio();
     
-    // Properly dispose and recreate audio player
+    // Then stop and dispose the audio player
     _audioPlayer.stop();
-    _audioPlayer.dispose();
-    _audioPlayer = AudioPlayer();
-    _audioPlayer.setVolume(_voiceVolume);
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _audioPlayer.dispose();
+        // Create new player after disposal
+        _audioPlayer = AudioPlayer();
+        _audioPlayer.setVolume(_voiceVolume);
+      }
+    });
   }
 
   @override
   void dispose() {
     print('Disposing trance state');
     _timer?.cancel();
+    
+    // Stop playback first
     _audioPlayer.stop();
-    _audioPlayer.dispose();
-    _audioService.dispose();
+    _audioService.stopBackgroundAudio();
+    
+    // Add small delay before disposal
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _audioPlayer.dispose();
+        _audioService.dispose();
+      }
+    });
+    
     super.dispose();
   }
 }

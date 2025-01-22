@@ -73,12 +73,13 @@ class AudioService {
 
   // Dispose the player when no longer needed
   Future<void> dispose() async {
-    _isBackgroundPlaying = false;
     try {
+      _isBackgroundPlaying = false;
       await _backgroundPlayer.stop();
+      await Future.delayed(const Duration(milliseconds: 100));  // Add small delay to ensure stop completes
       await _backgroundPlayer.dispose();
     } catch (e) {
-      print('Error disposing background player: $e');
+      print('Error disposing audio service: $e');
     }
   }
 } 
