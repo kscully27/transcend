@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:trancend/src/ui/clay/clay_container.dart';
 
@@ -44,7 +45,7 @@ class ClayButton extends StatelessWidget {
     required this.parentColor,
     this.textColor = Colors.white,
     this.borderColor,
-    this.borderWidth = 0.8,
+    this.borderWidth = 0.0,
     this.padding,
     this.margin = const EdgeInsets.all(0),
     this.borderRadius = 30,
@@ -52,7 +53,7 @@ class ClayButton extends StatelessWidget {
     this.height,
     this.spread = 2,
     this.depth = 40.0,
-    this.curveType,
+    this.curveType = CurveType.none,
     this.emboss = false,
     this.variant = ClayButtonVariant.outlined,
     this.size = ClayButtonSize.medium,
@@ -61,52 +62,50 @@ class ClayButton extends StatelessWidget {
   double get _fontSize {
     switch (size) {
       case ClayButtonSize.xsmall:
-        return 16;
+        return 12;
       case ClayButtonSize.small:
-        return 24;
+        return 14;
       case ClayButtonSize.medium:
-        return 32;
+        return 16;
       case ClayButtonSize.large:
-        return 40;
+        return 18;
       case ClayButtonSize.xlarge:
-        return 48;
+        return 20;
     }
   }
 
   double get _iconSize {
     switch (size) {
       case ClayButtonSize.xsmall:
-        return 20;
+        return 14;
       case ClayButtonSize.small:
-        return 32;
+        return 16;
       case ClayButtonSize.medium:
-        return 40;
+        return 18;
       case ClayButtonSize.large:
-        return 48;
+        return 20;
       case ClayButtonSize.xlarge:
-        return 56;
+        return 24;
     }
   }
 
   EdgeInsets get _defaultPadding {
     switch (size) {
       case ClayButtonSize.xsmall:
-        return const EdgeInsets.symmetric(horizontal: 12, vertical: 4);
+        return const EdgeInsets.symmetric(horizontal: 12, vertical: 6);
       case ClayButtonSize.small:
-        return const EdgeInsets.symmetric(horizontal: 16, vertical: 6);
+        return const EdgeInsets.symmetric(horizontal: 16, vertical: 8);
       case ClayButtonSize.medium:
-        return const EdgeInsets.symmetric(horizontal: 20, vertical: 8);
+        return const EdgeInsets.symmetric(horizontal: 20, vertical: 10);
       case ClayButtonSize.large:
-        return const EdgeInsets.symmetric(horizontal: 24, vertical: 10);
+        return const EdgeInsets.symmetric(horizontal: 24, vertical: 12);
       case ClayButtonSize.xlarge:
-        return const EdgeInsets.symmetric(horizontal: 28, vertical: 12);
+        return const EdgeInsets.symmetric(horizontal: 32, vertical: 16);
     }
   }
 
   FontWeight get _fontWeight {
-    return size == ClayButtonSize.xsmall 
-        ? FontWeight.w500 
-        : FontWeight.w200;
+    return FontWeight.w700;
   }
 
   double get _iconSpacing {
@@ -124,6 +123,51 @@ class ClayButton extends StatelessWidget {
     }
   }
 
+  double get _minWidth {
+    switch (size) {
+      case ClayButtonSize.xsmall:
+        return 80;
+      case ClayButtonSize.small:
+        return 100;
+      case ClayButtonSize.medium:
+        return 120;
+      case ClayButtonSize.large:
+        return 140;
+      case ClayButtonSize.xlarge:
+        return 160;
+    }
+  }
+
+  double get _defaultHeight {
+    switch (size) {
+      case ClayButtonSize.xsmall:
+        return 32;
+      case ClayButtonSize.small:
+        return 40;
+      case ClayButtonSize.medium:
+        return 48;
+      case ClayButtonSize.large:
+        return 56;
+      case ClayButtonSize.xlarge:
+        return 64;
+    }
+  }
+
+  double get _defaultWidth {
+    switch (size) {
+      case ClayButtonSize.xsmall:
+        return 120;
+      case ClayButtonSize.small:
+        return 160;
+      case ClayButtonSize.medium:
+        return 200;
+      case ClayButtonSize.large:
+        return 240;
+      case ClayButtonSize.xlarge:
+        return 280;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -132,14 +176,14 @@ class ClayButton extends StatelessWidget {
     
     return Container(
       margin: margin,
+      width: width ?? _defaultWidth,
+      height: height ?? _defaultHeight,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(borderRadius),
           child: ClayContainer(
-            width: width,
-            height: height,
             color: color,
             parentColor: parentColor,
             spread: spread,
@@ -149,9 +193,6 @@ class ClayButton extends StatelessWidget {
             emboss: emboss,
             child: Container(
               padding: padding ?? _defaultPadding,
-              width: width,
-              height: height,
-              alignment: Alignment.center,
               decoration: variant == ClayButtonVariant.outlined
                   ? BoxDecoration(
                       border: Border.all(
@@ -161,30 +202,29 @@ class ClayButton extends StatelessWidget {
                       borderRadius: BorderRadius.circular(borderRadius),
                     )
                   : null,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[
-                    Icon(
-                      icon,
-                      color: effectiveTextColor,
-                      size: _iconSize,
+              child: Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (icon != null) ...[
+                      Icon(
+                        icon,
+                        color: effectiveTextColor,
+                        size: _iconSize,
+                      ),
+                      SizedBox(width: _iconSpacing),
+                    ],
+                    AutoSizeText(
+                      text,
+                      style: TextStyle(
+                        fontSize: _fontSize,
+                        fontWeight: _fontWeight,
+                        color: effectiveTextColor,
+                      ),
                     ),
-                    SizedBox(width: _iconSpacing),
                   ],
-                  Text(
-                    text,
-                    style: TextStyle(
-                      fontSize: _fontSize,
-                      fontWeight: _fontWeight,
-                      color: effectiveTextColor,
-                      height: 1.2,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                ),
               ),
             ),
           ),

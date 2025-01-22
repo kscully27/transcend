@@ -11,6 +11,7 @@ import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/services/background_audio.service.dart';
 import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/services/storage_service.dart';
+import 'package:trancend/src/ui/clay/clay_button.dart';
 import 'package:trancend/src/ui/clay/clay_container.dart';
 import 'package:trancend/src/ui/clay/clay_radio_button.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
@@ -20,7 +21,8 @@ final darkModeProvider = StateNotifierProvider<DarkModeNotifier, bool>((ref) {
   return DarkModeNotifier();
 });
 
-final backgroundSoundProvider = StateProvider<user_model.BackgroundSound?>((ref) => null);
+final backgroundSoundProvider =
+    StateProvider<user_model.BackgroundSound?>((ref) => null);
 
 class DarkModeNotifier extends StateNotifier<bool> {
   DarkModeNotifier() : super(false) {
@@ -94,12 +96,15 @@ class _SettingsState extends ConsumerState<SettingsPage> {
       builder: (context) => FractionallySizedBox(
         heightFactor: 0.9,
         child: GlassContainer(
-          backgroundColor: Theme.of(context).colorScheme.surfaceTint.withOpacity(0.5),
+          backgroundColor:
+              Theme.of(context).colorScheme.surfaceTint.withOpacity(0.5),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: StatefulBuilder(
               builder: (context, setModalState) {
-                return isSignUp ? _buildSignUpContent(context, setModalState) : _buildLoginContent(context, setModalState);
+                return isSignUp
+                    ? _buildSignUpContent(context, setModalState)
+                    : _buildLoginContent(context, setModalState);
               },
             ),
           ),
@@ -108,7 +113,8 @@ class _SettingsState extends ConsumerState<SettingsPage> {
     );
   }
 
-  Widget _buildUserInfo(BuildContext context, WidgetRef ref, user_model.User user) {
+  Widget _buildUserInfo(
+      BuildContext context, WidgetRef ref, user_model.User user) {
     return ClayContainer(
       color: Theme.of(context).colorScheme.surface,
       parentColor: Theme.of(context).colorScheme.surface,
@@ -124,7 +130,8 @@ class _SettingsState extends ConsumerState<SettingsPage> {
             CircleAvatar(
               radius: 30,
               backgroundColor: Colors.white24,
-              backgroundImage: user.photoUrl.isNotEmpty ? NetworkImage(user.photoUrl) : null,
+              backgroundImage:
+                  user.photoUrl.isNotEmpty ? NetworkImage(user.photoUrl) : null,
               child: user.photoUrl.isEmpty
                   ? const Icon(Remix.user_line, color: Colors.white70, size: 30)
                   : null,
@@ -137,15 +144,18 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                   AutoSizeText(
                     user.displayName,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                    ),
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   AutoSizeText(
                     user.email,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                    ),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.7),
+                        ),
                   ),
                 ],
               ),
@@ -159,18 +169,14 @@ class _SettingsState extends ConsumerState<SettingsPage> {
   Future<void> _handleLogout(BuildContext context) async {
     final authService = ref.read(authServiceProvider);
     await authService.signOut();
-    
+
     // Force app reload by invalidating all providers
     ref.invalidate(userProvider);
     ref.invalidate(backgroundSoundProvider);
-    
+
     // Rebuild the entire app
     if (mounted) {
-      Navigator.pushNamedAndRemoveUntil(
-        context, 
-        '/', 
-        (route) => false
-      );
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     }
   }
 
@@ -178,14 +184,10 @@ class _SettingsState extends ConsumerState<SettingsPage> {
     // Force app reload by invalidating all providers
     ref.invalidate(userProvider);
     ref.invalidate(backgroundSoundProvider);
-    
+
     // Rebuild the entire app
     if (mounted) {
-      Navigator.pushNamedAndRemoveUntil(
-        context, 
-        '/', 
-        (route) => false
-      );
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     }
   }
 
@@ -200,9 +202,9 @@ class _SettingsState extends ConsumerState<SettingsPage> {
             Text(
               'Welcome Back',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -226,7 +228,9 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: _fieldErrors['email'] != null ? Colors.white : Colors.transparent,
+                    color: _fieldErrors['email'] != null
+                        ? Colors.white
+                        : Colors.transparent,
                   ),
                 ),
                 errorText: _fieldErrors['email'],
@@ -256,7 +260,9 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: _fieldErrors['password'] != null ? Colors.white : Colors.transparent,
+                    color: _fieldErrors['password'] != null
+                        ? Colors.white
+                        : Colors.transparent,
                   ),
                 ),
                 errorText: _fieldErrors['password'],
@@ -280,10 +286,10 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                   _fieldErrors.clear();
                   _serverError = null;
                 });
-                
+
                 bool isValid = _validateEmail(_emailController.text) &
-                             _validatePassword(_passwordController.text);
-                
+                    _validatePassword(_passwordController.text);
+
                 if (!isValid) {
                   setModalState(() {});
                   return;
@@ -294,7 +300,7 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                   email: _emailController.text,
                   password: _passwordController.text,
                 );
-                
+
                 if (result.success) {
                   Navigator.pop(context);
                   await _handleAuthSuccess(context);
@@ -439,9 +445,9 @@ class _SettingsState extends ConsumerState<SettingsPage> {
             Text(
               'Create Account',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -465,7 +471,9 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: _fieldErrors['name'] != null ? Colors.white : Colors.transparent,
+                    color: _fieldErrors['name'] != null
+                        ? Colors.white
+                        : Colors.transparent,
                   ),
                 ),
                 errorText: _fieldErrors['name'],
@@ -494,7 +502,9 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: _fieldErrors['email'] != null ? Colors.white : Colors.transparent,
+                    color: _fieldErrors['email'] != null
+                        ? Colors.white
+                        : Colors.transparent,
                   ),
                 ),
                 errorText: _fieldErrors['email'],
@@ -524,7 +534,9 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: _fieldErrors['password'] != null ? Colors.white : Colors.transparent,
+                    color: _fieldErrors['password'] != null
+                        ? Colors.white
+                        : Colors.transparent,
                   ),
                 ),
                 errorText: _fieldErrors['password'],
@@ -548,11 +560,11 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                   _fieldErrors.clear();
                   _serverError = null;
                 });
-                
+
                 bool isValid = _validateName(_nameController.text) &
-                             _validateEmail(_emailController.text) &
-                             _validatePassword(_passwordController.text);
-                
+                    _validateEmail(_emailController.text) &
+                    _validatePassword(_passwordController.text);
+
                 if (!isValid) {
                   setModalState(() {});
                   return;
@@ -565,12 +577,12 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                   displayName: _nameController.text,
                   photoUrl: '',
                 );
-                
+
                 final result = await authService.signUpWithEmail(
                   user: newUser,
                   password: _passwordController.text,
                 );
-                
+
                 if (result.success) {
                   Navigator.pop(context);
                   await _handleAuthSuccess(context);
@@ -660,8 +672,9 @@ class _SettingsState extends ConsumerState<SettingsPage> {
     final theme = Theme.of(context);
     final isDarkMode = ref.watch(darkModeProvider);
     final userAsync = ref.watch(userProvider);
-    final selectedSound = ref.watch(backgroundSoundProvider) ?? userAsync.value?.backgroundSound;
-    
+    final selectedSound =
+        ref.watch(backgroundSoundProvider) ?? userAsync.value?.backgroundSound;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Settings', style: theme.textTheme.headlineSmall),
@@ -682,9 +695,9 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                   Text(
                     'Sign in Required',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
                   const Padding(
@@ -696,33 +709,16 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  ClayContainer(
+                  ClayButton(
+                    text: "Sign up",
                     color: theme.colorScheme.surfaceTint,
                     parentColor: theme.colorScheme.surfaceTint,
+                    size: ClayButtonSize.large,
+                    onPressed: () => _showAuthSheet(context, isSignUp: true),
+                    textColor: theme.colorScheme.onPrimary,
+                    depth: 20,
+                    spread: 4,
                     borderRadius: 12,
-                    curveType: CurveType.none,
-                    depth: 8,
-                    spread: 8,
-                    width: 300,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => _showAuthSheet(context, isSignUp: true),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          child: Text(
-                            'Sign Up',
-                            style: TextStyle(
-                              color: theme.colorScheme.onSurface,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 16),
                   TextButton(
@@ -862,7 +858,9 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                               },
                               currentSound: user.backgroundSound,
                               onSoundChanged: (sound) async {
-                                await ref.read(userProvider.notifier).updateBackgroundSound(sound);
+                                await ref
+                                    .read(userProvider.notifier)
+                                    .updateBackgroundSound(sound);
                               },
                             ),
                           ).then((_) async {
@@ -969,10 +967,12 @@ class BackgroundSoundBottomSheet extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<BackgroundSoundBottomSheet> createState() => _BackgroundSoundBottomSheetState();
+  ConsumerState<BackgroundSoundBottomSheet> createState() =>
+      _BackgroundSoundBottomSheetState();
 }
 
-class _BackgroundSoundBottomSheetState extends ConsumerState<BackgroundSoundBottomSheet> {
+class _BackgroundSoundBottomSheetState
+    extends ConsumerState<BackgroundSoundBottomSheet> {
   final _backgroundAudioService = locator<BackgroundAudioService>();
   final _cloudStorageService = locator<CloudStorageService>();
   late user_model.BackgroundSound _selectedSound;
@@ -1029,10 +1029,10 @@ class _BackgroundSoundBottomSheetState extends ConsumerState<BackgroundSoundBott
                       groupValue: _selectedSound,
                       onChanged: (value) async {
                         if (value == null) return;
-                        
+
                         // Stop current audio before playing new one
                         await _stopAudio();
-                        
+
                         setState(() => _selectedSound = value);
 
                         try {
@@ -1047,7 +1047,8 @@ class _BackgroundSoundBottomSheetState extends ConsumerState<BackgroundSoundBott
                           }
                         } catch (e) {
                           if (mounted) {
-                            setState(() => _selectedSound = widget.currentSound);
+                            setState(
+                                () => _selectedSound = widget.currentSound);
                           }
                           print("error playing audio: $e");
                         }

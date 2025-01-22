@@ -384,9 +384,16 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
                   child: Material(
                     color: Colors.transparent,
                     clipBehavior: Clip.none,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: items,
+                    type: MaterialType.transparency,
+                    child: Theme(
+                      data: Theme.of(context).copyWith(
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: items,
+                      ),
                     ),
                   ),
                 ),
