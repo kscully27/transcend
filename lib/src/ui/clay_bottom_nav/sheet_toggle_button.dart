@@ -8,6 +8,7 @@ class _SheetToggleButton extends StatelessWidget {
   final Color? foregroundColor;
   final IconData icon;
   final VoidCallback? onTap;
+  final bool isOpen;
 
   const _SheetToggleButton({
     this.decoration,
@@ -16,6 +17,7 @@ class _SheetToggleButton extends StatelessWidget {
     this.foregroundColor,
     required this.icon,
     this.onTap,
+    this.isOpen = false,
   });
 
   @override
@@ -23,6 +25,10 @@ class _SheetToggleButton extends StatelessWidget {
     var theme = Theme.of(context);
     final bgColor = backgroundColor ?? theme.colorScheme.primary;
     final fgColor = foregroundColor ?? theme.colorScheme.onPrimary;
+
+    // Invert colors when open
+    final effectiveBgColor = isOpen ? fgColor : bgColor;
+    final effectiveFgColor = isOpen ? bgColor : fgColor;
 
     return Center(
       child: InkResponse(
@@ -32,7 +38,7 @@ class _SheetToggleButton extends StatelessWidget {
           child: ClayContainer(
             width: 56,
             height: 56,
-            color: bgColor,
+            color: effectiveBgColor,
             parentColor: parentColor ?? theme.colorScheme.surface,
             spread: 8,
             depth: 16,
@@ -40,7 +46,7 @@ class _SheetToggleButton extends StatelessWidget {
             curveType: CurveType.none,
             child: Icon(
               icon,
-              color: fgColor,
+              color: effectiveFgColor,
             ),
           ),
         ),

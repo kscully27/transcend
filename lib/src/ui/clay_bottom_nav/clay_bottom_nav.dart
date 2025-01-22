@@ -298,6 +298,7 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
             icon: _sheetOpen ? widget.sheetCloseIcon ?? openIcon : openIcon,
             foregroundColor: iconFg,
             decoration: widget.sheetToggleDecoration,
+            isOpen: _sheetOpen,
           ),
         ),
       ),
