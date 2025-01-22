@@ -3,12 +3,14 @@ import 'dart:ui';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/constants/app_colors.dart';
 import 'package:simple_shadow/simple_shadow.dart';
+import 'package:trancend/src/providers/user_topics_provider.dart';
 import 'package:trancend/src/trance/trance_player.dart';
 import 'package:trancend/src/ui/glass/glass_bottom_sheet.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
@@ -99,7 +101,7 @@ class _RenderInnerShadow extends RenderProxyBox {
   }
 }
 
-class CandyTopicItem extends StatefulWidget {
+class CandyTopicItem extends ConsumerStatefulWidget {
   final Topic topic;
   final VoidCallback? onTap;
   final bool isFavorite;
@@ -114,12 +116,44 @@ class CandyTopicItem extends StatefulWidget {
   });
 
   @override
-  _CandyTopicItemState createState() => _CandyTopicItemState();
+  ConsumerState<CandyTopicItem> createState() => _CandyTopicItemState();
 }
 
-class _CandyTopicItemState extends State<CandyTopicItem> {
+class _CandyTopicItemState extends ConsumerState<CandyTopicItem> {
   final _innerShadowKey1 = GlobalKey();
   final _innerShadowKey2 = GlobalKey();
+
+  void _handleButtonPressed() {
+    final theme = Theme.of(context);
+    final baseColor = AppColors.flat(widget.topic.appColor).withOpacity(0.5);
+    final highlightColor = Color.lerp(
+        baseColor.withOpacity(0.1), theme.colorScheme.surfaceTint, 0.9)!;
+
+    GlassBottomSheet.show(
+      context: context,
+      heightPercent: 0.6,
+      backgroundColor: theme.colorScheme.surfaceTint.withOpacity(0.55),
+      barrierColor: const Color.fromARGB(255, 37, 24, 60).withOpacity(0.45),
+      closeButtonColor: Colors.white70,
+      blur: 10,
+      opacity: .5,
+      fade: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          highlightColor.withOpacity(0.3),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 1.0],
+      ),
+      border: Border.all(color: Colors.white24, width: 0.5),
+      animationSpeed: AnimationSpeed.medium,
+      content: _TopicBottomSheetContent(
+        topic: widget.topic,
+        onFavoritePressed: widget.onFavoritePressed,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,147 +161,8 @@ class _CandyTopicItemState extends State<CandyTopicItem> {
     final baseColor = AppColors.flat(widget.topic.appColor).withOpacity(0.5);
     final highlightColor = Color.lerp(
         baseColor.withOpacity(0.1), theme.colorScheme.surfaceTint, 0.9)!;
-    // final midColor = Color.lerp(baseColor, highlightColor, 0.6)!;
     final midColor = baseColor.withOpacity(0.2);
-    // final shadowColor = theme.colorScheme.shadow.withOpacity(0.8);
     final shadowColor = const Color(0xFFDF5843);
-
-    void _handleButtonPressed() {
-      GlassBottomSheet.show(
-        context: context,
-        heightPercent: 0.6,
-        backgroundColor: theme.colorScheme.surfaceTint.withOpacity(0.55),
-        // backgroundColor: theme.colorScheme.surfaceTint.withOpacity(0.4),
-        barrierColor: const Color.fromARGB(255, 37, 24, 60).withOpacity(0.45),
-        closeButtonColor: Colors.white70,
-        blur: 10,
-        opacity: .5,
-        fade: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            highlightColor.withOpacity(0.3),
-            Colors.transparent,
-          ],
-          stops: const [0.0, 1.0],
-        ),
-        border: Border.all(color: Colors.white24, width: 0.5),
-        animationSpeed: AnimationSpeed.medium,
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AutoSizeText(
-                    widget.topic.title,
-                    style: GoogleFonts.titilliumWeb(
-                      fontSize: 24,
-                      letterSpacing: -0.5,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                      height: 1.1,
-                      shadows: [
-                        Shadow(
-                          color: highlightColor.withOpacity(0.5),
-                          offset: const Offset(2, 3),
-                          blurRadius: 3,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    widget.topic.description,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w300,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  GlassButton(
-                    text: widget.isFavorite
-                        ? "Remove from Favorites"
-                        : "Add to Favorites",
-                    icon: widget.isFavorite ? Remix.heart_fill : Remix.heart_line,
-                    // width: double.infinity,
-                    // variant: GlassButtonVariant.text,
-                    size: GlassButtonSize.small,
-                    align: GlassButtonAlign.center,
-                    textColor: Theme.of(context).colorScheme.onSurface,
-                    glassColor:
-                        Theme.of(context).colorScheme.surface.withOpacity(0.1),
-                    borderColor: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.2),
-                    onPressed: () {
-                      widget.onFavoritePressed();
-                      Navigator.pop(context);
-                    },
-                  ),
-                  Divider(
-                    height: 32,
-                    thickness: 1,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.2),
-                  ),
-                  GlassButton(
-                    text: "Start Session",
-                    height: 80,
-                    icon: Remix.play_fill,
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 12),
-                    textColor: Theme.of(context).colorScheme.onSurface,
-                    glassColor:
-                        Theme.of(context).colorScheme.surface.withOpacity(0.1),
-                    borderColor: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.2),
-                    onPressed: () {
-                      Navigator.pop(context); // Close the bottom sheet first
-                      Future.microtask(() {
-                        Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder:
-                                (context, animation, secondaryAnimation) =>
-                                    TrancePlayer(
-                              topic: widget.topic,
-                              tranceMethod: session.TranceMethod.Hypnotherapy,
-                            ),
-                            transitionsBuilder: (context, animation,
-                                secondaryAnimation, child) {
-                              const begin = Offset(0.0, 1.0);
-                              const end = Offset.zero;
-                              const curve = Curves.easeOutCubic;
-                              var tween = Tween(begin: begin, end: end)
-                                  .chain(CurveTween(curve: curve));
-                              return SlideTransition(
-                                position: animation.drive(tween),
-                                child: child,
-                              );
-                            },
-                            transitionDuration:
-                                const Duration(milliseconds: 500),
-                          ),
-                        );
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
 
     return GestureDetector(
       onTap: _handleButtonPressed,
@@ -280,7 +175,6 @@ class _CandyTopicItemState extends State<CandyTopicItem> {
               child: Container(
                 padding: const EdgeInsets.all(120),
                 height: 120,
-                // width: double.infinity - 140,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
@@ -376,22 +270,15 @@ class _CandyTopicItemState extends State<CandyTopicItem> {
                                       fontSize: 16,
                                       fontFamily: 'TitilliumWeb',
                                       fontWeight: FontWeight.w300,
-                                      color: Colors.white.withOpacity(0.6),
+                                      color: Colors.white.withAlpha(24),
                                       letterSpacing: 1,
-                                      shadows: [
-                                        Shadow(
-                                          color: shadowColor.withOpacity(0.9),
-                                          offset: const Offset(0, 3),
-                                          blurRadius: 4,
-                                        ),
-                                      ],
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   AutoSizeText(
                                     widget.topic.title,
                                     style: GoogleFonts.titilliumWeb(
-                                      fontSize: 24,
+                                      fontSize: 22,
                                       letterSpacing: -0.5,
                                       fontWeight: FontWeight.w800,
                                       color: Colors.white,
@@ -405,21 +292,6 @@ class _CandyTopicItemState extends State<CandyTopicItem> {
                                         ),
                                       ],
                                     ),
-                                    // style: TextStyle(
-                                    //   fontSize: 28,
-                                    //   fontFamily: 'Nunito',
-                                    //   fontWeight: FontWeight.w900,
-                                    //   letterSpacing: -0.5,
-                                    //   color: Colors.white,
-                                    //   height: 1.1,
-                                    //   shadows: [
-                                    //     Shadow(
-                                    //       color: shadowColor.withOpacity(0.6),
-                                    //       offset: const Offset(0, 1),
-                                    //       blurRadius: 3,
-                                    //     ),
-                                    //   ],
-                                    // ),
                                   ),
                                 ],
                               ),
@@ -435,6 +307,147 @@ class _CandyTopicItemState extends State<CandyTopicItem> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// Add this new widget for the bottom sheet content
+class _TopicBottomSheetContent extends ConsumerWidget {
+  final Topic topic;
+  final VoidCallback onFavoritePressed;
+
+  const _TopicBottomSheetContent({
+    required this.topic,
+    required this.onFavoritePressed,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final baseColor = AppColors.flat(topic.appColor).withOpacity(0.5);
+    final highlightColor = Color.lerp(
+        baseColor.withOpacity(0.1), theme.colorScheme.surfaceTint, 0.9)!;
+    
+    final userTopicsAsync = ref.watch(userTopicsProvider);
+    
+    final isFavorite = userTopicsAsync.when(
+      data: (userTopics) {
+        final favoriteMap = {
+          for (var ut in userTopics) ut.topicId: ut.isFavorite
+        };
+        return favoriteMap[topic.id] ?? false;
+      },
+      loading: () => false,
+      error: (_, __) => false,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AutoSizeText(
+                topic.title,
+                style: GoogleFonts.titilliumWeb(
+                  fontSize: 24,
+                  letterSpacing: -0.5,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  height: 1.1,
+                  shadows: [
+                    Shadow(
+                      color: highlightColor.withOpacity(0.5),
+                      offset: const Offset(2, 3),
+                      blurRadius: 3,
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                topic.description,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 12),
+              GlassButton(
+                text: isFavorite
+                    ? "Remove from Favorites"
+                    : "Add to Favorites",
+                icon: isFavorite ? Remix.heart_fill : Remix.heart_line,
+                size: GlassButtonSize.small,
+                align: GlassButtonAlign.center,
+                textColor: Theme.of(context).colorScheme.onSurface,
+                glassColor:
+                    Theme.of(context).colorScheme.surface.withOpacity(0.1),
+                borderColor: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withOpacity(0.2),
+                onPressed: onFavoritePressed,
+              ),
+              Divider(
+                height: 32,
+                thickness: 1,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withOpacity(0.2),
+              ),
+              GlassButton(
+                text: "Start Session",
+                height: 80,
+                icon: Remix.play_fill,
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 12),
+                textColor: Theme.of(context).colorScheme.onSurface,
+                glassColor:
+                    Theme.of(context).colorScheme.surface.withOpacity(0.1),
+                borderColor: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withOpacity(0.2),
+                onPressed: () {
+                  Navigator.pop(context); // Close the bottom sheet first
+                  Future.microtask(() {
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder:
+                            (context, animation, secondaryAnimation) =>
+                                TrancePlayer(
+                          topic: topic,
+                          tranceMethod: session.TranceMethod.Hypnotherapy,
+                        ),
+                        transitionsBuilder: (context, animation,
+                            secondaryAnimation, child) {
+                          const begin = Offset(0.0, 1.0);
+                          const end = Offset.zero;
+                          const curve = Curves.easeOutCubic;
+                          var tween = Tween(begin: begin, end: end)
+                              .chain(CurveTween(curve: curve));
+                          return SlideTransition(
+                            position: animation.drive(tween),
+                            child: child,
+                          );
+                        },
+                        transitionDuration:
+                            const Duration(milliseconds: 500),
+                      ),
+                    );
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
