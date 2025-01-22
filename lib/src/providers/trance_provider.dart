@@ -95,6 +95,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
 
       if (!mounted) return;
       state = const AsyncValue.loading();
+      _isLoadingAudio = true;  // Set loading state at start
 
       // Create initial session
       Session createdSession = Session(
@@ -418,7 +419,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     print('Clearing trance state');
     _timer?.cancel();
     _isPlaying = false;
-    _isLoadingAudio = false;
+    _isLoadingAudio = true;  // Reset to true so next session shows loading
     _cumulativeMilliseconds = 0;
     _previousTracksDuration = 0;
     _lastTrackStartTime = null;
