@@ -30,7 +30,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
 
   final FirestoreService _firestoreService;
   final String? _uid;
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  late AudioPlayer _audioPlayer;
   final Ref ref;
   Timer? _timer;
   bool _isPlaying = false;
@@ -53,6 +53,8 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
 
   TranceState(this._firestoreService, this._uid, this.ref)
       : super(AsyncValue<Session?>.data(null)) {
+    // Initialize audio player
+    _audioPlayer = AudioPlayer();
     // Set initial volumes
     _audioPlayer.setVolume(_voiceVolume);
     
@@ -426,16 +428,23 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     _currentTopic = null;
     _inductionTrack = null;
     _awakeningTrack = null;
+    _currentTrack = null;
     _inductionDuration = 0;
     _awakeningDuration = 0;
+    
+    // Properly dispose and recreate audio player
     _audioPlayer.stop();
     _audioPlayer.dispose();
+    _audioPlayer = AudioPlayer();
+    _audioPlayer.setVolume(_voiceVolume);
   }
 
   @override
   void dispose() {
     print('Disposing trance state');
-    clearState();
+    _timer?.cancel();
+    _audioPlayer.stop();
+    _audioPlayer.dispose();
     super.dispose();
   }
 }

@@ -749,13 +749,13 @@ class _SettingsState extends ConsumerState<SettingsPage> {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _buildUserInfo(context, ref, user),
                   const SizedBox(height: 24),
                   ClayContainer(
-                    color: theme.colorScheme.surface,
-                    parentColor: theme.colorScheme.surface,
+                    color: theme.colorScheme.surfaceTint,
+                    parentColor: theme.colorScheme.surfaceTint,
                     borderRadius: 12,
                     width: double.infinity,
                     height: 100,
@@ -834,13 +834,12 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                   ],
                   const Divider(),
                   ClayContainer(
-                    color: theme.colorScheme.surface,
-                    parentColor: theme.colorScheme.surface,
+                    color: theme.colorScheme.surfaceTint,
+                    parentColor: theme.colorScheme.surfaceTint,
                     borderRadius: 12,
                     width: double.infinity,
                     height: 100,
-                    depth: 20,
-                    spread: 2,
+                    
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
@@ -898,43 +897,18 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  ClayContainer(
+                  ClayButton(
+                    text: "Log Out",
                     color: theme.colorScheme.surfaceTint,
                     parentColor: theme.colorScheme.surfaceTint,
+                    size: ClayButtonSize.large,
+                    onPressed: () => _handleLogout(context),
+                    textColor: theme.colorScheme.onPrimary,
+                    depth: 20,
+                    spread: 4,
                     borderRadius: 12,
-                    width: double.infinity,
-                    height: 60,
-                    depth: 10,
-                    spread: 2,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => _handleLogout(context),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Remix.logout_box_r_line,
-                                color: theme.colorScheme.onErrorContainer,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Log Out',
-                                style: TextStyle(
-                                  color: theme.colorScheme.onErrorContainer,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
                   ),
+                  
                 ],
               ),
             ),
@@ -1010,9 +984,9 @@ class _BackgroundSoundBottomSheetState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            AutoSizeText(
               'Select Background Sound',
-              style: theme.textTheme.titleLarge,
+              style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
             Flexible(

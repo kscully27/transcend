@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/models/session.model.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/providers/trance_provider.dart';
+import 'package:trancend/src/ui/clay/clay_button.dart';
 import 'package:trancend/src/ui/clay/clay_container.dart';
 import 'package:trancend/src/ui/clay/clay_slider.dart';
 import 'package:trancend/src/ui/clay/clay_text.dart';
@@ -140,7 +141,7 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
     final innerSize = outerSize * 0.7;
 
     void _handleClose() {
-      tranceState.dispose();
+      ref.read(tranceStateProvider.notifier).clearState();
       Navigator.of(context).pop();
     }
 
@@ -234,7 +235,7 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 120),
+                      const SizedBox(height: 180),
                       Stack(
                         alignment: Alignment.center,
                         children: [
@@ -350,42 +351,20 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                       const SizedBox(height: 40),
                       
                       // Settings button
-                      ClayContainer(
+                      ClayButton(
+                        text: 'Trance Settings',
+                        size: ClayButtonSize.medium,
+                        textColor: theme.colorScheme.onSurface,
+                        icon: Icons.settings,
                         color: theme.colorScheme.surface,
-                        parentColor: theme.colorScheme.surfaceTint,
-                        height: 50,
-                        borderRadius: 25,
-                        width: 240,
-                        depth: 3,
-                        spread: 3,
-                        curveType: CurveType.none,
-                        child: GestureDetector(
-                          onTap: () => _showTranceSettings(context),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.settings,
-                                  color: theme.colorScheme.onSurface.withOpacity(0.7),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Trance Settings',
-                                  style: TextStyle(
-                                    color: theme.colorScheme.onSurface.withOpacity(0.7),
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        parentColor: theme.colorScheme.surface,
+                        depth: 20,
+                        spread: 4,
+                        width: 280,
+                        onPressed: () => _showTranceSettings(context),
                       ),
                       
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 400),
                     ],
                   ),
                 ),
