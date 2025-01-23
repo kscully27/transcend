@@ -299,7 +299,13 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer> with TickerProvider
                                       isPlaying ? Icons.pause : Icons.play_arrow,
                                       color: theme.colorScheme.onSurface.withOpacity(0.7),
                                     ),
-                                    onPressed: () => tranceState.togglePlayPause(),
+                                    onPressed: () {
+                                      if (isPlaying) {
+                                        tranceState.pauseCombinedAudio();
+                                      } else {
+                                        tranceState.playCombinedAudio();
+                                      }
+                                    },
                                   ),
                             ),
                           ),

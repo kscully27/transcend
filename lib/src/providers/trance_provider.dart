@@ -61,19 +61,29 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   TranceState(this._firestoreService, this._uid, this.ref, this._audioService)
       : super(AsyncValue<Session?>.data(null)) {
     // Initialize audio player
-    _audioPlayer = AudioPlayer();
-    // Set initial volumes
-    _audioPlayer.setVolume(_voiceVolume);
-    _audioService.setBackgroundVolume(_backgroundVolume);
+    _initAudioPlayer();
     
     // Register cleanup when provider is disposed
     ref.onDispose(() {
       print('Disposing TranceState');
       _timer?.cancel();
-      _audioPlayer.stop();
-      _audioPlayer.dispose();
+      _disposeAudioPlayer();
       _audioService.dispose();
     });
+  }
+
+  void _initAudioPlayer() {
+    _audioPlayer = AudioPlayer();
+    _audioPlayer.setVolume(_voiceVolume);
+  }
+
+  Future<void> _disposeAudioPlayer() async {
+    try {
+      await _audioPlayer.stop();
+      await _audioPlayer.dispose();
+    } catch (e) {
+      print('Error disposing audio player: $e');
+    }
   }
 
   bool get isPlaying => _isPlaying;
@@ -303,7 +313,11 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       await _updateSession();
 
       if (_isPlaying) {
-        await _audioPlayer.play();
+        // Play both audio sources simultaneously
+        await Future.wait([
+          _audioPlayer.play(),
+          _audioService.playBackgroundAudio()
+        ]);
       }
 
       state = AsyncValue.data(state.value);
@@ -373,21 +387,36 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     if (!mounted) return;
 
     try {
+      // Set playing state first to update UI immediately
       _isPlaying = true;
-
-      // Start background audio if available
-      await _audioService.playBackgroundAudio();
-
-      // Adjust session start time based on accumulated time
-      if (_sessionStartTime == null) {
-        _sessionStartTime = DateTime.now();
-      } else {
-        _sessionStartTime = DateTime.now()
-            .subtract(Duration(milliseconds: _cumulativeMilliseconds));
+      state = AsyncValue.data(state.value);
+      print('Playing combined audio');
+      
+      // Ensure we have a track to play
+      if (_currentTrack == null) {
+        await _playNextTrack();
       }
-
-      print('Playing and updating session in playCombinedAudio');
-      await _playAndUpdateSession();
+      
+      if (_currentTrack != null) {
+        // Start both audio sources simultaneously
+        await Future.wait([
+          _audioPlayer.play(),
+          _audioService.playBackgroundAudio()
+        ]);
+        
+        // Adjust session start time based on accumulated time
+        if (_sessionStartTime == null) {
+          _sessionStartTime = DateTime.now();
+        } else {
+          _sessionStartTime = DateTime.now()
+              .subtract(Duration(milliseconds: _cumulativeMilliseconds));
+        }
+        
+        _ensureTimerIsRunning();
+      } else {
+        // If we still don't have a track, revert playing state
+        _isPlaying = false;
+      }
 
       if (!mounted) return;
       state = AsyncValue.data(state.value);
@@ -403,9 +432,15 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     if (!mounted) return;
 
     try {
+      // Set paused state first to update UI immediately
       _isPlaying = false;
-      await _audioPlayer.pause();
-      await _audioService.pauseBackgroundAudio();
+      state = AsyncValue.data(state.value);
+      
+      // Pause both audio sources simultaneously
+      await Future.wait([
+        _audioPlayer.pause(),
+        _audioService.pauseBackgroundAudio()
+      ]);
 
       // Store current progress before pausing
       if (_sessionStartTime != null) {
@@ -413,13 +448,69 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
         final elapsed = pauseTime.difference(_sessionStartTime!).inMilliseconds;
         _cumulativeMilliseconds = elapsed;
       }
-      state = AsyncValue.data(state.value);
     } catch (e) {
       print('Error pausing audio: $e');
     }
   }
 
+  Future<void> stopAllAudio() async {
+    try {
+      _isPlaying = false;
+      _timer?.cancel();
+      
+      // Stop playback first
+      await _audioPlayer.stop();
+      await _audioService.pauseBackgroundAudio();  // Just pause background, don't stop
+      
+      // Reset state
+      _cumulativeMilliseconds = 0;
+      _sessionStartTime = null;
+      _currentTrack = null;
+      
+      // Only dispose and recreate the voice player
+      await _disposeAudioPlayer();
+      _initAudioPlayer();
+      
+      state = AsyncValue.data(state.value);
+    } catch (e) {
+      print('Error stopping all audio: $e');
+    }
+  }
+
+  void clearState() {
+    print('Clearing trance state');
+    
+    // Stop and dispose audio first
+    stopAllAudio();  // This will handle all audio cleanup and reinit the player
+    
+    // Reset all state variables
+    _isLoadingAudio = true;
+    _previousTracksDuration = 0;
+    _lastTrackStartTime = null;
+    _tracks = [];
+    _currentTrackIndex = 0;
+    _currentTopic = null;
+    _inductionTrack = null;
+    _awakeningTrack = null;
+    _inductionDuration = 0;
+    _awakeningDuration = 0;
+  }
+
+  @override
+  void dispose() {
+    print('Disposing trance state');
+    _timer?.cancel();
+    
+    // Only dispose the voice player
+    _disposeAudioPlayer();
+    _audioService.pauseBackgroundAudio();  // Just pause background audio
+    
+    super.dispose();
+  }
+
   Future<void> togglePlayPause() async {
+    if (!mounted) return;
+    
     if (_isPlaying) {
       await pauseCombinedAudio();
     } else {
@@ -437,58 +528,5 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     _voiceVolume = volume;
     await _audioPlayer.setVolume(volume);
     state = AsyncValue.data(state.value);
-  }
-
-  void clearState() {
-    print('Clearing trance state');
-    _timer?.cancel();
-    _isPlaying = false;
-    _isLoadingAudio = true;  // Reset to true so next session shows loading
-    _cumulativeMilliseconds = 0;
-    _previousTracksDuration = 0;
-    _lastTrackStartTime = null;
-    _sessionStartTime = null;
-    _tracks = [];
-    _currentTrackIndex = 0;
-    _currentTopic = null;
-    _inductionTrack = null;
-    _awakeningTrack = null;
-    _currentTrack = null;
-    _inductionDuration = 0;
-    _awakeningDuration = 0;
-    
-    // Stop background audio first
-    _audioService.stopBackgroundAudio();
-    
-    // Then stop and dispose the audio player
-    _audioPlayer.stop();
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        _audioPlayer.dispose();
-        // Create new player after disposal
-        _audioPlayer = AudioPlayer();
-        _audioPlayer.setVolume(_voiceVolume);
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    print('Disposing trance state');
-    _timer?.cancel();
-    
-    // Stop playback first
-    _audioPlayer.stop();
-    _audioService.stopBackgroundAudio();
-    
-    // Add small delay before disposal
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        _audioPlayer.dispose();
-        _audioService.dispose();
-      }
-    });
-    
-    super.dispose();
   }
 }
