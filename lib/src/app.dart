@@ -3,11 +3,15 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/pages/home.dart';
+import 'package:trancend/src/pages/demo.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
 import 'package:trancend/src/theme/app_theme.dart';
 import 'package:trancend/src/ui/clay/theme/clay_text_theme.dart';
 import 'package:trancend/src/ui/clay/theme/clay_theme.dart';
 import 'package:trancend/src/ui/clay/theme/clay_theme_data.dart';
+import 'package:get/get.dart';
+import 'package:trancend/src/locator.dart';
+import 'package:trancend/src/services/navigation.service.dart';
 
 import 'settings/settings_controller.dart';
 
@@ -37,9 +41,9 @@ class MyApp extends ConsumerWidget {
       child: ListenableBuilder(
         listenable: settingsController,
         builder: (BuildContext context, Widget? child) {
-          return MaterialApp(
+          return GetMaterialApp(
             debugShowCheckedModeBanner: false,
-            restorationScopeId: 'app',
+            navigatorKey: locator<NavigationService>().navigatorKey,
             localizationsDelegates: const [
               AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
@@ -64,6 +68,13 @@ class MyApp extends ConsumerWidget {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(child: Text('Error: $error')),
             ),
+            getPages: [
+              GetPage(
+                name: DemoPage.routeName,
+                page: () => const DemoPage(),
+                transition: Transition.fade,
+              ),
+            ],
           );
         },
       ),

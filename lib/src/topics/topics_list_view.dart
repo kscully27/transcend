@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trancend/src/locator.dart';
+import 'package:trancend/src/pages/demo.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/providers/topics_provider.dart';
 import 'package:trancend/src/providers/user_topics_provider.dart';
@@ -9,6 +10,8 @@ import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/topics/candy_topic_item.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
+import 'package:get/get.dart';
+import 'package:trancend/src/services/navigation.service.dart';
 
 double firstDepth = 15;
 double secondDepth = 10;
@@ -355,6 +358,20 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
                   ),
                 ),
               ],
+            ),
+
+            Positioned(
+              top: 30,
+              right: 20,
+              child: IconButton(
+                icon: const Icon(Icons.water_drop),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const DemoPage()),
+                  );
+                },
+              ),
             ),
           ],
         ),
