@@ -69,7 +69,7 @@ class PondEffectState extends State<PondEffect> with SingleTickerProviderStateMi
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [const ui.Color.fromARGB(255, 231, 118, 87), const ui.Color.fromARGB(255, 186, 77, 71)],
+          colors: [const ui.Color.fromARGB(255, 181, 133, 98), const ui.Color.fromARGB(255, 169, 74, 39)],
         ).createShader(Offset.zero & widget.size);
       
       canvas.drawRect(Offset.zero & widget.size, paint);
