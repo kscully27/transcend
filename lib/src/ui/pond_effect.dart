@@ -10,8 +10,10 @@ import 'package:flutter/services.dart';
 class PondEffect extends StatefulWidget {
   final Widget child;
   final Size size;
+  final Color? color1;
+  final Color? color2;
 
-  const PondEffect({required this.child, required this.size, Key? key}) : super(key: key);
+  const PondEffect({required this.child, required this.size, this.color1, this.color2, Key? key}) : super(key: key);
 
   @override
   PondEffectState createState() => PondEffectState();
@@ -23,6 +25,7 @@ class PondEffectState extends State<PondEffect> with SingleTickerProviderStateMi
   Offset? _lastTapPosition;
   ui.Image? _texture;
   bool _isLoading = true;
+  bool _isDisposed = false;
 
   @override
   void initState() {
@@ -31,18 +34,29 @@ class PondEffectState extends State<PondEffect> with SingleTickerProviderStateMi
       vsync: this,
       duration: const Duration(seconds: 2),
     )..addListener(() {
-      setState(() {});
+      if (!_isDisposed) {
+        setState(() {});
+      }
     });
-    _loadShader();
-    _captureBackground();
+    _initializeEffect();
+  }
+
+  Future<void> _initializeEffect() async {
+    await _loadShader();
+    if (!_isDisposed) {
+      await _captureBackground();
+    }
   }
 
   Future<void> _loadShader() async {
+    if (_isDisposed) return;
+    
     try {
       print('Loading shader...');
       final program = await FragmentProgram.fromAsset('shaders/pond_effect.frag');
+      if (_isDisposed) return;
+      
       print('Shader program loaded');
-      if (!mounted) return;
       setState(() {
         shader = program.fragmentShader();
         _isLoading = false;
@@ -50,9 +64,9 @@ class PondEffectState extends State<PondEffect> with SingleTickerProviderStateMi
         _controller.repeat();
       });
     } catch (e, stack) {
+      if (_isDisposed) return;
       print('Error loading shader: $e');
       print('Stack trace: $stack');
-      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -60,17 +74,18 @@ class PondEffectState extends State<PondEffect> with SingleTickerProviderStateMi
   }
 
   Future<void> _captureBackground() async {
+    if (_isDisposed) return;
+    
     try {
       final recorder = PictureRecorder();
       final canvas = Canvas(recorder);
       
-      // Draw the background gradient
       final paint = Paint()
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [const ui.Color.fromARGB(255, 181, 133, 98), const ui.Color.fromARGB(255, 169, 74, 39)],
-        ).createShader(Offset.zero & widget.size);
+          colors: [widget.color1 ?? const ui.Color.fromARGB(255, 232, 122, 92), widget.color2 ?? const ui.Color.fromARGB(255, 226, 116, 97)],
+        ).createShader(Offset(0, -120) & widget.size);
       
       canvas.drawRect(Offset.zero & widget.size, paint);
       
@@ -80,22 +95,21 @@ class PondEffectState extends State<PondEffect> with SingleTickerProviderStateMi
         widget.size.height.round(),
       );
       
-      if (mounted) setState(() {});
+      if (!_isDisposed) {
+        setState(() {});
+      }
     } catch (e) {
       print('Error capturing background: $e');
     }
   }
 
   void click(int x, int y) {
+    if (_isDisposed || shader == null) return;
+    
     print('Click at ($x, $y)');
-    if (shader == null) {
-      print('Shader is null, cannot process click');
-      return;
-    }
     setState(() {
       _lastTapPosition = Offset(x.toDouble(), y.toDouble());
       print('Updated tap position to $_lastTapPosition');
-      // Reset and start the animation
       _controller.reset();
       _controller.forward();
     });
@@ -103,37 +117,36 @@ class PondEffectState extends State<PondEffect> with SingleTickerProviderStateMi
 
   @override
   void dispose() {
+    _isDisposed = true;
     _controller.dispose();
     _texture?.dispose();
+    shader = null;
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (details) {
-        click(details.localPosition.dx.toInt(), details.localPosition.dy.toInt());
-      },
-      child: Stack(
-        children: [
-          widget.child,
-          if (!_isLoading && shader != null && _texture != null)
-            Positioned.fill(
-              child: RepaintBoundary(
-                child: CustomPaint(
-                  size: widget.size,
-                  painter: ShaderPainter(
-                    shader: shader!,
-                    time: _controller.value,
-                    resolution: widget.size,
-                    mousePosition: _lastTapPosition ?? Offset.zero,
-                    texture: _texture!,
-                  ),
+    if (_isDisposed) return widget.child;
+    
+    return Stack(
+      children: [
+        widget.child,
+        if (!_isLoading && shader != null && _texture != null)
+          Positioned.fill(
+            child: RepaintBoundary(
+              child: CustomPaint(
+                size: widget.size,
+                painter: ShaderPainter(
+                  shader: shader!,
+                  time: _controller.value,
+                  resolution: widget.size,
+                  mousePosition: _lastTapPosition ?? Offset.zero,
+                  texture: _texture!,
                 ),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }
