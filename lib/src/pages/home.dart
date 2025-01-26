@@ -56,11 +56,6 @@ class _HomePageState extends ConsumerState<HomePage> {
             backgroundColor: theme.colorScheme.surface,
             emboss: false,
             parentColor: theme.colorScheme.surface,
-            borderColors: [
-              theme.colorScheme.primary.withOpacity(0.2),
-              theme.colorScheme.primary,
-              theme.colorScheme.primary.withOpacity(0.2),
-            ],
             selectedItemColor: theme.colorScheme.onSurface,
             unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.6),
             sheetOpenIconBoxColor: theme.colorScheme.primary,

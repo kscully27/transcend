@@ -313,11 +313,12 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
 
     var bgColor =
         widget.backgroundColor ?? Theme.of(context).colorScheme.surface;
+
     var gradientColors = widget.borderColors ??
         [
-          bgColor.withOpacity(0.8),
-          Theme.of(context).colorScheme.primary.withOpacity(0.6),
-          bgColor.withOpacity(0.8),
+          Colors.transparent,
+          Colors.transparent,
+          Colors.transparent,
         ];
 
     CustomPainter painter = _BottomPainterPlain(gradientColors);
@@ -401,6 +402,65 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class ClayBottomNavigation extends StatelessWidget {
+  final int selectedIndex;
+  final List<ClayBottomNavItem> items;
+  final ValueChanged<int> onItemSelected;
+
+  const ClayBottomNavigation({
+    super.key,
+    required this.selectedIndex,
+    required this.items,
+    required this.onItemSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: items.asMap().entries.map((entry) {
+            final index = entry.key;
+            final item = entry.value;
+            final isSelected = selectedIndex == index;
+
+            return Expanded(
+              child: ClayContainer(
+                color: theme.colorScheme.surface,
+                parentColor: theme.colorScheme.surface,
+                spread: 2,
+                depth: isSelected ? -20 : 20,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => onItemSelected(index),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Icon(
+                        isSelected && item.activeIcon != null ? item.activeIcon! : item.icon,
+                        color: isSelected
+                            ? theme.colorScheme.onSurface
+                            : theme.colorScheme.onSurface.withOpacity(0.5),
+                        size: isSelected ? 24 : 21,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }

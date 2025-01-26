@@ -56,7 +56,7 @@ class _BottomPainter extends CustomPainter {
     path.close();
     Paint paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
+      ..strokeWidth = -0.4
       ..shader = LinearGradient(
         colors: colors,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
