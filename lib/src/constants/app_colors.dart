@@ -535,13 +535,15 @@ class AppColors {
     }
   }
 
-  static Gradient marsBackgroundGradient(BuildContext context) {
+  static LinearGradient marsBackgroundGradient(BuildContext context) {
+    final theme = Theme.of(context);
     return LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
+      stops: const [0.2, 0.7], // Second color starts at 30% from top
       colors: [
-        dark('dark'),
-        flat('dark'),
+        theme.colorScheme.secondary,
+        theme.colorScheme.surface,
       ],
     );
   }

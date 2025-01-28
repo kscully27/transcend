@@ -37,7 +37,25 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
     super.initState();
     _pageController = PageController(initialPage: 0);
     
-    // Initialize both providers
+    // Listen to page scroll changes
+    _pageController.addListener(() {
+      // Calculate the current page from the scroll position
+      final page = _pageController.page;
+      if (page != null) {
+        // Calculate target scroll position based on current page
+        final buttonWidth = 100.0;  // Match the width in the Container
+        final buttonMargin = 8.0;   // Total horizontal margins (4 + 4)
+        final sectionWidth = buttonWidth + buttonMargin;
+        final targetScroll = sectionWidth * page;
+        
+        // Update category scroll position
+        _categoriesScrollController.jumpTo(
+          targetScroll.clamp(0.0, _categoriesScrollController.position.maxScrollExtent)
+        );
+      }
+    });
+    
+    // Initialize providers
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(userProvider);
       ref.read(topicsProvider);
@@ -56,8 +74,8 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
         return PageView(
           controller: _pageController,
           onPageChanged: (index) {
+            // Only update the selected category
             ref.read(topicsProvider.notifier).setSelectedCategory(categories[index]);
-            _scrollToCategory(index);
           },
           children: categories.map((category) {
             final filteredTopics = topics
@@ -195,24 +213,6 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
     );
   }
 
-  void _scrollToCategory(int index) {
-    if (!_categoriesScrollController.hasClients) return;
-    
-    final buttonWidth = 120.0;  // Approximate width of each button
-    final padding = 4.0;  // Left margin of each button
-    final screenPadding = 12.0; // The horizontal padding of the ListView
-    
-    // Calculate the target scroll position by multiplying the index by the button width and padding
-    // Then subtract the screen padding to align with the left edge
-    final targetScroll = (buttonWidth + padding) * index - screenPadding;
-
-    _categoriesScrollController.animateTo(
-      targetScroll.clamp(0.0, _categoriesScrollController.position.maxScrollExtent),
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
-  }
-
   void _onCategorySelected(String category) {
     final categories = ref.read(topicsProvider.notifier).getCategories();
     final index = categories.indexOf(category);
@@ -222,7 +222,6 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
-      _scrollToCategory(index);
     }
   }
 
@@ -318,7 +317,7 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
                     child: ListView(
                       controller: _categoriesScrollController,
                       scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                       children: ref
                           .read(topicsProvider.notifier)
                           .getCategories()
@@ -330,7 +329,9 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
                             left: 4,
                             top: 8,
                             bottom: 8,
+                            right: 4,  // Add right margin to prevent cut-off
                           ),
+                          width: 120,  // Fixed width for consistent sizing
                           child: GlassButton(
                             borderRadius: 17,
                             borderWidth: .5,

@@ -3,9 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 import 'package:image/image.dart' as img;
-import 'package:flutter/services.dart';
 
 class PondEffect extends StatefulWidget {
   final Widget child;
@@ -13,16 +11,23 @@ class PondEffect extends StatefulWidget {
   final Color? color1;
   final Color? color2;
 
-  const PondEffect({required this.child, required this.size, this.color1, this.color2, Key? key}) : super(key: key);
+  const PondEffect(
+      {required this.child,
+      required this.size,
+      this.color1,
+      this.color2,
+      Key? key})
+      : super(key: key);
 
   @override
   PondEffectState createState() => PondEffectState();
 }
 
-class PondEffectState extends State<PondEffect> with SingleTickerProviderStateMixin {
+class PondEffectState extends State<PondEffect>
+    with SingleTickerProviderStateMixin {
   FragmentShader? shader;
   late final AnimationController _controller;
-  Offset? _lastTapPosition;
+  Offset _lastTapPosition = Offset.zero;
   ui.Image? _texture;
   bool _isLoading = true;
   bool _isDisposed = false;
@@ -32,12 +37,8 @@ class PondEffectState extends State<PondEffect> with SingleTickerProviderStateMi
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
-    )..addListener(() {
-      if (!_isDisposed) {
-        setState(() {});
-      }
-    });
+      duration: const Duration(milliseconds: 1500),
+    );
     _initializeEffect();
   }
 
@@ -50,18 +51,18 @@ class PondEffectState extends State<PondEffect> with SingleTickerProviderStateMi
 
   Future<void> _loadShader() async {
     if (_isDisposed) return;
-    
+
     try {
       print('Loading shader...');
-      final program = await FragmentProgram.fromAsset('shaders/pond_effect.frag');
+      final program =
+          await FragmentProgram.fromAsset('shaders/pond_effect.frag');
       if (_isDisposed) return;
-      
+
       print('Shader program loaded');
       setState(() {
         shader = program.fragmentShader();
         _isLoading = false;
         print('Shader initialized and ready');
-        _controller.repeat();
       });
     } catch (e, stack) {
       if (_isDisposed) return;
@@ -75,26 +76,30 @@ class PondEffectState extends State<PondEffect> with SingleTickerProviderStateMi
 
   Future<void> _captureBackground() async {
     if (_isDisposed) return;
-    
+
     try {
       final recorder = PictureRecorder();
       final canvas = Canvas(recorder);
-      
+
       final paint = Paint()
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [widget.color1 ?? const ui.Color.fromARGB(255, 232, 122, 92), widget.color2 ?? const ui.Color.fromARGB(255, 226, 116, 97)],
+          stops: const [0.22, 0.7], // Second color starts at 30% from top
+          colors: [
+            widget.color1 ?? const ui.Color.fromARGB(255, 232, 122, 92),
+            widget.color2 ?? const ui.Color.fromARGB(255, 226, 116, 97)
+          ],
         ).createShader(Offset(0, -120) & widget.size);
-      
+
       canvas.drawRect(Offset.zero & widget.size, paint);
-      
+
       final picture = recorder.endRecording();
       _texture = await picture.toImage(
         widget.size.width.round(),
         widget.size.height.round(),
       );
-      
+
       if (!_isDisposed) {
         setState(() {});
       }
@@ -106,13 +111,12 @@ class PondEffectState extends State<PondEffect> with SingleTickerProviderStateMi
   void click(int x, int y) {
     if (_isDisposed || shader == null) return;
     
-    print('Click at ($x, $y)');
-    setState(() {
-      _lastTapPosition = Offset(x.toDouble(), y.toDouble());
-      print('Updated tap position to $_lastTapPosition');
-      _controller.reset();
-      _controller.forward();
-    });
+    _lastTapPosition = Offset(x.toDouble(), y.toDouble());
+    _controller
+      ..reset()
+      ..forward();
+      
+    setState(() {});
   }
 
   @override
@@ -127,22 +131,27 @@ class PondEffectState extends State<PondEffect> with SingleTickerProviderStateMi
   @override
   Widget build(BuildContext context) {
     if (_isDisposed) return widget.child;
-    
+
     return Stack(
       children: [
         widget.child,
         if (!_isLoading && shader != null && _texture != null)
           Positioned.fill(
             child: RepaintBoundary(
-              child: CustomPaint(
-                size: widget.size,
-                painter: ShaderPainter(
-                  shader: shader!,
-                  time: _controller.value,
-                  resolution: widget.size,
-                  mousePosition: _lastTapPosition ?? Offset.zero,
-                  texture: _texture!,
-                ),
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return CustomPaint(
+                    size: widget.size,
+                    painter: ShaderPainter(
+                      shader: shader!,
+                      time: _controller.value,
+                      resolution: widget.size,
+                      mousePosition: _controller.isAnimating ? _lastTapPosition : Offset.zero,
+                      texture: _texture!,
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -171,8 +180,8 @@ class ShaderPainter extends CustomPainter {
     shader
       ..setFloat(0, resolution.width)
       ..setFloat(1, resolution.height)
-      ..setFloat(2, mousePosition.dx)
-      ..setFloat(3, mousePosition.dy)
+      ..setFloat(2, mousePosition == Offset.zero ? -1000 : mousePosition.dx)
+      ..setFloat(3, mousePosition == Offset.zero ? -1000 : mousePosition.dy)
       ..setFloat(4, time)
       ..setImageSampler(0, texture);
 
@@ -210,9 +219,9 @@ class RipplePainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
 
-      final maxRadius = size.width * 0.4;  // Larger radius
+      final maxRadius = size.width * 0.4; // Larger radius
       final radius = maxRadius * ripple.progress;
-      
+
       // Draw multiple circles for each ripple
       for (var i = 0; i < 3; i++) {
         final innerRadius = radius - (i * 10);
@@ -265,8 +274,7 @@ class RenderShader extends RenderProxyBox {
   RenderShader({required this.canvasSize, this.fullSize, RenderBox? renderBox})
       : super(renderBox) {
     _editableImage = img.Image(
-        width: canvasSize.width.round(),
-        height: canvasSize.height.round());
+        width: canvasSize.width.round(), height: canvasSize.height.round());
     srcRect = Offset.zero & canvasSize;
   }
 
