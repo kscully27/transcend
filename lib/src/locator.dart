@@ -7,6 +7,7 @@ import 'package:trancend/src/services/localStorage.service.dart';
 import 'package:trancend/src/services/navigation.service.dart';
 import 'package:trancend/src/services/storage_service.dart';
 import 'package:trancend/src/services/user.service.dart';
+import 'package:trancend/src/services/analytics.service.dart';
 
 final GetIt locator = GetIt.instance;
 
@@ -61,4 +62,8 @@ Future<void> setupLocator() async {
   if (!locator.isRegistered<BackgroundAudioService>()) {
     locator.registerSingleton<BackgroundAudioService>(BackgroundAudioService());
   }
+
+  // Register analytics service
+  locator.registerLazySingleton<AnalyticsService>(() => FirebaseAnalyticsService());
+  await locator<AnalyticsService>().loadService();
 }

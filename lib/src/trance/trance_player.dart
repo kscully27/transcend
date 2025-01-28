@@ -1,8 +1,11 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/session.model.dart';
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/providers/trance_provider.dart';
+import 'package:trancend/src/services/analytics.service.dart';
 import 'package:trancend/src/ui/clay/clay_button.dart';
 import 'package:trancend/src/ui/clay/clay_container.dart';
 import 'package:trancend/src/ui/clay/clay_slider.dart';
@@ -37,6 +40,17 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer>
   @override
   void initState() {
     super.initState();
+
+    // Track screen view with topic info
+    locator<AnalyticsService>().setCurrentScreen('trance_player');
+    locator<AnalyticsService>().logEvent(
+      name: 'start_trance_session',
+      parameters: {
+        'topic_id': widget.topic.id,
+        'topic_title': widget.topic.title,
+        'trance_method': widget.tranceMethod.name,
+      },
+    );
 
     _animationController1 = AnimationController(
       vsync: this,
@@ -114,6 +128,17 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer>
 
   @override
   void dispose() {
+    // Track session end
+    locator<AnalyticsService>().logEvent(
+      name: 'end_trance_session',
+      parameters: {
+        'topic_id': widget.topic.id,
+        'topic_title': widget.topic.title,
+        'trance_method': widget.tranceMethod.name,
+        'duration_ms': _currentMillisecond,
+      },
+    );
+
     print('dispose in trance player');
 
     // Only handle animation cleanup in dispose
@@ -148,6 +173,17 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer>
     final innerSize = outerSize * 0.8;
 
     void _handleClose() {
+      // Track manual session close
+      locator<AnalyticsService>().logEvent(
+        name: 'close_trance_session',
+        parameters: {
+          'topic_id': widget.topic.id,
+          'topic_title': widget.topic.title,
+          'trance_method': widget.tranceMethod.name,
+          'duration_ms': _currentMillisecond,
+        },
+      );
+
       ref.read(tranceStateProvider.notifier).clearState();
       Navigator.of(context).pop();
     }
@@ -521,6 +557,9 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer>
     final theme = Theme.of(context);
     final tranceState = ref.read(tranceStateProvider.notifier);
 
+    // Track settings open
+    locator<AnalyticsService>().logEvent(name: 'open_trance_settings');
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -564,10 +603,14 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer>
                           backgroundVolume = value;
                         });
                         tranceState.setBackgroundVolume(value);
+                        // Track volume change
+                        locator<AnalyticsService>().logEvent(
+                          name: 'adjust_background_volume',
+                          parameters: {'volume': value},
+                        );
                       },
                       parentColor: theme.colorScheme.surface,
-                      activeSliderColor:
-                          theme.colorScheme.onSurface.withOpacity(0.7),
+                      activeSliderColor: theme.colorScheme.onSurface.withOpacity(0.7),
                       hasKnob: false,
                     ),
                     const SizedBox(height: 24),
@@ -587,10 +630,14 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer>
                           voiceVolume = value;
                         });
                         tranceState.setVoiceVolume(value);
+                        // Track volume change
+                        locator<AnalyticsService>().logEvent(
+                          name: 'adjust_voice_volume',
+                          parameters: {'volume': value},
+                        );
                       },
                       parentColor: theme.colorScheme.surface,
-                      activeSliderColor:
-                          theme.colorScheme.onSurface.withOpacity(0.7),
+                      activeSliderColor: theme.colorScheme.onSurface.withOpacity(0.7),
                       hasKnob: false,
                     ),
                   ],
