@@ -11,6 +11,7 @@ import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/goal.model.dart';
 import 'package:trancend/src/models/settings.model.dart';
 import 'package:trancend/src/models/user.model.dart' as user_model;
+import 'package:trancend/src/services/analytics.service.dart';
 import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/services/user.service.dart';
 
@@ -69,6 +70,7 @@ class AuthenticationServiceAdapter implements AuthenticationService {
   final auth.FirebaseAuth _firebaseAuth = auth.FirebaseAuth.instance;
   final FirestoreService _firestoreService = locator<FirestoreService>();
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final _analytics = locator<AnalyticsService>();
 
   UserService get _userService => _ref.read(userServiceInstanceProvider);
 
@@ -218,6 +220,10 @@ class AuthenticationServiceAdapter implements AuthenticationService {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
+        _analytics.logEvent(
+          name: 'login_cancelled',
+          parameters: {'method': 'google'},
+        );
         return AuthResult(
           success: false,
           error: true,
@@ -237,7 +243,20 @@ class AuthenticationServiceAdapter implements AuthenticationService {
       final firebaseUser = userCredential.user;
 
       if (firebaseUser == null) {
+        _analytics.logEvent(
+          name: 'login_error',
+          parameters: {
+            'method': 'google',
+            'error': 'Firebase user is null after Google sign in',
+          },
+        );
         throw Exception('Firebase user is null after Google sign in');
+      }
+
+      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        _analytics.logSignUp('google');
+      } else {
+        _analytics.logLogin('google');
       }
 
       if (userCredential.additionalUserInfo?.isNewUser ?? false) {
@@ -261,12 +280,14 @@ class AuthenticationServiceAdapter implements AuthenticationService {
         errorMessage: '',
       );
     } catch (e) {
-      print('Error during Google sign in: $e');
-      return AuthResult(
-        success: false,
-        error: true,
-        errorMessage: e.toString(),
+      _analytics.logEvent(
+        name: 'login_error',
+        parameters: {
+          'method': 'google',
+          'error': e.toString(),
+        },
       );
+      rethrow;
     } finally {
       _userService.setLoading(false);
     }
@@ -278,8 +299,18 @@ class AuthenticationServiceAdapter implements AuthenticationService {
 
   @override
   Future<void> signOut() async {
-    await _firebaseAuth.signOut();
-    _userService.clearUser();
+    try {
+      _analytics.logEvent(name: 'sign_out');
+      await _firebaseAuth.signOut();
+      await _googleSignIn.signOut();
+      await FacebookAuth.instance.logOut();
+    } catch (e) {
+      _analytics.logEvent(
+        name: 'sign_out_error',
+        parameters: {'error': e.toString()},
+      );
+      rethrow;
+    }
   }
 
   // Implement other required methods...
@@ -352,6 +383,12 @@ class AuthenticationServiceAdapter implements AuthenticationService {
         throw Exception('Firebase user is null after Apple sign in');
       }
 
+      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        _analytics.logSignUp('apple');
+      } else {
+        _analytics.logLogin('apple');
+      }
+
       // Handle new user creation
       if (userCredential.additionalUserInfo?.isNewUser ?? false) {
         // Combine given name and family name if available
@@ -382,7 +419,13 @@ class AuthenticationServiceAdapter implements AuthenticationService {
         errorMessage: '',
       );
     } catch (e) {
-      print('Error during Apple sign in: $e');
+      _analytics.logEvent(
+        name: 'login_error',
+        parameters: {
+          'method': 'apple',
+          'error': e.toString(),
+        },
+      );
       return AuthResult(
         success: false,
         error: true,
@@ -403,8 +446,30 @@ class AuthenticationServiceAdapter implements AuthenticationService {
         permissions: ['email', 'public_profile'],
       );
 
-      if (loginResult.status != LoginStatus.success) {
-        throw Exception('Facebook login failed: ${loginResult.message}');
+      if (loginResult.status == LoginStatus.cancelled) {
+        _analytics.logEvent(
+          name: 'login_cancelled',
+          parameters: {'method': 'facebook'},
+        );
+        return AuthResult(
+          success: false,
+          error: true,
+          errorMessage: 'Facebook login was cancelled by user',
+        );
+      }
+
+      if (loginResult.status == LoginStatus.success) {
+        final auth.OAuthCredential credential = auth.FacebookAuthProvider.credential(
+          loginResult.accessToken!.token,
+        );
+
+        final userCredential = await _firebaseAuth.signInWithCredential(credential);
+        
+        if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+          _analytics.logSignUp('facebook');
+        } else {
+          _analytics.logLogin('facebook');
+        }
       }
 
       // Get the access token
@@ -453,12 +518,14 @@ class AuthenticationServiceAdapter implements AuthenticationService {
         errorMessage: '',
       );
     } catch (e) {
-      print('Error during Facebook sign in: $e');
-      return AuthResult(
-        success: false,
-        error: true,
-        errorMessage: e.toString(),
+      _analytics.logEvent(
+        name: 'login_error',
+        parameters: {
+          'method': 'facebook',
+          'error': e.toString(),
+        },
       );
+      rethrow;
     } finally {
       _userService.setLoading(false);
     }
@@ -468,9 +535,16 @@ class AuthenticationServiceAdapter implements AuthenticationService {
   Future forgotPassword(String email) async {
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email);
-      return true;
+      _analytics.logEvent(
+        name: 'password_reset_email_sent',
+        parameters: {'email': email},
+      );
     } catch (e) {
-      return e.toString();
+      _analytics.logEvent(
+        name: 'password_reset_error',
+        parameters: {'error': e.toString()},
+      );
+      rethrow;
     }
   }
 
@@ -504,6 +578,7 @@ class AuthenticationServiceAdapter implements AuthenticationService {
       final existingUser = await _firestoreService.getUser(firebaseUser.uid);
       _userService.setUser(existingUser);
 
+      _analytics.logLogin('email');
       return AuthResult(
         success: true,
         error: false,
@@ -533,6 +608,13 @@ class AuthenticationServiceAdapter implements AuthenticationService {
         errorMessage: errorMessage,
       );
     } catch (e) {
+      _analytics.logEvent(
+        name: 'login_error',
+        parameters: {
+          'method': 'email',
+          'error': e.toString(),
+        },
+      );
       return AuthResult(
         success: false,
         error: true,
@@ -734,6 +816,7 @@ class AuthenticationServiceAdapter implements AuthenticationService {
       await _firestoreService.createUser(newUser);
       _userService.setUser(newUser);
 
+      _analytics.logSignUp('email');
       return AuthResult(
         success: true,
         error: false,
@@ -763,6 +846,13 @@ class AuthenticationServiceAdapter implements AuthenticationService {
         errorMessage: errorMessage,
       );
     } catch (e) {
+      _analytics.logEvent(
+        name: 'signup_error',
+        parameters: {
+          'method': 'email',
+          'error': e.toString(),
+        },
+      );
       return AuthResult(
         success: false,
         error: true,
