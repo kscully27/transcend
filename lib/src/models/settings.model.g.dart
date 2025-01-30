@@ -16,8 +16,8 @@ _$UserSettingsImpl _$$UserSettingsImplFromJson(Map<String, dynamic> json) =>
       useCellularData: json['useCellularData'] as bool,
       usesDeepening: json['usesDeepening'] as bool,
       usesOwnDeepening: json['usesOwnDeepening'] as bool,
-      voiceVolume: (json['voiceVolume'] as num?)?.toDouble() ?? 0.5,
-      backgroundVolume: (json['backgroundVolume'] as num?)?.toDouble() ?? 0.4,
+      voiceVolume: (json['voiceVolume'] as num?)?.toDouble() ?? 0.8,
+      backgroundVolume: (json['backgroundVolume'] as num?)?.toDouble() ?? 0.2,
     );
 
 Map<String, dynamic> _$$UserSettingsImplToJson(_$UserSettingsImpl instance) =>

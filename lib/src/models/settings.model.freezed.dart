@@ -233,8 +233,8 @@ class _$UserSettingsImpl implements _UserSettings {
       required this.useCellularData,
       required this.usesDeepening,
       required this.usesOwnDeepening,
-      this.voiceVolume = 0.5,
-      this.backgroundVolume = 0.4});
+      this.voiceVolume = 0.8,
+      this.backgroundVolume = 0.2});
 
   factory _$UserSettingsImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserSettingsImplFromJson(json);

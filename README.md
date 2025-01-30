@@ -17,11 +17,10 @@ To do list:
 - [ ] Store Trance Sessions
 - [x] Add Firebase Analytics
 - [ ] Add Firebase Messaging
-- [ ] Add Firebase Storage
 - [ ] Add Firebase Crashlytics
 - [ ] Add Firebase Remote Config
 - [ ] Add Firebase Performance Monitoring
-- [ ] Add an event tracking system
+- [x] Add an event tracking system
 - [ ] Auto-sync background/voice audio
 - [ ] Set lower background audio threshold
 - [ ] Save/load background audio

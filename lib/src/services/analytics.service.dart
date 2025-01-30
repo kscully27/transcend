@@ -1,87 +1,37 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/widgets.dart';
 
 abstract class AnalyticsService {
-  Object getAnalyticsObserver();
-  Future<bool> loadService();
-  Future<void> logAppOpen(bool fromPush);
-  Future<void> logEvent({
-    required String name,
-    Map<String, Object>? parameters,
-  });
-  Future setUid(String uid);
-  Future setUserProperty(String name, String value);
-  Future logLogin(String method);
-  Future logSignUp(String method);
-  Future<void> logShare({
-    required String contentType,
-    required String itemId,
-    required String method,
-  });
-  Future<void> logShareAccept({
-    required String contentType,
-    required String itemId,
-    required String method,
-  });
-  Future logPresentOffer({
-    required String itemId,
-    required String itemName,
-    required String itemCategory,
-    required int quantity,
-    double? price,
-    double? value,
-    String? currency,
-  });
-  Future logPurchase({
-    required String itemId,
-    required String itemName,
-    required String itemCategory,
-    required int quantity,
-    double? price,
-    double? value,
-    String? currency,
-  });
-  Future<void> logSearch({
-    required String searchTerm,
-    String? contentType,
-  });
+  Future<void> loadService();
+  NavigatorObserver getAnalyticsObserver();
+  Future<void> logEvent(String name, {Map<String, Object>? parameters});
   Future<void> setCurrentScreen(String screenName);
+  Future<void> setUserId(String userId);
+  Future<void> logLogin(String method);
+  Future<void> logSignUp(String method);
+  Future<void> logSearch(String searchTerm);
+  Future<void> logSelectContent({required String contentType, required String itemId});
+  Future<void> logShare({required String contentType, required String itemId, required String method});
+  Future<void> logSelectPromotion({required String promotionId, required String promotionName});
+  Future<void> logPurchase({required String transactionId, required double value, required String currency});
 }
 
 class FirebaseAnalyticsService implements AnalyticsService {
   final _analytics = FirebaseAnalytics.instance;
-  bool _initialized = false;
 
   @override
-  Object getAnalyticsObserver() {
+  Future<void> loadService() async {
+    // Initialize any required setup
+    await _analytics.setAnalyticsCollectionEnabled(true);
+  }
+
+  @override
+  NavigatorObserver getAnalyticsObserver() {
     return FirebaseAnalyticsObserver(analytics: _analytics);
   }
 
   @override
-  Future<bool> loadService() async {
-    try {
-      _initialized = true;
-      return true;
-    } catch (e) {
-      print('Error initializing analytics: $e');
-      return false;
-    }
-  }
-
-  @override
-  Future<void> logAppOpen(bool fromPush) async {
-    if (!_initialized) return;
-    await _analytics.logAppOpen();
-    if (fromPush) {
-      await logEvent(name: 'app_open_from_push');
-    }
-  }
-
-  @override
-  Future<void> logEvent({
-    required String name,
-    Map<String, Object>? parameters,
-  }) async {
-    if (!_initialized) return;
+  Future<void> logEvent(String name, {Map<String, Object>? parameters}) async {
     await _analytics.logEvent(
       name: name,
       parameters: parameters,
@@ -89,27 +39,39 @@ class FirebaseAnalyticsService implements AnalyticsService {
   }
 
   @override
-  Future setUid(String uid) async {
-    if (!_initialized) return;
-    await _analytics.setUserId(id: uid);
+  Future<void> setCurrentScreen(String screenName) async {
+    await _analytics.setCurrentScreen(screenName: screenName);
   }
 
   @override
-  Future setUserProperty(String name, String value) async {
-    if (!_initialized) return;
-    await _analytics.setUserProperty(name: name, value: value);
+  Future<void> setUserId(String userId) async {
+    await _analytics.setUserId(id: userId);
   }
 
   @override
-  Future logLogin(String method) async {
-    if (!_initialized) return;
+  Future<void> logLogin(String method) async {
     await _analytics.logLogin(loginMethod: method);
   }
 
   @override
-  Future logSignUp(String method) async {
-    if (!_initialized) return;
+  Future<void> logSignUp(String method) async {
     await _analytics.logSignUp(signUpMethod: method);
+  }
+
+  @override
+  Future<void> logSearch(String searchTerm) async {
+    await _analytics.logSearch(searchTerm: searchTerm);
+  }
+
+  @override
+  Future<void> logSelectContent({
+    required String contentType,
+    required String itemId,
+  }) async {
+    await _analytics.logSelectContent(
+      contentType: contentType,
+      itemId: itemId,
+    );
   }
 
   @override
@@ -118,7 +80,6 @@ class FirebaseAnalyticsService implements AnalyticsService {
     required String itemId,
     required String method,
   }) async {
-    if (!_initialized) return;
     await _analytics.logShare(
       contentType: contentType,
       itemId: itemId,
@@ -127,72 +88,26 @@ class FirebaseAnalyticsService implements AnalyticsService {
   }
 
   @override
-  Future<void> logShareAccept({
-    required String contentType,
-    required String itemId,
-    required String method,
+  Future<void> logSelectPromotion({
+    required String promotionId,
+    required String promotionName,
   }) async {
-    if (!_initialized) return;
-    await logEvent(
-      name: 'share_accept',
-      parameters: {
-        'content_type': contentType,
-        'item_id': itemId,
-        'method': method,
-      },
-    );
-  }
-
-  @override
-  Future logPresentOffer({
-    required String itemId,
-    required String itemName,
-    required String itemCategory,
-    required int quantity,
-    double? price,
-    double? value,
-    String? currency,
-  }) async {
-    if (!_initialized) return;
     await _analytics.logSelectPromotion(
-      creativeName: itemName,
-      creativeSlot: itemCategory,
-      locationId: itemId,
+      promotionId: promotionId,
+      promotionName: promotionName,
     );
   }
 
   @override
-  Future logPurchase({
-    required String itemId,
-    required String itemName,
-    required String itemCategory,
-    required int quantity,
-    double? price,
-    double? value,
-    String? currency,
+  Future<void> logPurchase({
+    required String transactionId,
+    required double value,
+    required String currency,
   }) async {
-    if (!_initialized) return;
     await _analytics.logPurchase(
-      currency: currency ?? 'USD',
-      value: value ?? 0.0,
+      transactionId: transactionId,
+      value: value,
+      currency: currency,
     );
-  }
-
-  @override
-  Future<void> logSearch({
-    required String searchTerm,
-    String? contentType,
-  }) async {
-    if (!_initialized) return;
-    await _analytics.logSearch(
-      searchTerm: searchTerm,
-      origin: contentType,
-    );
-  }
-
-  @override
-  Future<void> setCurrentScreen(String screenName) async {
-    if (!_initialized) return;
-    await _analytics.setCurrentScreen(screenName: screenName);
   }
 } 

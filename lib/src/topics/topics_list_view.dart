@@ -1,4 +1,3 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,7 +6,6 @@ import 'package:trancend/src/pages/demo.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/providers/topics_provider.dart';
 import 'package:trancend/src/providers/user_topics_provider.dart';
-import 'package:trancend/src/services/analytics.service.dart';
 import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/topics/candy_topic_item.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
@@ -39,18 +37,18 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
     super.initState();
     _pageController = PageController(initialPage: 0);
     
-    // Track screen view
-    locator<AnalyticsService>().setCurrentScreen('topics_list');
-    
     // Listen to page scroll changes
     _pageController.addListener(() {
+      // Calculate the current page from the scroll position
       final page = _pageController.page;
       if (page != null) {
-        final buttonWidth = 100.0;
-        final buttonMargin = 8.0;
+        // Calculate target scroll position based on current page
+        final buttonWidth = 100.0;  // Match the width in the Container
+        final buttonMargin = 8.0;   // Total horizontal margins (4 + 4)
         final sectionWidth = buttonWidth + buttonMargin;
         final targetScroll = sectionWidth * page;
         
+        // Update category scroll position
         _categoriesScrollController.jumpTo(
           targetScroll.clamp(0.0, _categoriesScrollController.position.maxScrollExtent)
         );
@@ -151,20 +149,8 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
 
     try {
       final firestoreService = locator<FirestoreService>();
-      final userTopics = await firestoreService.getUserTopics(user.uid);
-      final isFavorite = userTopics.any((ut) => ut.topicId == topicId && ut.isFavorite);
-      
       await firestoreService.toggleTopicFavorite(user.uid, topicId);
       ref.invalidate(userTopicsProvider);
-
-      // Track favorite/unfavorite action
-      locator<AnalyticsService>().logEvent(
-        name: isFavorite ? 'unfavorite_topic' : 'favorite_topic',
-        parameters: {
-          'topic_id': topicId,
-          'user_id': user.uid,
-        },
-      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error updating favorite: ${e.toString()}')));
@@ -204,13 +190,7 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
                 children: [
                   GlassButton(
                     text: 'Not Now',
-                    onPressed: () {
-                      Navigator.pop(context);
-                      // Track "Not Now" click
-                      locator<AnalyticsService>().logEvent(
-                        name: 'login_prompt_dismissed',
-                      );
-                    },
+                    onPressed: () => Navigator.pop(context),
                     glassColor: Colors.white12,
                     textColor: Colors.white70,
                   ),
@@ -218,11 +198,8 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
                     text: 'Sign In',
                     onPressed: () {
                       Navigator.pop(context);
-                      // Track sign in click from prompt
-                      locator<AnalyticsService>().logEvent(
-                        name: 'login_prompt_accepted',
-                      );
                       // TODO: Navigate to sign in page
+                      // Navigator.pushNamed(context, '/signin');
                     },
                     glassColor: Colors.white24,
                     textColor: Colors.white,
@@ -244,14 +221,6 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
         index,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-      );
-
-      // Track category selection
-      locator<AnalyticsService>().logEvent(
-        name: 'select_topic_category',
-        parameters: {
-          'category': category,
-        },
       );
     }
   }

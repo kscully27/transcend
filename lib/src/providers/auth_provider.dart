@@ -1,16 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/settings.model.dart';
 import 'package:trancend/src/models/user.model.dart' as user_model;
 import 'package:trancend/src/services/authentication.service.dart';
 import 'package:trancend/src/services/firestore.service.dart';
 
-part 'auth_provider.g.dart';
+final userProvider = AsyncNotifierProvider<UserNotifier, user_model.User?>(() {
+  return UserNotifier();
+});
 
-@Riverpod(keepAlive: true)
-class User extends AsyncNotifier<user_model.User?> {
+class UserNotifier extends AsyncNotifier<user_model.User?> {
   @override
   Future<user_model.User?> build() async {
     final firestoreService = locator<FirestoreService>();
@@ -46,8 +46,7 @@ class User extends AsyncNotifier<user_model.User?> {
   }
 }
 
-@Riverpod(keepAlive: true)
-Stream<UserSettings?> userSettings(Ref ref) {
+final userSettingsProvider = StreamProvider<UserSettings?>((ref) {
   final user = ref.watch(userProvider);
   final firestoreService = locator<FirestoreService>();
   
@@ -59,15 +58,19 @@ Stream<UserSettings?> userSettings(Ref ref) {
     loading: () => Stream.value(null),
     error: (_, __) => Stream.value(null),
   );
-}
+});
 
-@Riverpod(keepAlive: true)
-AuthenticationService authService(Ref ref) {
+final authServiceProvider = Provider<AuthenticationService>((ref) {
   return AuthenticationServiceAdapter(ref);
-}
+});
+
+final currentUserProvider = StreamProvider<user_model.User>((ref) {
+  final authService = ref.watch(authServiceProvider);
+  return authService.onAuthStateChanged;
+});
 
 final backgroundSoundProvider = StateNotifierProvider<BackgroundSoundNotifier, user_model.BackgroundSound>((ref) {
-  final user = ref.read(userProvider).value;
+  final user = ref.watch(currentUserProvider).valueOrNull;
   return BackgroundSoundNotifier(user?.backgroundSound ?? user_model.BackgroundSound.Waves);
 });
 
@@ -79,10 +82,12 @@ class BackgroundSoundNotifier extends StateNotifier<user_model.BackgroundSound> 
   }
 }
 
-@riverpod
-class UserRefresh extends _$UserRefresh {
-  @override
-  int build() => 0;
+final userRefreshProvider = StateNotifierProvider<UserRefreshNotifier, int>((ref) {
+  return UserRefreshNotifier();
+});
+
+class UserRefreshNotifier extends StateNotifier<int> {
+  UserRefreshNotifier() : super(0);
 
   void refresh() => state++;
 } 

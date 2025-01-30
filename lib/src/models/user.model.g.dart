@@ -81,8 +81,8 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
       backgroundSound: $enumDecodeNullable(
               _$BackgroundSoundEnumMap, json['backgroundSound']) ??
           BackgroundSound.Waves,
-      backgroundVolume: (json['backgroundVolume'] as num?)?.toDouble() ?? 0.5,
-      voiceVolume: (json['voiceVolume'] as num?)?.toDouble() ?? 0.5,
+      backgroundVolume: (json['backgroundVolume'] as num?)?.toDouble() ?? 0.2,
+      voiceVolume: (json['voiceVolume'] as num?)?.toDouble() ?? 0.8,
       defaultInduction: json['defaultInduction'] as String? ?? '',
       defaultDeepening: json['defaultDeepening'] as String? ?? '',
       defaultAwakening: json['defaultAwakening'] as String? ?? '',
