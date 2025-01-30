@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
+import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/user.model.dart' as user_model;
 import 'package:trancend/src/providers/auth_provider.dart';
+import 'package:trancend/src/services/analytics.service.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 
@@ -26,6 +28,13 @@ class _GlassLoginState extends ConsumerState<GlassLogin> {
   final _passwordController = TextEditingController();
   final Map<String, String> _fieldErrors = {};
   String? _serverError;
+  final _analytics = locator<AnalyticsService>();
+
+  @override
+  void initState() {
+    super.initState();
+    _analytics.setCurrentScreen('login_screen');
+  }
 
   @override
   void dispose() {
@@ -185,11 +194,16 @@ class _GlassLoginState extends ConsumerState<GlassLogin> {
                 );
 
                 if (result.success) {
+                  await _analytics.logLogin('email');
                   Navigator.pop(context);
                   widget.onAuthSuccess();
                 } else {
                   setState(() {
                     _serverError = result.errorMessage;
+                  });
+                  await _analytics.logEvent('login_error', parameters: {
+                    'error': result.errorMessage,
+                    'method': 'email'
                   });
                 }
               },
@@ -212,11 +226,16 @@ class _GlassLoginState extends ConsumerState<GlassLogin> {
                     final authService = ref.read(authServiceProvider);
                     final result = await authService.googleSignIn();
                     if (result.success) {
+                      await _analytics.logLogin('google');
                       Navigator.pop(context);
                       widget.onAuthSuccess();
                     } else {
                       setState(() {
                         _serverError = result.errorMessage;
+                      });
+                      await _analytics.logEvent('login_error', parameters: {
+                        'error': result.errorMessage,
+                        'method': 'google'
                       });
                     }
                   },
@@ -227,11 +246,16 @@ class _GlassLoginState extends ConsumerState<GlassLogin> {
                     final authService = ref.read(authServiceProvider);
                     final result = await authService.appleLogin();
                     if (result.success) {
+                      await _analytics.logLogin('apple');
                       Navigator.pop(context);
                       widget.onAuthSuccess();
                     } else {
                       setState(() {
                         _serverError = result.errorMessage;
+                      });
+                      await _analytics.logEvent('login_error', parameters: {
+                        'error': result.errorMessage,
+                        'method': 'apple'
                       });
                     }
                   },
@@ -242,11 +266,16 @@ class _GlassLoginState extends ConsumerState<GlassLogin> {
                     final authService = ref.read(authServiceProvider);
                     final result = await authService.facebookLogin();
                     if (result.success) {
+                      await _analytics.logLogin('facebook');
                       Navigator.pop(context);
                       widget.onAuthSuccess();
                     } else {
                       setState(() {
                         _serverError = result.errorMessage;
+                      });
+                      await _analytics.logEvent('login_error', parameters: {
+                        'error': result.errorMessage,
+                        'method': 'facebook'
                       });
                     }
                   },
