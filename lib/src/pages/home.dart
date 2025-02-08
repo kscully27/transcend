@@ -13,6 +13,7 @@ import 'package:trancend/src/topics/topics_list_view.dart';
 import 'package:trancend/src/trance/trance_player.dart';
 import 'package:trancend/src/ui/clay_bottom_nav/clay_bottom_nav.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
+import 'package:trancend/src/ui/glass/glass_button.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -102,115 +103,358 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 }
 
-class Sheet extends StatelessWidget {
+class Sheet extends ConsumerStatefulWidget {
   const Sheet({super.key});
+
+  @override
+  ConsumerState<Sheet> createState() => _SheetState();
+}
+
+class _SheetState extends ConsumerState<Sheet> {
+  session.TranceMethod? selectedMethod;
+
+  void _selectMethod(session.TranceMethod method) {
+    setState(() {
+      selectedMethod = method;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
     return DraggableScrollableSheet(
-      minChildSize: 0.5,
-      initialChildSize: 0.75,
+      minChildSize: selectedMethod != null ? 0.7 : 0.6,
+      initialChildSize: selectedMethod != null ? 0.9 : 0.8,
+      maxChildSize: 0.9,
       builder: (context, controller) {
-        return Container(
-          margin: const EdgeInsets.all(8),
-          child: ClipRRect( 
-            borderRadius: const BorderRadius.all(Radius.circular(20)),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(
-                sigmaX: 20.0,
-                sigmaY: 20.0,
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white38,
-                  borderRadius: const BorderRadius.all(Radius.circular(20)),
-                  border: Border.all(
-                    color: Colors.black26,
-                    width: 0.5,
-                  ),
+        return Stack(
+          children: [
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white38,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                border: Border.all(
+                  color: Colors.white24,
+                  width: 0.5,
                 ),
-                child: Column(
-                  children: [
-                    Center(
-                      child: FractionallySizedBox(
-                        widthFactor: 0.25,
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(2),
-                            border: Border.all(
-                              color: Colors.black12,
-                              width: 0.5,
-                            ),
-                          ),
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: 20.0,
+                    sigmaY: 20.0,
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: Colors.black26,
+                          width: 0.5,
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        'Select a Modality',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          color: theme.colorScheme.shadow,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Material(
-                        type: MaterialType.transparency,
-                        child: ListView.builder(
-                          controller: controller,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          itemCount: session.TranceMethod.values.length,
-                          itemBuilder: (context, index) {
-                            final method = session.TranceMethod.values[index];
-                            return GlassContainer(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              borderRadius: BorderRadius.circular(12),
-                              backgroundColor: Colors.white12,
-                              child: ListTile(
-                                title: Text(
-                                  method.name,
-                                  style: TextStyle(
-                                    color: theme.colorScheme.shadow,
-                                    fontWeight: FontWeight.w500,
+                    child: Column(
+                      children: [
+                        Column(
+                          children: [
+                            Center(
+                              child: FractionallySizedBox(
+                                widthFactor: 0.25,
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(vertical: 8),
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(2),
+                                    border: Border.all(
+                                      color: Colors.black12,
+                                      width: 0.5,
+                                    ),
                                   ),
                                 ),
-                                trailing: Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: theme.colorScheme.shadow.withOpacity(0.7),
-                                  size: 20,
+                              ),
+                            ),
+                            Stack(
+                              children: [
+                                if (selectedMethod != null)
+                                  Positioned(
+                                    left: 4,
+                                    top: 8,
+                                    bottom: 8,
+                                    child: IconButton(
+                                      icon: Icon(
+                                        Icons.arrow_back_ios,
+                                        color: theme.colorScheme.shadow.withOpacity(0.7),
+                                        size: 20,
+                                      ),
+                                      onPressed: () => setState(() => selectedMethod = null),
+                                    ),
+                                  ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                                  child: Center(
+                                    child: Text(
+                                      selectedMethod != null ? 'Outline Your Intention' : 'Select a Modality',
+                                      style: theme.textTheme.bodyLarge?.copyWith(
+                                        color: theme.colorScheme.shadow,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                                onTap: () {
-                                  // Close the sheet and navigate to topic selection
+                              ],
+                            ),
+                          ],
+                        ),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.only(bottom: 80),
+                            child: selectedMethod == null
+                              ? Material(
+                                type: MaterialType.transparency,
+                                child: ListView.builder(
+                                  controller: controller,
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  itemCount: session.TranceMethod.values.length,
+                                  itemBuilder: (context, index) {
+                                    final method = session.TranceMethod.values[index];
+                                    return GlassContainer(
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      borderRadius: BorderRadius.circular(12),
+                                      backgroundColor: Colors.white12,
+                                      child: ListTile(
+                                        title: Text(
+                                          method.name,
+                                          style: TextStyle(
+                                            color: theme.colorScheme.shadow,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        trailing: Icon(
+                                          Icons.arrow_forward_ios,
+                                          color: theme.colorScheme.shadow.withOpacity(0.7),
+                                          size: 20,
+                                        ),
+                                        onTap: () => _selectMethod(method),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              )
+                              : IntentionContent(
+                                tranceMethod: selectedMethod!,
+                                onBack: () => setState(() => selectedMethod = null),
+                                onContinue: (intention) {
                                   Navigator.pop(context);
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => TopicSelectionPage(
-                                        tranceMethod: method,
+                                        tranceMethod: selectedMethod!,
+                                        intention: intention,
                                       ),
                                     ),
                                   );
                                 },
                               ),
-                            );
-                          },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class IntentionContent extends StatefulWidget {
+  final session.TranceMethod tranceMethod;
+  final VoidCallback onBack;
+  final Function(String intention) onContinue;
+
+  const IntentionContent({
+    super.key,
+    required this.tranceMethod,
+    required this.onBack,
+    required this.onContinue,
+  });
+
+  @override
+  State<IntentionContent> createState() => _IntentionContentState();
+}
+
+class _IntentionContentState extends State<IntentionContent> {
+  final TextEditingController _intentionController = TextEditingController();
+  final List<String> _placeholders = [
+    "I want to feel more confident in social situations",
+    "I want to sleep more deeply and wake up refreshed",
+    "I want to develop a positive mindset",
+    "I want to overcome my fear of public speaking",
+    "I want to increase my focus and productivity",
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _intentionController.text = '';
+  }
+
+  @override
+  void dispose() {
+    _intentionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'What would you like to accomplish today?',
+                  style: TextStyle(
+                    color: theme.colorScheme.shadow,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                GlassContainer(
+                  backgroundColor: Colors.white12,
+                  borderRadius: BorderRadius.circular(12),
+                  child: TextField(
+                    controller: _intentionController,
+                    maxLines: 3,
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 16,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: _placeholders[DateTime.now().microsecond % _placeholders.length],
+                      hintStyle: const TextStyle(
+                        color: Colors.black54,
+                        fontSize: 16,
+                      ),
+                      contentPadding: const EdgeInsets.all(16),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 1,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.black12,
+                              Colors.black87,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text(
+                        'OR',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        height: 1,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.black87,
+                              Colors.black12,
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 32),
+                GlassContainer(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  borderRadius: BorderRadius.circular(12),
+                  backgroundColor: Colors.white12,
+                  child: ListTile(
+                    title: Text(
+                      "Select a Goal",
+                      style: TextStyle(
+                        color: theme.colorScheme.shadow,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_forward_ios,
+                      color: theme.colorScheme.shadow.withOpacity(0.7),
+                      size: 20,
+                    ),
+                    onTap: () {
+                      // TODO: Implement goal selection
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: GlassContainer(
+            margin: const EdgeInsets.only(bottom: 12),
+            borderRadius: BorderRadius.circular(12),
+            backgroundColor: Colors.white12,
+            child: ListTile(
+              title: Text(
+                "Continue",
+                style: TextStyle(
+                  color: theme.colorScheme.shadow,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              onTap: () => widget.onContinue(_intentionController.text),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

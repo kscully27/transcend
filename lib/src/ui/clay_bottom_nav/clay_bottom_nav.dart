@@ -207,9 +207,25 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
     _animationController.reset();
     _animationController.animateTo(1.0);
     _bottomSheetController = Scaffold.of(context).showBottomSheet(
-      (_) => Transform.translate(
-        offset: const Offset(0, 96),
-        child: widget.sheet!,
+      (_) => Stack(
+        children: [
+          // Add GestureDetector to handle outside taps
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                if (_sheetOpen) {
+                  Scaffold.of(context).showBodyScrim(false, 0.0);
+                  _bottomSheetController?.close();
+                }
+              },
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+          Transform.translate(
+            offset: const Offset(0, 140),
+            child: widget.sheet!,
+          ),
+        ],
       ),
       backgroundColor: Colors.transparent,
       transitionAnimationController: _animationController,
@@ -358,7 +374,7 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
             left: 0,
             right: 0,
             bottom: -40,
-            child: CustomPaint(
+            child: _sheetOpen ? Container() : CustomPaint(
               painter: painter,
               child: SizedBox(
                 height: 140,

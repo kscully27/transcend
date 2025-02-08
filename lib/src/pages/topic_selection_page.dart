@@ -8,10 +8,12 @@ import 'package:trancend/src/topics/candy_topic_item.dart';
 
 class TopicSelectionPage extends ConsumerWidget {
   final session.TranceMethod tranceMethod;
+  final String? intention;
 
   const TopicSelectionPage({
     super.key,
     required this.tranceMethod,
+    this.intention,
   });
 
   @override

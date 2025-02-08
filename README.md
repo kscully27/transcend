@@ -14,6 +14,7 @@ To do list:
 - [ ] Add a account view
 - [x] Create Trance Page
 - [x] Create Trance Player
+- [ ] Fix bottom nav to show-hide other buttons when center button is pressed
 - [ ] Store Trance Sessions
 - [x] Add Firebase Analytics
 - [ ] Add Firebase Messaging
