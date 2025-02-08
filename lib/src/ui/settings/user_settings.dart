@@ -89,7 +89,7 @@ class _UserSettingsState extends ConsumerState<UserSettings> {
                                   fileName: value.path,
                                 );
                                 
-                                await _backgroundAudioService.play(result.url!);
+                                await _backgroundAudioService.play(result.url);
                                 setState(() => _isPlaying = true);
                               
                                 // Update user preference
@@ -110,7 +110,7 @@ class _UserSettingsState extends ConsumerState<UserSettings> {
                                 fileName: sound.path,
                               );
                               
-                              await _backgroundAudioService.play(result.url!);
+                              await _backgroundAudioService.play(result.url);
                               setState(() => _isPlaying = true);
                             
                               // Update user preference

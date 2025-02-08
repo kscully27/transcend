@@ -191,7 +191,7 @@ extension AppSoundsX on AppSound {
   AppSound fromString(String string) => enumFromString(string, AppSound.values);
   String get string => enumToString(this);
   String get id => string.toLowerCase();
-  String get file => '/audio/${id}.mp3';
+  String get file => '/audio/$id.mp3';
   String get title => ReCase(string).titleCase;
 }
 

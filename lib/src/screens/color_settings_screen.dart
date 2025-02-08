@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import '../constants/app_colors.dart';
-import '../constants/color_scheme.dart';
 import '../widgets/color_picker_dialog.dart';
 import '../services/saved_preferences.dart';
 

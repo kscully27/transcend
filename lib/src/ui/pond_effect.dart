@@ -16,8 +16,7 @@ class PondEffect extends StatefulWidget {
       required this.size,
       this.color1,
       this.color2,
-      Key? key})
-      : super(key: key);
+      super.key});
 
   @override
   PondEffectState createState() => PondEffectState();
@@ -245,12 +244,11 @@ class ShaderWidget extends SingleChildRenderObjectWidget {
   final Size canvasSize;
   final Size? fullSize;
 
-  ShaderWidget(
-      {Widget? child,
+  const ShaderWidget(
+      {super.key, super.child,
       this.fullSize,
       required this.canvasSize,
-      required this.waveOverlay})
-      : super(child: child);
+      required this.waveOverlay});
 
   @override
   RenderObject createRenderObject(BuildContext context) {

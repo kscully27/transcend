@@ -523,7 +523,7 @@ class _BackgroundSoundBottomSheetState
                             fileName: value.path,
                           );
 
-                          if (mounted && result.url != null) {
+                          if (mounted) {
                             await _backgroundAudioService.play(result.url);
                             widget.onPlayStateChanged(true);
                           }

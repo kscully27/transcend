@@ -10,8 +10,6 @@ import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/topics/candy_topic_item.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
-import 'package:get/get.dart';
-import 'package:trancend/src/services/navigation.service.dart';
 
 double firstDepth = 15;
 double secondDepth = 10;

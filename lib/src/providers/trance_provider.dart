@@ -117,18 +117,16 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       _isLoadingAudio = true;  // Set loading state at start
 
       // Start background audio without blocking
-      _firestoreService.getUser(_uid!).then((user) async {
+      _firestoreService.getUser(_uid).then((user) async {
         if (user.backgroundSound != BackgroundSound.None) {
           final result = await _cloudStorageService.getFile(
             bucket: "background_loops",
             fileName: user.backgroundSound.path,
           );
           
-          if (result.url != null) {
-            await _audioService.setUrl(result.url);
-            _audioService.playBackgroundAudio(); // Don't await this
-          }
-        }
+          await _audioService.setUrl(result.url);
+          _audioService.playBackgroundAudio(); // Don't await this
+                }
       }); // Don't await the entire background audio setup
 
       // Create initial session

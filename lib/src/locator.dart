@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 import 'package:trancend/src/services/background_audio.service.dart';
 import 'package:trancend/src/services/firestore.service.dart';

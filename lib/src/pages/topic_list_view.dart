@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trancend/src/pages/demo.dart';
 
 class TopicListView extends StatefulWidget {
-  const TopicListView({Key? key}) : super(key: key);
+  const TopicListView({super.key});
 
   @override
   _TopicListViewState createState() => _TopicListViewState();

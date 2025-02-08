@@ -13,10 +13,10 @@ class GlassSignUp extends ConsumerStatefulWidget {
   final Function() onAuthSuccess;
 
   const GlassSignUp({
-    Key? key,
+    super.key,
     required this.onLoginTap,
     required this.onAuthSuccess,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<GlassSignUp> createState() => _GlassSignUpState();
