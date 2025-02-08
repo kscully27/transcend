@@ -14,6 +14,7 @@ import 'package:trancend/src/trance/trance_player.dart';
 import 'package:trancend/src/ui/clay_bottom_nav/clay_bottom_nav.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
+import 'package:trancend/src/pages/intention_page.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -112,11 +113,127 @@ class Sheet extends ConsumerStatefulWidget {
 
 class _SheetState extends ConsumerState<Sheet> {
   session.TranceMethod? selectedMethod;
+  session.TranceMethod? animatingMethod;
+  bool isAnimatingOut = false;
+  bool isAnimatingIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startEntranceAnimation();
+  }
+
+  void _startEntranceAnimation() {
+    setState(() {
+      isAnimatingIn = true;
+    });
+  }
 
   void _selectMethod(session.TranceMethod method) {
     setState(() {
-      selectedMethod = method;
+      animatingMethod = method;
+      isAnimatingOut = true;
     });
+    
+    Future.delayed(const Duration(milliseconds: 600), () {  // Increased to allow for staggered exit
+      if (mounted) {
+        setState(() {
+          selectedMethod = method;
+          isAnimatingOut = false;
+        });
+      }
+    });
+  }
+
+  Widget _buildModalities() {
+    return AnimatedOpacity(
+      opacity: isAnimatingIn ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 300),
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        itemCount: session.TranceMethod.values.length,
+        itemBuilder: (context, index) {
+          final method = session.TranceMethod.values[index];
+          final start = index * 0.1;
+          final end = start + 0.4;
+
+          return TweenAnimationBuilder<double>(
+            tween: Tween(
+              begin: 0.0,
+              end: isAnimatingOut ? 1.0 : isAnimatingIn ? 1.0 : 0.0,
+            ),
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeOut,
+            builder: (context, value, child) {
+              final slideProgress = value < start 
+                ? 0.0 
+                : value > end 
+                  ? 1.0 
+                  : (value - start) / (end - start);
+                
+              final exitProgress = isAnimatingOut
+                ? method == animatingMethod
+                  ? value < 0.3 ? 0.0 : (value - 0.3) / 0.7
+                  : value
+                : 0.0;
+
+              return Transform.translate(
+                offset: Offset(
+                  isAnimatingOut
+                    ? -400 * exitProgress
+                    : 400 * (1 - slideProgress),
+                  0,
+                ),
+                child: Opacity(
+                  opacity: isAnimatingOut
+                    ? method == animatingMethod
+                      ? 1 - exitProgress
+                      : 1 - value
+                    : slideProgress,
+                  child: child,
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildModalityButton(method),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, ScrollController scrollController) {
+    final theme = Theme.of(context);
+    if (selectedMethod == null) {
+      return _buildModalities();
+    }
+    
+    return IntentionContent(
+      key: const ValueKey('intention_content'),
+      tranceMethod: selectedMethod!,
+      onBack: () {
+        setState(() {
+          selectedMethod = null;
+          animatingMethod = null;
+          isAnimatingOut = false;
+        });
+        _startEntranceAnimation();  // Restart entrance animation when going back
+      },
+      onContinue: (intention) {
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TopicSelectionPage(
+              tranceMethod: selectedMethod!,
+              intention: intention,
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -190,7 +307,11 @@ class _SheetState extends ConsumerState<Sheet> {
                                         color: theme.colorScheme.shadow.withOpacity(0.7),
                                         size: 20,
                                       ),
-                                      onPressed: () => setState(() => selectedMethod = null),
+                                      onPressed: () => setState(() {
+                                        selectedMethod = null;
+                                        animatingMethod = null;
+                                        isAnimatingOut = false;
+                                      }),
                                     ),
                                   ),
                                 Padding(
@@ -212,54 +333,28 @@ class _SheetState extends ConsumerState<Sheet> {
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.only(bottom: 80),
-                            child: selectedMethod == null
-                              ? Material(
-                                type: MaterialType.transparency,
-                                child: ListView.builder(
-                                  controller: controller,
-                                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                                  itemCount: session.TranceMethod.values.length,
-                                  itemBuilder: (context, index) {
-                                    final method = session.TranceMethod.values[index];
-                                    return GlassContainer(
-                                      margin: const EdgeInsets.only(bottom: 12),
-                                      borderRadius: BorderRadius.circular(12),
-                                      backgroundColor: Colors.white12,
-                                      child: ListTile(
-                                        title: Text(
-                                          method.name,
-                                          style: TextStyle(
-                                            color: theme.colorScheme.shadow,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        trailing: Icon(
-                                          Icons.arrow_forward_ios,
-                                          color: theme.colorScheme.shadow.withOpacity(0.7),
-                                          size: 20,
-                                        ),
-                                        onTap: () => _selectMethod(method),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              )
-                              : IntentionContent(
-                                tranceMethod: selectedMethod!,
-                                onBack: () => setState(() => selectedMethod = null),
-                                onContinue: (intention) {
-                                  Navigator.pop(context);
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => TopicSelectionPage(
-                                        tranceMethod: selectedMethod!,
-                                        intention: intention,
-                                      ),
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 500),
+                              transitionBuilder: (Widget child, Animation<double> animation) {
+                                if (child.key == const ValueKey('intention_content')) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: SlideTransition(
+                                      position: Tween<Offset>(
+                                        begin: const Offset(1.0, 0.0),
+                                        end: Offset.zero,
+                                      ).animate(CurvedAnimation(
+                                        parent: animation,
+                                        curve: Curves.easeOutCubic,
+                                      )),
+                                      child: child,
                                     ),
                                   );
-                                },
-                              ),
+                                }
+                                return child;
+                              },
+                              child: _buildContent(context, controller),
+                            ),
                           ),
                         ),
                       ],
@@ -271,6 +366,29 @@ class _SheetState extends ConsumerState<Sheet> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildModalityButton(session.TranceMethod method) {
+    final theme = Theme.of(context);
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(12),
+      backgroundColor: Colors.white12,
+      child: ListTile(
+        title: Text(
+          method.name,
+          style: TextStyle(
+            color: theme.colorScheme.shadow,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          color: theme.colorScheme.shadow.withOpacity(0.7),
+          size: 20,
+        ),
+        onTap: () => _selectMethod(method),
+      ),
     );
   }
 }
