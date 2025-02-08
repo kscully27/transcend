@@ -136,14 +136,14 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
         startTime: DateTime.now().millisecondsSinceEpoch,
         isComplete: false,
         inductionId: tranceMethod == TranceMethod.Sleep ||
-                tranceMethod == TranceMethod.Breathing ||
+                tranceMethod == TranceMethod.Breathe ||
                 tranceMethod == TranceMethod.Meditation
             ? null
             : tranceMethod == TranceMethod.Active
                 ? defaultActiveInductionId
                 : defaultInductionId,
         awakeningId: tranceMethod == TranceMethod.Sleep ||
-                tranceMethod == TranceMethod.Breathing ||
+                tranceMethod == TranceMethod.Breathe ||
                 tranceMethod == TranceMethod.Meditation
             ? null
             : tranceMethod == TranceMethod.Active
@@ -183,7 +183,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       _tracks = suggestions; // Only suggestion tracks go in _tracks
 
       // Load induction and awakening for hypnotherapy
-      if (session.tranceMethod == TranceMethod.Hypnotherapy) {
+      if (session.tranceMethod == TranceMethod.Hypnosis) {
         _inductionTrack =
             await _firestoreService.getAudioTrackById(session.inductionId!);
         _awakeningTrack =
@@ -248,7 +248,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       print('Playing next track');
 
       // Special handling for hypnotherapy sequence
-      if (state.value?.tranceMethod == TranceMethod.Hypnotherapy) {
+      if (state.value?.tranceMethod == TranceMethod.Hypnosis) {
         final totalSessionMs = getTranceTime() * 60 * 1000;
 
         // If we're playing induction

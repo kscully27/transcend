@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trancend/src/locator.dart';
+import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/pages/demo.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/providers/topics_provider.dart';
@@ -17,7 +18,12 @@ double thirdDepth = 50;
 double fourthDepth = 50;
 
 class TopicsListView extends ConsumerStatefulWidget {
-  const TopicsListView({super.key});
+  final Function(Topic)? onTopicSelected;
+
+  const TopicsListView({
+    super.key,
+    this.onTopicSelected,
+  });
 
   static const routeName = '/';
 
@@ -113,6 +119,11 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
                       topic: topic,
                       isFavorite: favoriteMap[topic.id] ?? false,
                       onFavoritePressed: () => _toggleFavorite(topic.id),
+                      onTap: () {
+                        if (widget.onTopicSelected != null) {
+                          widget.onTopicSelected!(topic);
+                        }
+                      },
                     );
                   },
                   loading: () => const Center(child: CircularProgressIndicator()),

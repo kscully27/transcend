@@ -22,16 +22,31 @@ enum TranceType {
 }
 
 enum TranceMethod {
-  Hypnotherapy,
-  Sleep,
-  Breathing,
+  Hypnosis,
+  Breathe,
   Meditation,
-  Active;
+  Active,
+  Sleep;
 
   String get string => name;
+  String get name {
+    switch (this) {
+      case TranceMethod.Hypnosis:
+        return 'Hypnotherapy';
+      case TranceMethod.Breathe:
+        return 'Suggestive Breath Work';
+      case TranceMethod.Meditation:
+        return 'Subliminal Meditation';
+      case TranceMethod.Active:
+        return 'Active Hypnotherapy';
+      case TranceMethod.Sleep:
+        return 'Sleep Programming';
+    }
+  }
+
   static TranceMethod? fromString(String? value) => value == null
       ? null
-      : values.firstWhere((e) => e.name == value, orElse: () => Hypnotherapy);
+      : values.firstWhere((e) => e.name == value, orElse: () => Hypnosis);
 }
 
 enum SessionPlayType { Audio, Video, Text }
@@ -119,7 +134,7 @@ class Session {
       goalName: json['goalName'],
       tranceMethod: TranceMethod.values.firstWhere(
         (e) => e.name == json['tranceMethod'],
-        orElse: () => TranceMethod.Hypnotherapy,
+        orElse: () => TranceMethod.Hypnosis,
       ),
       startedTime: json['startedTime'],
       totalTracks: json['totalTracks'],

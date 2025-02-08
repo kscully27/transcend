@@ -101,25 +101,25 @@ class _RenderInnerShadow extends RenderProxyBox {
   }
 }
 
-class CandyTopicItem extends ConsumerStatefulWidget {
+class CandyTopicItem extends StatefulWidget {
   final Topic topic;
-  final VoidCallback? onTap;
   final bool isFavorite;
   final VoidCallback onFavoritePressed;
+  final VoidCallback? onTap;
 
   const CandyTopicItem({
     super.key,
     required this.topic,
-    this.onTap,
     required this.isFavorite,
     required this.onFavoritePressed,
+    this.onTap,
   });
 
   @override
-  ConsumerState<CandyTopicItem> createState() => _CandyTopicItemState();
+  State<CandyTopicItem> createState() => _CandyTopicItemState();
 }
 
-class _CandyTopicItemState extends ConsumerState<CandyTopicItem> {
+class _CandyTopicItemState extends State<CandyTopicItem> {
   final _innerShadowKey1 = GlobalKey();
   final _innerShadowKey2 = GlobalKey();
 
@@ -165,7 +165,7 @@ class _CandyTopicItemState extends ConsumerState<CandyTopicItem> {
     final shadowColor = const Color(0xFFDF5843);
 
     return GestureDetector(
-      onTap: _handleButtonPressed,
+      onTap: widget.onTap ?? _handleButtonPressed,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Stack(
@@ -383,7 +383,7 @@ class _TopicBottomSheetContent extends ConsumerWidget {
                 icon: isFavorite ? Remix.heart_fill : Remix.heart_line,
                 size: GlassButtonSize.small,
                 align: GlassButtonAlign.center,
-                textColor: Theme.of(context).colorScheme.onSurface,
+                textColor: Colors.black,
                 glassColor:
                     Theme.of(context).colorScheme.surface.withOpacity(0.1),
                 borderColor: Theme.of(context)
@@ -406,7 +406,7 @@ class _TopicBottomSheetContent extends ConsumerWidget {
                 icon: Remix.play_fill,
                 width: double.infinity,
                 margin: const EdgeInsets.only(bottom: 12),
-                textColor: Theme.of(context).colorScheme.onSurface,
+                textColor: Colors.black,
                 glassColor:
                     Theme.of(context).colorScheme.surface.withOpacity(0.1),
                 borderColor: Theme.of(context)
@@ -423,7 +423,7 @@ class _TopicBottomSheetContent extends ConsumerWidget {
                             (context, animation, secondaryAnimation) =>
                                 TrancePlayer(
                           topic: topic,
-                          tranceMethod: session.TranceMethod.Hypnotherapy,
+                          tranceMethod: session.TranceMethod.Hypnosis,
                         ),
                         transitionsBuilder: (context, animation,
                             secondaryAnimation, child) {

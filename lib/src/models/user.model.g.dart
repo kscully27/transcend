@@ -287,9 +287,10 @@ const _$ReminderPreferenceEnumMap = {
 };
 
 const _$TranceMethodEnumMap = {
-  TranceMethod.Hypnotherapy: 'Hypnotherapy',
-  TranceMethod.Active: 'Active',
+  TranceMethod.Hypnosis: 'Hypnosis',
+  TranceMethod.Breathe: 'Breathe',
   TranceMethod.Meditation: 'Meditation',
+  TranceMethod.Active: 'Active',
   TranceMethod.Sleep: 'Sleep',
 };
 

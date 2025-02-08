@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:recase/recase.dart';
 import 'package:trancend/src/constants/enums.dart';
 import 'package:trancend/src/models/breath.model.dart';
+import 'package:trancend/src/models/session.model.dart' show TranceMethod;
 import 'package:trancend/src/shared/icons.dart';
 
 part 'user.model.freezed.dart';
@@ -36,13 +37,6 @@ enum HypnotherapySkill {
   Sleep_Breathing,
   Sleep_Rythm,
   Sleep_Programming,
-}
-
-enum TranceMethod {
-  Hypnotherapy,
-  Active,
-  Meditation,
-  Sleep,
 }
 
 enum ActiveBackgroundSound {

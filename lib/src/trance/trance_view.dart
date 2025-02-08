@@ -56,7 +56,7 @@ class _TranceViewState extends ConsumerState<TranceView> {
     switch (method) {
       case session.TranceMethod.Active:
         return user.defaultActiveHypnotherapyTime;
-      case session.TranceMethod.Hypnotherapy:
+      case session.TranceMethod.Hypnosis:
         return user.defaultHypnotherapyTime;
       default:
         return 10;

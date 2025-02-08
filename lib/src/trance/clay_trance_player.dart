@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/models/topic.model.dart';
-import 'package:trancend/src/models/session.model.dart';
+import 'package:trancend/src/models/session.model.dart' as session;
 import 'package:trancend/src/providers/trance_provider.dart';
 import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/ui/clay/clay_container.dart';
@@ -9,7 +9,7 @@ import 'package:trancend/src/ui/clay/clay_text.dart';
 
 class ClayTrancePlayer extends ConsumerStatefulWidget {
   final Topic topic;
-  final TranceMethod tranceMethod;
+  final session.TranceMethod tranceMethod;
 
   const ClayTrancePlayer({
     super.key,

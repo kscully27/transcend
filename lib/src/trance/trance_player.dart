@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:trancend/src/models/session.model.dart';
+import 'package:trancend/src/models/session.model.dart' as session;
 import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/providers/trance_provider.dart';
 import 'package:trancend/src/ui/clay/clay_button.dart';
@@ -11,7 +11,7 @@ import 'package:trancend/src/ui/pond_effect.dart';
 
 class TrancePlayer extends ConsumerStatefulWidget {
   final Topic topic;
-  final TranceMethod tranceMethod;
+  final session.TranceMethod tranceMethod;
 
   const TrancePlayer({
     super.key,

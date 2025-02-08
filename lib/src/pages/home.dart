@@ -4,10 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/constants/app_colors.dart';
+import 'package:trancend/src/models/topic.model.dart';
+import 'package:trancend/src/models/session.model.dart' as session;
 import 'package:trancend/src/pages/settings.dart';
+import 'package:trancend/src/pages/topic_selection_page.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
 import 'package:trancend/src/topics/topics_list_view.dart';
+import 'package:trancend/src/trance/trance_player.dart';
 import 'package:trancend/src/ui/clay_bottom_nav/clay_bottom_nav.dart';
+import 'package:trancend/src/ui/glass/glass_container.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -47,8 +52,12 @@ class _HomePageState extends ConsumerState<HomePage> {
             child: _index == 0
                 ? data.topics.when(
                     data: (topics) => TopicsListView(),
-                    loading: () => Material(color: theme.colorScheme.onSurface, child: const Center(child: CircularProgressIndicator())),
-                    error: (error, stack) => Center(child: Text('Error loading topics: $error')),
+                    loading: () => Material(
+                      color: theme.colorScheme.onSurface,
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (error, stack) =>
+                        Center(child: Text('Error loading topics: $error')),
                   )
                 : const SettingsPage(),
           ),
@@ -67,17 +76,12 @@ class _HomePageState extends ConsumerState<HomePage> {
               setState(() {
                 _index = index;
               });
-                Future.delayed(const Duration(seconds: 1), () {
-                  setState(() {
-                    _index = index;
-                  });
-                });
-              },
-              sheet: Sheet(),
-              sheetOpenIcon: Remix.play_large_line,
-              sheetCloseIcon: Remix.add_line,
-              onSheetToggle: (v) {
-                setState(() {});
+            },
+            sheet: const Sheet(),
+            sheetOpenIcon: Remix.play_large_line,
+            sheetCloseIcon: Remix.add_line,
+            onSheetToggle: (v) {
+              setState(() {});
             },
             items: [
               ClayBottomNavItem(
@@ -103,6 +107,8 @@ class Sheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return DraggableScrollableSheet(
       minChildSize: 0.5,
       initialChildSize: 0.75,
@@ -144,13 +150,57 @@ class Sheet extends StatelessWidget {
                         ),
                       ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'Select a Modality',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: theme.colorScheme.shadow,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                     Expanded(
                       child: Material(
                         type: MaterialType.transparency,
-                        child: ListView(
+                        child: ListView.builder(
                           controller: controller,
-                          padding: const EdgeInsets.all(20),
-                          children: const [],
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          itemCount: session.TranceMethod.values.length,
+                          itemBuilder: (context, index) {
+                            final method = session.TranceMethod.values[index];
+                            return GlassContainer(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              borderRadius: BorderRadius.circular(12),
+                              backgroundColor: Colors.white12,
+                              child: ListTile(
+                                title: Text(
+                                  method.name,
+                                  style: TextStyle(
+                                    color: theme.colorScheme.shadow,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                trailing: Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: theme.colorScheme.shadow.withOpacity(0.7),
+                                  size: 20,
+                                ),
+                                onTap: () {
+                                  // Close the sheet and navigate to topic selection
+                                  Navigator.pop(context);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => TopicSelectionPage(
+                                        tranceMethod: method,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
