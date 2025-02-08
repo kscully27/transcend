@@ -34,7 +34,7 @@ enum TranceMethod {
       case TranceMethod.Hypnosis:
         return 'Hypnotherapy';
       case TranceMethod.Breathe:
-        return 'Suggestive Breath Work';
+        return 'Intentional Breathing';
       case TranceMethod.Meditation:
         return 'Subliminal Meditation';
       case TranceMethod.Active:
