@@ -67,125 +67,147 @@ class _IntentionPageState extends ConsumerState<IntentionPage> {
                   width: 0.5,
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+              child: Stack(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Text(
-                      'Outline Your Intention',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: Colors.black87,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          GlassContainer(
-                            backgroundColor: Colors.white12,
-                            child: TextField(
-                              controller: _intentionController,
-                              maxLines: 3,
-                              style: const TextStyle(
-                                color: Colors.black87,
-                                fontSize: 16,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: _placeholders[DateTime.now().microsecond % _placeholders.length],
-                                hintStyle: TextStyle(
-                                  color: Colors.black54,
-                                  fontSize: 16,
-                                ),
-                                contentPadding: const EdgeInsets.all(16),
-                                border: InputBorder.none,
-                                label: Text(
-                                  'What would you like to accomplish today?',
-                                  style: TextStyle(color: Colors.black87),
-                                ),
-                              ),
-                            ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Text(
+                          'Outline Your Intention',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(height: 32),
-                          Row(
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.only(
+                            left: 24.0,
+                            right: 24.0,
+                            bottom: 100.0, // Add padding for the button
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Expanded(
-                                child: Container(
-                                  height: 1,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.black12,
-                                        Colors.black87,
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                child: Text(
-                                  'OR',
-                                  style: TextStyle(
+                              GlassContainer(
+                                backgroundColor: Colors.white12,
+                                child: TextField(
+                                  controller: _intentionController,
+                                  maxLines: 3,
+                                  style: const TextStyle(
                                     color: Colors.black87,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
+                                    fontSize: 16,
                                   ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Container(
-                                  height: 1,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.black87,
-                                        Colors.black12,
-                                      ],
+                                  decoration: InputDecoration(
+                                    hintText: _placeholders[DateTime.now().microsecond % _placeholders.length],
+                                    hintStyle: TextStyle(
+                                      color: Colors.black54,
+                                      fontSize: 16,
+                                    ),
+                                    contentPadding: const EdgeInsets.all(16),
+                                    border: InputBorder.none,
+                                    label: Text(
+                                      '?',
+                                      style: TextStyle(color: Colors.black87),
                                     ),
                                   ),
                                 ),
+                              ),
+                              const SizedBox(height: 32),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      height: 1,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.black12,
+                                            Colors.black87,
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                    child: Text(
+                                      'OR',
+                                      style: TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Container(
+                                      height: 1,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.black87,
+                                            Colors.black12,
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 32),
+                              GlassButton(
+                                text: "Select a Goal",
+                                icon: Remix.flag_line,
+                                textColor: Colors.black,
+                                glassColor: Colors.white24,
+                                onPressed: () {
+                                  // TODO: Implement goal selection
+                                },
                               ),
                             ],
                           ),
-                          const SizedBox(height: 32),
-                          GlassButton(
-                            text: "Select a Goal",
-                            icon: Remix.flag_line,
-                            textColor: Colors.black,
-                            glassColor: Colors.white24,
-                            onPressed: () {
-                              // TODO: Implement goal selection
-                            },
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: GlassButton(
-                      text: "Continue",
-                      width: double.infinity,
-                      height: 56,
-                      textColor: Colors.black,
-                      glassColor: Colors.white24,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TopicSelectionPage(
-                              tranceMethod: widget.tranceMethod,
-                              intention: _intentionController.text,
-                            ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(24.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        border: Border(
+                          top: BorderSide(
+                            color: Colors.black12,
+                            width: 0.5,
                           ),
-                        );
-                      },
+                        ),
+                      ),
+                      child: GlassButton(
+                        text: "Continue",
+                        width: double.infinity,
+                        height: 56,
+                        textColor: Colors.black,
+                        glassColor: Colors.white24,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TopicSelectionPage(
+                                tranceMethod: widget.tranceMethod,
+                                intention: _intentionController.text,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],

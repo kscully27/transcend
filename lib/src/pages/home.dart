@@ -4,17 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/constants/app_colors.dart';
-import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
+import 'package:trancend/src/pages/intention_page.dart';
 import 'package:trancend/src/pages/settings.dart';
 import 'package:trancend/src/pages/topic_selection_page.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
 import 'package:trancend/src/topics/topics_list_view.dart';
-import 'package:trancend/src/trance/trance_player.dart';
 import 'package:trancend/src/ui/clay_bottom_nav/clay_bottom_nav.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
-import 'package:trancend/src/ui/glass/glass_button.dart';
-import 'package:trancend/src/pages/intention_page.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -115,27 +112,14 @@ class _SheetState extends ConsumerState<Sheet> {
   session.TranceMethod? selectedMethod;
   session.TranceMethod? animatingMethod;
   bool isAnimatingOut = false;
-  bool isAnimatingIn = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _startEntranceAnimation();
-  }
-
-  void _startEntranceAnimation() {
-    setState(() {
-      isAnimatingIn = true;
-    });
-  }
 
   void _selectMethod(session.TranceMethod method) {
     setState(() {
       animatingMethod = method;
       isAnimatingOut = true;
     });
-    
-    Future.delayed(const Duration(milliseconds: 600), () {  // Increased to allow for staggered exit
+
+    Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         setState(() {
           selectedMethod = method;
@@ -146,89 +130,57 @@ class _SheetState extends ConsumerState<Sheet> {
   }
 
   Widget _buildModalities() {
-    return AnimatedOpacity(
-      opacity: isAnimatingIn ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 300),
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        itemCount: session.TranceMethod.values.length,
-        itemBuilder: (context, index) {
-          final method = session.TranceMethod.values[index];
-          final start = index * 0.1;
-          final end = start + 0.4;
-
-          return TweenAnimationBuilder<double>(
-            tween: Tween(
-              begin: 0.0,
-              end: isAnimatingOut ? 1.0 : isAnimatingIn ? 1.0 : 0.0,
-            ),
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeOut,
-            builder: (context, value, child) {
-              final slideProgress = value < start 
-                ? 0.0 
-                : value > end 
-                  ? 1.0 
-                  : (value - start) / (end - start);
-                
-              final exitProgress = isAnimatingOut
-                ? method == animatingMethod
-                  ? value < 0.3 ? 0.0 : (value - 0.3) / 0.7
-                  : value
-                : 0.0;
-
-              return Transform.translate(
-                offset: Offset(
-                  isAnimatingOut
-                    ? -400 * exitProgress
-                    : 400 * (1 - slideProgress),
-                  0,
-                ),
-                child: Opacity(
-                  opacity: isAnimatingOut
-                    ? method == animatingMethod
-                      ? 1 - exitProgress
-                      : 1 - value
-                    : slideProgress,
-                  child: child,
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _buildModalityButton(method),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildContent(BuildContext context, ScrollController scrollController) {
     final theme = Theme.of(context);
-    if (selectedMethod == null) {
-      return _buildModalities();
-    }
-    
-    return IntentionContent(
-      key: const ValueKey('intention_content'),
-      tranceMethod: selectedMethod!,
-      onBack: () {
-        setState(() {
-          selectedMethod = null;
-          animatingMethod = null;
-          isAnimatingOut = false;
-        });
-        _startEntranceAnimation();  // Restart entrance animation when going back
-      },
-      onContinue: (intention) {
-        Navigator.pop(context);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => TopicSelectionPage(
-              tranceMethod: selectedMethod!,
-              intention: intention,
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      itemCount: session.TranceMethod.values.length,
+      itemBuilder: (context, index) {
+        final method = session.TranceMethod.values[index];
+        
+        return TweenAnimationBuilder<double>(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+          tween: Tween(
+            begin: 0.0,
+            end: isAnimatingOut ? 1.0 : 0.0,
+          ),
+          builder: (context, value, child) {
+            final slideOffset = method == animatingMethod ? 
+              value * -200.0 : // Selected button slides left
+              value * -400.0;  // Other buttons slide left faster
+            
+            final opacity = method == animatingMethod ?
+              (1.0 - value).clamp(0.0, 1.0) : // Selected button fades out
+              (1.0 - (value * 2.0)).clamp(0.0, 1.0); // Other buttons fade out faster
+
+            return Transform.translate(
+              offset: Offset(slideOffset, 0),
+              child: Opacity(
+                opacity: opacity,
+                child: child,
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: GlassContainer(
+              borderRadius: BorderRadius.circular(12),
+              backgroundColor: Colors.white12,
+              child: ListTile(
+                title: Text(
+                  method.name,
+                  style: TextStyle(
+                    color: theme.colorScheme.shadow,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                trailing: Icon(
+                  Icons.arrow_forward_ios,
+                  color: theme.colorScheme.shadow.withOpacity(0.7),
+                  size: 20,
+                ),
+                onTap: isAnimatingOut ? null : () => _selectMethod(method),
+              ),
             ),
           ),
         );
@@ -239,156 +191,139 @@ class _SheetState extends ConsumerState<Sheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
     
-    return DraggableScrollableSheet(
-      minChildSize: selectedMethod != null ? 0.7 : 0.6,
-      initialChildSize: selectedMethod != null ? 0.9 : 0.8,
-      maxChildSize: 0.9,
-      builder: (context, controller) {
-        return Stack(
-          children: [
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white38,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                border: Border.all(
-                  color: Colors.white24,
-                  width: 0.5,
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: 20.0,
-                    sigmaY: 20.0,
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(
-                          color: Colors.black26,
-                          width: 0.5,
-                        ),
-                      ),
+    return TweenAnimationBuilder<double>(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      tween: Tween(
+        begin: selectedMethod != null ? 0.7 : 0.6,
+        end: selectedMethod != null ? 0.9 : 0.8,
+      ),
+      builder: (context, value, child) {
+        return DraggableScrollableSheet(
+          minChildSize: selectedMethod != null ? 0.7 : 0.6,
+          initialChildSize: value,
+          maxChildSize: 0.9,
+          builder: (context, controller) {
+            return Stack(
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white38,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    border: Border.all(
+                      color: Colors.white24,
+                      width: 0.5,
                     ),
-                    child: Column(
-                      children: [
-                        Column(
-                          children: [
-                            Center(
-                              child: FractionallySizedBox(
-                                widthFactor: 0.25,
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(vertical: 8),
-                                  height: 4,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(2),
-                                    border: Border.all(
-                                      color: Colors.black12,
-                                      width: 0.5,
-                                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(
+                        sigmaX: 20.0,
+                        sigmaY: 20.0,
+                      ),
+                      child: Column(
+                        children: [
+                          Center(
+                            child: FractionallySizedBox(
+                              widthFactor: 0.25,
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(vertical: 8),
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(2),
+                                  border: Border.all(
+                                    color: Colors.black12,
+                                    width: 0.5,
                                   ),
                                 ),
                               ),
                             ),
-                            Stack(
-                              children: [
-                                if (selectedMethod != null)
-                                  Positioned(
-                                    left: 4,
-                                    top: 8,
-                                    bottom: 8,
-                                    child: IconButton(
-                                      icon: Icon(
-                                        Icons.arrow_back_ios,
-                                        color: theme.colorScheme.shadow.withOpacity(0.7),
-                                        size: 20,
-                                      ),
-                                      onPressed: () => setState(() {
+                          ),
+                          Stack(
+                            children: [
+                              if (selectedMethod != null)
+                                Positioned(
+                                  left: 4,
+                                  top: 8,
+                                  bottom: 8,
+                                  child: IconButton(
+                                    icon: Icon(
+                                      Icons.arrow_back_ios,
+                                      color: theme.colorScheme.shadow.withOpacity(0.7),
+                                      size: 20,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
                                         selectedMethod = null;
                                         animatingMethod = null;
                                         isAnimatingOut = false;
-                                      }),
-                                    ),
+                                      });
+                                    },
                                   ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                                  child: Center(
-                                    child: Text(
-                                      selectedMethod != null ? 'Outline Your Intention' : 'Select a Modality',
-                                      style: theme.textTheme.bodyLarge?.copyWith(
-                                        color: theme.colorScheme.shadow,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                ),
+                              Center(
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                    left: selectedMethod != null ? 48.0 : 0.0,
+                                    right: selectedMethod != null ? 48.0 : 0.0,
+                                    top: 16.0,
+                                    bottom: 16.0,
+                                  ),
+                                  child: Text(
+                                    selectedMethod != null ? 'Outline Your Intention' : 'Select a Modality',
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      color: theme.colorScheme.shadow,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.only(bottom: 80),
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 500),
-                              transitionBuilder: (Widget child, Animation<double> animation) {
-                                if (child.key == const ValueKey('intention_content')) {
-                                  return FadeTransition(
-                                    opacity: animation,
-                                    child: SlideTransition(
-                                      position: Tween<Offset>(
-                                        begin: const Offset(1.0, 0.0),
-                                        end: Offset.zero,
-                                      ).animate(CurvedAnimation(
-                                        parent: animation,
-                                        curve: Curves.easeOutCubic,
-                                      )),
-                                      child: child,
-                                    ),
-                                  );
-                                }
-                                return child;
-                              },
-                              child: _buildContent(context, controller),
-                            ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                          Expanded(
+                            child: selectedMethod == null
+                              ? _buildModalities()
+                              : Padding(
+                                  padding: const EdgeInsets.only(bottom: 220),
+                                  child: IntentionContent(
+                                    tranceMethod: selectedMethod!,
+                                    onBack: () {
+                                      setState(() {
+                                        selectedMethod = null;
+                                        animatingMethod = null;
+                                        isAnimatingOut = false;
+                                      });
+                                    },
+                                    onContinue: (intention) {
+                                      Navigator.pop(context);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => TopicSelectionPage(
+                                            tranceMethod: selectedMethod!,
+                                            intention: intention,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         );
       },
-    );
-  }
-
-  Widget _buildModalityButton(session.TranceMethod method) {
-    final theme = Theme.of(context);
-    return GlassContainer(
-      borderRadius: BorderRadius.circular(12),
-      backgroundColor: Colors.white12,
-      child: ListTile(
-        title: Text(
-          method.name,
-          style: TextStyle(
-            color: theme.colorScheme.shadow,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          color: theme.colorScheme.shadow.withOpacity(0.7),
-          size: 20,
-        ),
-        onTap: () => _selectMethod(method),
-      ),
     );
   }
 }
@@ -556,7 +491,7 @@ class _IntentionContentState extends State<IntentionContent> {
         Padding(
           padding: const EdgeInsets.all(20.0),
           child: GlassContainer(
-            margin: const EdgeInsets.only(bottom: 12),
+            // margin: const EdgeInsets.only(bottom: 12),
             borderRadius: BorderRadius.circular(12),
             backgroundColor: Colors.white12,
             child: ListTile(
