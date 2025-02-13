@@ -5,11 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
-import 'package:trancend/src/pages/intention_page.dart';
 import 'package:trancend/src/pages/settings.dart';
 import 'package:trancend/src/pages/topic_selection_page.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
+import 'package:trancend/src/topics/bottomsheet_topics_list.dart';
 import 'package:trancend/src/topics/topics_list_view.dart';
+import 'package:trancend/src/ui/clay/clay_bottom_sheet.dart';
+import 'package:trancend/src/ui/clay/clay_container.dart';
 import 'package:trancend/src/ui/clay_bottom_nav/clay_bottom_nav.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 
@@ -136,7 +138,7 @@ class _SheetState extends ConsumerState<Sheet> {
       itemCount: session.TranceMethod.values.length,
       itemBuilder: (context, index) {
         final method = session.TranceMethod.values[index];
-        
+
         return TweenAnimationBuilder<double>(
           duration: const Duration(milliseconds: 500),
           curve: Curves.easeInOut,
@@ -145,13 +147,16 @@ class _SheetState extends ConsumerState<Sheet> {
             end: isAnimatingOut ? 1.0 : 0.0,
           ),
           builder: (context, value, child) {
-            final slideOffset = method == animatingMethod ? 
-              value * -200.0 : // Selected button slides left
-              value * -400.0;  // Other buttons slide left faster
-            
-            final opacity = method == animatingMethod ?
-              (1.0 - value).clamp(0.0, 1.0) : // Selected button fades out
-              (1.0 - (value * 2.0)).clamp(0.0, 1.0); // Other buttons fade out faster
+            final slideOffset = method == animatingMethod
+                ? value * -200.0
+                : // Selected button slides left
+                value * -400.0; // Other buttons slide left faster
+
+            final opacity = method == animatingMethod
+                ? (1.0 - value).clamp(0.0, 1.0)
+                : // Selected button fades out
+                (1.0 - (value * 2.0))
+                    .clamp(0.0, 1.0); // Other buttons fade out faster
 
             return Transform.translate(
               offset: Offset(slideOffset, 0),
@@ -192,7 +197,7 @@ class _SheetState extends ConsumerState<Sheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
-    
+
     return TweenAnimationBuilder<double>(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -209,17 +214,20 @@ class _SheetState extends ConsumerState<Sheet> {
             return Stack(
               children: [
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white38,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(20)),
                     border: Border.all(
                       color: Colors.white24,
                       width: 0.5,
                     ),
                   ),
                   child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(20)),
                     child: BackdropFilter(
                       filter: ImageFilter.blur(
                         sigmaX: 20.0,
@@ -254,7 +262,8 @@ class _SheetState extends ConsumerState<Sheet> {
                                   child: IconButton(
                                     icon: Icon(
                                       Icons.arrow_back_ios,
-                                      color: theme.colorScheme.shadow.withOpacity(0.7),
+                                      color: theme.colorScheme.shadow
+                                          .withOpacity(0.7),
                                       size: 20,
                                     ),
                                     onPressed: () {
@@ -275,7 +284,9 @@ class _SheetState extends ConsumerState<Sheet> {
                                     bottom: 16.0,
                                   ),
                                   child: Text(
-                                    selectedMethod != null ? 'Outline Your Intention' : 'Select a Modality',
+                                    selectedMethod != null
+                                        ? 'Outline Your Intention'
+                                        : 'Select a Modality',
                                     style: theme.textTheme.bodyLarge?.copyWith(
                                       color: theme.colorScheme.shadow,
                                       fontWeight: FontWeight.w500,
@@ -287,29 +298,30 @@ class _SheetState extends ConsumerState<Sheet> {
                           ),
                           Expanded(
                             child: selectedMethod == null
-                              ? _buildModalities()
-                              : IntentionContent(
-                                  tranceMethod: selectedMethod!,
-                                  onBack: () {
-                                    setState(() {
-                                      selectedMethod = null;
-                                      animatingMethod = null;
-                                      isAnimatingOut = false;
-                                    });
-                                  },
-                                  onContinue: (intention) {
-                                    Navigator.pop(context);
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => TopicSelectionPage(
-                                          tranceMethod: selectedMethod!,
-                                          intention: intention,
+                                ? _buildModalities()
+                                : IntentionContent(
+                                    tranceMethod: selectedMethod!,
+                                    onBack: () {
+                                      setState(() {
+                                        selectedMethod = null;
+                                        animatingMethod = null;
+                                        isAnimatingOut = false;
+                                      });
+                                    },
+                                    onContinue: (intention) {
+                                      Navigator.pop(context);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              TopicSelectionPage(
+                                            tranceMethod: selectedMethod!,
+                                            intention: intention,
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  },
-                                ),
+                                      );
+                                    },
+                                  ),
                           ),
                         ],
                       ),
@@ -351,6 +363,26 @@ class _IntentionContentState extends State<IntentionContent> {
     "I want to increase my focus and productivity",
   ];
 
+  void _showGoalSelectionSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        margin: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const BottomSheetTopicsListView(),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -366,7 +398,7 @@ class _IntentionContentState extends State<IntentionContent> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -395,7 +427,8 @@ class _IntentionContentState extends State<IntentionContent> {
                       fontSize: 16,
                     ),
                     decoration: InputDecoration(
-                      hintText: _placeholders[DateTime.now().microsecond % _placeholders.length],
+                      hintText: _placeholders[
+                          DateTime.now().microsecond % _placeholders.length],
                       hintStyle: const TextStyle(
                         color: Colors.black54,
                         fontSize: 16,
@@ -476,9 +509,7 @@ class _IntentionContentState extends State<IntentionContent> {
                       color: theme.colorScheme.shadow.withOpacity(0.7),
                       size: 20,
                     ),
-                    onTap: () {
-                      // TODO: Implement goal selection
-                    },
+                    onTap: _showGoalSelectionSheet,
                   ),
                 ),
               ],
