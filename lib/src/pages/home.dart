@@ -288,30 +288,27 @@ class _SheetState extends ConsumerState<Sheet> {
                           Expanded(
                             child: selectedMethod == null
                               ? _buildModalities()
-                              : Padding(
-                                  padding: const EdgeInsets.only(bottom: 220),
-                                  child: IntentionContent(
-                                    tranceMethod: selectedMethod!,
-                                    onBack: () {
-                                      setState(() {
-                                        selectedMethod = null;
-                                        animatingMethod = null;
-                                        isAnimatingOut = false;
-                                      });
-                                    },
-                                    onContinue: (intention) {
-                                      Navigator.pop(context);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => TopicSelectionPage(
-                                            tranceMethod: selectedMethod!,
-                                            intention: intention,
-                                          ),
+                              : IntentionContent(
+                                  tranceMethod: selectedMethod!,
+                                  onBack: () {
+                                    setState(() {
+                                      selectedMethod = null;
+                                      animatingMethod = null;
+                                      isAnimatingOut = false;
+                                    });
+                                  },
+                                  onContinue: (intention) {
+                                    Navigator.pop(context);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => TopicSelectionPage(
+                                          tranceMethod: selectedMethod!,
+                                          intention: intention,
                                         ),
-                                      );
-                                    },
-                                  ),
+                                      ),
+                                    );
+                                  },
                                 ),
                           ),
                         ],
@@ -491,7 +488,7 @@ class _IntentionContentState extends State<IntentionContent> {
         Padding(
           padding: const EdgeInsets.all(20.0),
           child: GlassContainer(
-            // margin: const EdgeInsets.only(bottom: 12),
+            margin: const EdgeInsets.only(bottom: 70),
             borderRadius: BorderRadius.circular(12),
             backgroundColor: Colors.white12,
             child: ListTile(
