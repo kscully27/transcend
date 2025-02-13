@@ -10,8 +10,6 @@ import 'package:trancend/src/pages/topic_selection_page.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
 import 'package:trancend/src/topics/bottomsheet_topics_list.dart';
 import 'package:trancend/src/topics/topics_list_view.dart';
-import 'package:trancend/src/ui/clay/clay_bottom_sheet.dart';
-import 'package:trancend/src/ui/clay/clay_container.dart';
 import 'package:trancend/src/ui/clay_bottom_nav/clay_bottom_nav.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 
@@ -353,8 +351,14 @@ class IntentionContent extends StatefulWidget {
   State<IntentionContent> createState() => _IntentionContentState();
 }
 
-class _IntentionContentState extends State<IntentionContent> {
+class _IntentionContentState extends State<IntentionContent> with SingleTickerProviderStateMixin {
   final TextEditingController _intentionController = TextEditingController();
+  late AnimationController _placeholderAnimationController;
+  late Animation<double> _placeholderOpacity;
+  bool _showError = false;
+  String? _errorMessage;
+  final int _minCharacters = 10;
+  
   final List<String> _placeholders = [
     "I want to feel more confident in social situations",
     "I want to sleep more deeply and wake up refreshed",
@@ -383,159 +387,272 @@ class _IntentionContentState extends State<IntentionContent> {
     );
   }
 
+  void _validateAndContinue() {
+    print('validateAndContinue'); 
+    final text = _intentionController.text.trim();
+    print(text);
+    if (text.isEmpty) {
+      setState(() {
+        _showError = true;
+        // _errorMessage = 'Please describe your intention or select a goal below';
+        _errorMessage = 'Please describe your intention';
+      });
+      return;
+    }
+    
+    if (text.length < _minCharacters) {
+      setState(() {
+        _showError = true;
+        _errorMessage = 'Your intention should be at least $_minCharacters characters long to ensure it\'s specific enough';
+      });
+      return;
+    }
+
+    // If we get here, validation passed
+    setState(() {
+      _showError = false;
+      _errorMessage = null;
+    });
+    widget.onContinue(text);
+  }
+
   @override
   void initState() {
     super.initState();
     _intentionController.text = '';
+    
+    _intentionController.addListener(() {
+      // Reset error state when user types
+      if (_showError) {
+        setState(() {
+          _showError = false;
+          _errorMessage = null;
+        });
+      }
+    });
+    
+    // Initialize animation controller
+    _placeholderAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    
+    _placeholderOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _placeholderAnimationController,
+      curve: Curves.easeInOut,
+    ));
+
+    // Start the animation after a delay
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        _placeholderAnimationController.forward();
+      }
+    });
   }
 
   @override
   void dispose() {
     _intentionController.dispose();
+    _placeholderAnimationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final currentLength = _intentionController.text.trim().length;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'What would you like to accomplish today?',
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'What would you like to accomplish today?',
+                    style: TextStyle(
+                      color: theme.colorScheme.shadow,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  GlassContainer(
+                    backgroundColor: Colors.white12,
+                    borderRadius: BorderRadius.circular(12),
+                    border: _showError 
+                      ? Border.all(color: Colors.red.withOpacity(0.7), width: 1.5)
+                      : null,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        FadeTransition(
+                          opacity: _placeholderOpacity,
+                          child: TextField(
+                            controller: _intentionController,
+                            maxLines: 3,
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontSize: 16,
+                            ),
+                            onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                            textInputAction: TextInputAction.done,
+                            decoration: InputDecoration(
+                              hintText: _placeholders[
+                                  DateTime.now().microsecond % _placeholders.length],
+                              hintStyle: const TextStyle(
+                                color: Colors.black54,
+                                fontSize: 16,
+                              ),
+                              contentPadding: const EdgeInsets.all(16),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 16.0, bottom: 8.0),
+                          child: currentLength >= _minCharacters
+                            ? Icon(
+                                Icons.check_circle_rounded,
+                                color: Colors.green.shade800,
+                                size: 26,
+                              )
+                            : Text(
+                                '$currentLength/$_minCharacters characters',
+                                style: const TextStyle(
+                                  color: Colors.black54,
+                                  fontSize: 12,
+                                ),
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 1,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.black12,
+                                Colors.black87,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          'OR',
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          height: 1,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.black87,
+                                Colors.black12,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  GlassContainer(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    borderRadius: BorderRadius.circular(12),
+                    backgroundColor: Colors.white12,
+                    child: ListTile(
+                      title: Text(
+                        "Select a Goal",
+                        style: TextStyle(
+                          color: theme.colorScheme.shadow,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.arrow_forward_ios,
+                        color: theme.colorScheme.shadow.withOpacity(0.7),
+                        size: 20,
+                      ),
+                      onTap: _showGoalSelectionSheet,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    color: Colors.red.shade700,
+                    size: 32,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _errorMessage!,
+                      style: TextStyle(
+                        color: Colors.red.shade700,
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 20.0,
+              right: 20.0,
+              top: _errorMessage != null ? 4.0 : 20.0,
+              bottom: 110.0,
+            ),
+            child: GlassContainer(
+              borderRadius: BorderRadius.circular(12),
+              backgroundColor: Colors.white12,
+              child: ListTile(
+                title: Text(
+                  "Continue",
                   style: TextStyle(
                     color: theme.colorScheme.shadow,
                     fontWeight: FontWeight.w500,
                   ),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
-                GlassContainer(
-                  backgroundColor: Colors.white12,
-                  borderRadius: BorderRadius.circular(12),
-                  child: TextField(
-                    controller: _intentionController,
-                    maxLines: 3,
-                    style: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 16,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: _placeholders[
-                          DateTime.now().microsecond % _placeholders.length],
-                      hintStyle: const TextStyle(
-                        color: Colors.black54,
-                        fontSize: 16,
-                      ),
-                      contentPadding: const EdgeInsets.all(16),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 1,
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.black12,
-                              Colors.black87,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text(
-                        'OR',
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Container(
-                        height: 1,
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.black87,
-                              Colors.black12,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-                GlassContainer(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  borderRadius: BorderRadius.circular(12),
-                  backgroundColor: Colors.white12,
-                  child: ListTile(
-                    title: Text(
-                      "Select a Goal",
-                      style: TextStyle(
-                        color: theme.colorScheme.shadow,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    trailing: Icon(
-                      Icons.arrow_forward_ios,
-                      color: theme.colorScheme.shadow.withOpacity(0.7),
-                      size: 20,
-                    ),
-                    onTap: _showGoalSelectionSheet,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: GlassContainer(
-            margin: const EdgeInsets.only(bottom: 70),
-            borderRadius: BorderRadius.circular(12),
-            backgroundColor: Colors.white12,
-            child: ListTile(
-              title: Text(
-                "Continue",
-                style: TextStyle(
-                  color: theme.colorScheme.shadow,
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
+                onTap: _validateAndContinue,
               ),
-              onTap: () => widget.onContinue(_intentionController.text),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

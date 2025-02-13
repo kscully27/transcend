@@ -6,6 +6,7 @@ import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/providers/topics_provider.dart';
 import 'package:trancend/src/providers/user_topics_provider.dart';
 import 'package:trancend/src/services/firestore.service.dart';
+import 'package:trancend/src/topics/candy_select_item.dart';
 import 'package:trancend/src/topics/candy_topic_item.dart';
 import 'package:trancend/src/ui/clay/clay_button.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
@@ -118,10 +119,10 @@ class _BottomSheetTopicsListViewState
                       for (var ut in userTopics) ut.topicId: ut.isFavorite
                     };
 
-                    return CandyTopicItem(
+                    return CandySelectItem(
                       topic: topic,
-                      isFavorite: favoriteMap[topic.id] ?? false,
-                      onFavoritePressed: () => _toggleFavorite(topic.id),
+                      isSelected: favoriteMap[topic.id] ?? false,
+                      onSelectPressed: () => _toggleFavorite(topic.id),
                       onTap: () {
                         if (widget.onTopicSelected != null) {
                           widget.onTopicSelected!(topic);
