@@ -18,11 +18,13 @@ double thirdDepth = 50;
 double fourthDepth = 50;
 
 class BottomSheetTopicsListView extends ConsumerStatefulWidget {
-  final Function(Topic)? onTopicSelected;
+  final Set<String> selectedGoalIds;
+  final Function(String, bool) onSelectionChanged;
 
   const BottomSheetTopicsListView({
     super.key,
-    this.onTopicSelected,
+    required this.selectedGoalIds,
+    required this.onSelectionChanged,
   });
 
   static const routeName = '/';
@@ -111,33 +113,17 @@ class _BottomSheetTopicsListViewState
               itemCount: filteredTopics.length,
               itemBuilder: (context, index) {
                 final topic = filteredTopics[index];
-                final userTopicsAsync = ref.watch(userTopicsProvider);
-
-                return userTopicsAsync.when(
-                  data: (userTopics) {
-                    final favoriteMap = {
-                      for (var ut in userTopics) ut.topicId: ut.isFavorite
-                    };
-
-                    return CandySelectItem(
-                      topic: topic,
-                      isSelected: favoriteMap[topic.id] ?? false,
-                      onSelectPressed: () => _toggleFavorite(topic.id),
-                      onTap: () {
-                        if (widget.onTopicSelected != null) {
-                          widget.onTopicSelected!(topic);
-                        }
-                      },
-                    );
+                return CandySelectItem(
+                  topic: topic,
+                  isSelected: widget.selectedGoalIds.contains(topic.id),
+                  onSelectPressed: () {
+                    final newIsSelected = !widget.selectedGoalIds.contains(topic.id);
+                    widget.onSelectionChanged(topic.id, newIsSelected);
                   },
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => Center(
-                    child: Text(
-                      'Error loading user topics: $error',
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  ),
+                  onTap: () {
+                    final newIsSelected = !widget.selectedGoalIds.contains(topic.id);
+                    widget.onSelectionChanged(topic.id, newIsSelected);
+                  },
                 );
               },
             );
@@ -149,80 +135,6 @@ class _BottomSheetTopicsListViewState
         child: Text(
           'Error loading topics: $error',
           style: TextStyle(color: Colors.white70),
-        ),
-      ),
-    );
-  }
-
-  void _toggleFavorite(String topicId) async {
-    final user = ref.read(userProvider).value;
-    if (user == null) {
-      _showLoginPrompt();
-      return;
-    }
-
-    try {
-      final firestoreService = locator<FirestoreService>();
-      await firestoreService.toggleTopicFavorite(user.uid, topicId);
-      ref.invalidate(userTopicsProvider);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating favorite: ${e.toString()}')));
-      debugPrint('Error toggling favorite: $e');
-    }
-  }
-
-  void _showLoginPrompt() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => GlassContainer(
-        backgroundColor:
-            Theme.of(context).colorScheme.surfaceTint.withOpacity(0.5),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Sign in Required',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'You need to sign in to save your favorite topics and track your progress.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white70,
-                    ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  GlassButton(
-                    text: 'Not Now',
-                    onPressed: () => Navigator.pop(context),
-                    glassColor: Colors.white12,
-                    textColor: Colors.white70,
-                  ),
-                  GlassButton(
-                    text: 'Sign In',
-                    onPressed: () {
-                      Navigator.pop(context);
-                      // TODO: Navigate to sign in page
-                      // Navigator.pushNamed(context, '/signin');
-                    },
-                    glassColor: Colors.white24,
-                    textColor: Colors.white,
-                  ),
-                ],
-              ),
-            ],
-          ),
         ),
       ),
     );
@@ -260,40 +172,40 @@ class _BottomSheetTopicsListViewState
         ),
         child: Column(
           children: [
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: theme.colorScheme.onSurface.withOpacity(0.8),
-                      ),
-                    ),
-                  ),
-                  Text(
-                    'Goals',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      'Done',
-                      style: TextStyle(
-                        color: theme.colorScheme.onSurface.withOpacity(0.8),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Padding(
+            //   padding:
+            //       const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //     children: [
+            //       TextButton(
+            //         onPressed: () => Navigator.pop(context),
+            //         child: Text(
+            //           'Cancel',
+            //           style: TextStyle(
+            //             color: theme.colorScheme.onSurface.withOpacity(0.8),
+            //           ),
+            //         ),
+            //       ),
+            //       Text(
+            //         'Goals',
+            //         style: theme.textTheme.titleMedium?.copyWith(
+            //           color: theme.colorScheme.onSurface,
+            //           fontWeight: FontWeight.w600,
+            //         ),
+            //       ),
+            //       TextButton(
+            //         onPressed: () => Navigator.pop(context),
+            //         child: Text(
+            //           'Done',
+            //           style: TextStyle(
+            //             color: theme.colorScheme.onSurface.withOpacity(0.8),
+            //           ),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
             SizedBox(
               height: 50,
               child: ListView(
