@@ -292,27 +292,20 @@ class _SheetState extends ConsumerState<Sheet> {
             itemCount: session.TranceMethod.values.length,
             itemBuilder: (context, index) {
               final method = session.TranceMethod.values[index];
+              final delay = Duration(milliseconds: 100 * index);
 
               return TweenAnimationBuilder<double>(
                 duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
+                curve: Curves.easeOutCubic,
                 tween: Tween(
-                  begin: 0.0,
-                  end: isAnimatingOut ? 1.0 : 0.0,
+                  begin: 1.0,
+                  end: 0.0,
                 ),
                 builder: (context, value, child) {
-                  final slideOffset = method == selectedMethod
-                      ? value * -200.0
-                      : value * -400.0;
-
-                  final opacity = method == selectedMethod
-                      ? (1.0 - value).clamp(0.0, 1.0)
-                      : (1.0 - (value * 2.0)).clamp(0.0, 1.0);
-
                   return Transform.translate(
-                    offset: Offset(slideOffset, 0),
+                    offset: Offset(value * 100, 0),
                     child: Opacity(
-                      opacity: opacity,
+                      opacity: 1 - value,
                       child: child,
                     ),
                   );
@@ -322,32 +315,44 @@ class _SheetState extends ConsumerState<Sheet> {
                   child: GlassContainer(
                     borderRadius: BorderRadius.circular(12),
                     backgroundColor: Colors.white12,
-                    child: ListTile(
-                      title: Text(
-                        method.name,
-                        style: TextStyle(
-                          color: theme.colorScheme.shadow,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      trailing: Icon(
-                        Icons.arrow_forward_ios,
-                        color: theme.colorScheme.shadow.withOpacity(0.7),
-                        size: 20,
-                      ),
-                      onTap: () {
-                        _selectMethod(method);
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TopicSelectionPage(
-                              tranceMethod: method,
-                              intention: customIntention!,
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          setState(() {
+                            isAnimatingOut = true;
+                          });
+                          
+                          Future.delayed(const Duration(milliseconds: 200), () {
+                            _selectMethod(method);
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TopicSelectionPage(
+                                  tranceMethod: method,
+                                  intention: customIntention!,
+                                ),
+                              ),
+                            );
+                          });
+                        },
+                        child: ListTile(
+                          title: Text(
+                            method.name,
+                            style: TextStyle(
+                              color: theme.colorScheme.shadow,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                        );
-                      },
+                          trailing: Icon(
+                            Icons.arrow_forward_ios,
+                            color: theme.colorScheme.shadow.withOpacity(0.7),
+                            size: 20,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -428,9 +433,12 @@ class _IntentionContentState extends State<IntentionContent>
       curve: Curves.easeInOut,
     ));
 
-    if (isCustomMode) {
-      _placeholderAnimationController.forward();
-    }
+    // Start the animation after a longer delay
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) {
+        _placeholderAnimationController.forward();
+      }
+    });
 
     _intentionController.addListener(() {
       if (_showError) {
@@ -447,6 +455,21 @@ class _IntentionContentState extends State<IntentionContent>
     _intentionController.dispose();
     _placeholderAnimationController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(IntentionContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Re-run placeholder animation when switching to custom mode
+    if (widget.isCustomMode && !oldWidget.isCustomMode) {
+      _placeholderAnimationController.reset();
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          _placeholderAnimationController.forward();
+        }
+      });
+    }
   }
 
   void _showGoalSelectionSheet() {

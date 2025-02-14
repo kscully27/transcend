@@ -69,7 +69,7 @@ class _CustomIntentionPageState extends State<CustomIntentionPage> with SingleTi
     
     _placeholderAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 200),
     );
     
     _placeholderOpacity = Tween<double>(
@@ -80,7 +80,7 @@ class _CustomIntentionPageState extends State<CustomIntentionPage> with SingleTi
       curve: Curves.easeInOut,
     ));
 
-    Future.delayed(const Duration(milliseconds: 500), () {
+    Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         _placeholderAnimationController.forward();
       }
