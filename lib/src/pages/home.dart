@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,7 @@ import 'package:trancend/src/ui/clay_bottom_nav/clay_bottom_nav.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 import 'package:trancend/src/providers/intention_selection_provider.dart';
 import 'package:trancend/src/pages/previous_intentions_sheet.dart';
+import 'package:trancend/src/pages/hypnotherapy_bottom_sheet.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -115,7 +117,7 @@ class Sheet extends ConsumerStatefulWidget {
   ConsumerState<Sheet> createState() => _SheetState();
 }
 
-class _SheetState extends ConsumerState<Sheet> {
+class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
   // The three possible views
   static const int INITIAL_VIEW = 0;
   static const int CUSTOM_INPUT_VIEW = 1;
@@ -126,10 +128,39 @@ class _SheetState extends ConsumerState<Sheet> {
   session.TranceMethod? selectedMethod;
   String? customIntention;
   bool isAnimatingOut = false;
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  late AnimationController _controller;
+  int? _selectedIndex;
 
-  void _selectMethod(session.TranceMethod method) {
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _selectMethod(session.TranceMethod method, int index) {
+    if (_selectedIndex != null) return;
+    
     setState(() {
       selectedMethod = method;
+      _selectedIndex = index;
+    });
+
+    _controller.forward().then((_) {
+      if (mounted) {
+        setState(() {
+          currentView = MODALITIES_VIEW;
+        });
+      }
     });
   }
 
@@ -138,16 +169,14 @@ class _SheetState extends ConsumerState<Sheet> {
       if (intention.isEmpty) {
         final selectedType = ref.read(intentionSelectionProvider).type;
         if (selectedType == IntentionSelectionType.previous) {
-          // Show previous intentions view
           currentView = PREVIOUS_INTENTIONS_VIEW;
         } else {
-          // Show custom input view
           currentView = CUSTOM_INPUT_VIEW;
         }
       } else {
-        // User entered text and clicked continue
         customIntention = intention;
         currentView = MODALITIES_VIEW;
+        _controller.reset();
       }
     });
   }
@@ -156,7 +185,7 @@ class _SheetState extends ConsumerState<Sheet> {
     setState(() {
       if (goals.isNotEmpty) {
         currentView = MODALITIES_VIEW;
-        customIntention = ""; // Set empty string to indicate goal-based selection
+        customIntention = "";
         ref.read(intentionSelectionProvider.notifier).setSelectedGoals(goals);
       }
     });
@@ -168,110 +197,25 @@ class _SheetState extends ConsumerState<Sheet> {
         final selectedType = ref.read(intentionSelectionProvider).type;
         switch (selectedType) {
           case IntentionSelectionType.custom:
-            // If we came from custom intention, go back to it
             currentView = CUSTOM_INPUT_VIEW;
             break;
           case IntentionSelectionType.previous:
-            // If we came from previous intentions, go back to it
             currentView = PREVIOUS_INTENTIONS_VIEW;
             break;
           case IntentionSelectionType.goals:
           case IntentionSelectionType.default_intention:
           case IntentionSelectionType.none:
-            // For all other cases, go back to initial view
             currentView = INITIAL_VIEW;
             break;
         }
         selectedMethod = null;
+        _selectedIndex = null;
+        _controller.reset();
       } else if (currentView == CUSTOM_INPUT_VIEW || currentView == PREVIOUS_INTENTIONS_VIEW) {
         currentView = INITIAL_VIEW;
         customIntention = null;
       }
     });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final intentionState = ref.watch(intentionSelectionProvider);
-
-    return TweenAnimationBuilder<double>(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      tween: Tween(
-        begin: currentView != INITIAL_VIEW ? 0.7 : 0.6,
-        end: currentView != INITIAL_VIEW ? 0.9 : 0.8,
-      ),
-      builder: (context, value, child) {
-        return DraggableScrollableSheet(
-          minChildSize: currentView != INITIAL_VIEW ? 0.7 : 0.6,
-          initialChildSize: value,
-          maxChildSize: 0.9,
-          builder: (context, controller) {
-            return Stack(
-              children: [
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white38,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                    border: Border.all(
-                      color: Colors.white24,
-                      width: 0.5,
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(
-                        sigmaX: 20.0,
-                        sigmaY: 20.0,
-                      ),
-                      child: Column(
-                        children: [
-                          Center(
-                            child: FractionallySizedBox(
-                              widthFactor: 0.25,
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(vertical: 8),
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(2),
-                                  border: Border.all(
-                                    color: Colors.black12,
-                                    width: 0.5,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: currentView == MODALITIES_VIEW
-                                ? _buildModalities()
-                                : currentView == PREVIOUS_INTENTIONS_VIEW
-                                    ? _buildPreviousIntentions()
-                                    : IntentionContent(
-                                        tranceMethod: selectedMethod ?? session.TranceMethod.values.first,
-                                        onBack: _handleBack,
-                                        onContinue: _onIntentionSelected,
-                                        selectedGoalIds: intentionState.selectedGoalIds,
-                                        onGoalsSelected: _onGoalsSelected,
-                                        initialCustomIntention: customIntention,
-                                        isCustomMode: currentView == CUSTOM_INPUT_VIEW,
-                                      ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
   }
 
   Widget _buildModalities() {
@@ -300,7 +244,7 @@ class _SheetState extends ConsumerState<Sheet> {
                   vertical: 16.0,
                 ),
                 child: Text(
-                  'Select a Modality',
+                  selectedMethod?.name ?? 'Select a Modality',
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.shadow,
                     fontWeight: FontWeight.w500,
@@ -312,80 +256,120 @@ class _SheetState extends ConsumerState<Sheet> {
           ],
         ),
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: session.TranceMethod.values.length,
-            itemBuilder: (context, index) {
-              final method = session.TranceMethod.values[index];
-              final delay = Duration(milliseconds: 150 * index);
-
-              return TweenAnimationBuilder<double>(
-                duration: const Duration(milliseconds: 800),
-                curve: Curves.easeOutCubic,
-                tween: Tween(
-                  begin: 1.0,
-                  end: 0.0,
-                ),
-                builder: (context, value, child) {
-                  return Transform.translate(
-                    offset: Offset(value * 100, 0),
-                    child: Opacity(
-                      opacity: 1 - value,
+          child: selectedMethod?.name == 'Hypnotherapy'
+              ? TweenAnimationBuilder<double>(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  builder: (context, value, child) {
+                    return Opacity(
+                      opacity: value,
                       child: child,
-                    ),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: GlassContainer(
-                    borderRadius: BorderRadius.circular(12),
-                    backgroundColor: Colors.white12,
-                    child: Material(
-                      type: MaterialType.transparency,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        splashColor: Colors.white24,
-                        highlightColor: Colors.white12,
-                        onTap: () {
-                          setState(() {
-                            isAnimatingOut = true;
-                          });
-                          
-                          Future.delayed(const Duration(milliseconds: 200), () {
-                            _selectMethod(method);
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => TopicSelectionPage(
-                                  tranceMethod: method,
-                                  intention: customIntention!,
-                                ),
-                              ),
-                            );
-                          });
-                        },
-                        child: ListTile(
-                          title: Text(
-                            method.name,
-                            style: TextStyle(
-                              color: theme.colorScheme.shadow,
-                              fontWeight: FontWeight.w500,
+                    );
+                  },
+                  child: Column(
+                    children: [
+                      const Expanded(
+                        child: Center(
+                          child: Text('Hypnotherapy content will go here'),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              isAnimatingOut = true;
+                            });
+                            Future.delayed(const Duration(milliseconds: 200), () {
+                              _navigatorKey.currentState?.pop();
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.onPrimary,
+                            foregroundColor: theme.colorScheme.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
                             ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            minimumSize: const Size(double.infinity, 0),
                           ),
-                          trailing: Icon(
-                            Icons.arrow_forward_ios,
-                            color: theme.colorScheme.shadow.withOpacity(0.7),
-                            size: 20,
+                          child: const Text(
+                            'Start',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: session.TranceMethod.values.length,
+                  itemBuilder: (context, index) {
+                    final method = session.TranceMethod.values[index];
+                    final isSelected = index == _selectedIndex;
+                    
+                    return AnimatedBuilder(
+                      animation: _controller,
+                      builder: (context, child) {
+                        final double t;
+                        if (isSelected) {
+                          // Selected item animates last
+                          t = _controller.value < 0.5 ? 0.0 : (_controller.value - 0.5) * 2;
+                        } else {
+                          // Other items animate based on their index
+                          final startTime = index * 0.15;
+                          t = _controller.value < startTime ? 0.0 
+                              : (_controller.value - startTime) / (0.5 - startTime);
+                        }
+                        
+                        final progress = Curves.easeInOut.transform(t.clamp(0.0, 1.0));
+                        
+                        return Transform.translate(
+                          offset: Offset(-progress * MediaQuery.of(context).size.width, 0),
+                          child: Opacity(
+                            opacity: 1 - progress,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: GlassContainer(
+                          borderRadius: BorderRadius.circular(12),
+                          backgroundColor: Colors.white12,
+                          child: Material(
+                            type: MaterialType.transparency,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              splashColor: Colors.white24,
+                              highlightColor: Colors.white12,
+                              onTap: () => _selectMethod(method, index),
+                              child: ListTile(
+                                title: Text(
+                                  method.name,
+                                  style: TextStyle(
+                                    color: theme.colorScheme.shadow,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                trailing: Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: theme.colorScheme.shadow.withOpacity(0.7),
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
       ],
     );
@@ -473,6 +457,95 @@ class _SheetState extends ConsumerState<Sheet> {
           ),
         ),
       ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final intentionState = ref.watch(intentionSelectionProvider);
+
+    return Navigator(
+      key: _navigatorKey,
+      onGenerateRoute: (settings) => MaterialPageRoute(
+        builder: (context) => TweenAnimationBuilder<double>(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          tween: Tween(
+            begin: currentView != INITIAL_VIEW ? 0.7 : 0.6,
+            end: currentView != INITIAL_VIEW ? 0.9 : 0.8,
+          ),
+          builder: (context, value, child) {
+            return DraggableScrollableSheet(
+              minChildSize: currentView != INITIAL_VIEW ? 0.7 : 0.6,
+              initialChildSize: value,
+              maxChildSize: 0.9,
+              builder: (context, controller) {
+                return Stack(
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white38,
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                        border: Border.all(
+                          color: Colors.white24,
+                          width: 0.5,
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(
+                            sigmaX: 20.0,
+                            sigmaY: 20.0,
+                          ),
+                          child: Column(
+                            children: [
+                              Center(
+                                child: FractionallySizedBox(
+                                  widthFactor: 0.25,
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(vertical: 8),
+                                    height: 4,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(2),
+                                      border: Border.all(
+                                        color: Colors.black12,
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: currentView == MODALITIES_VIEW
+                                    ? _buildModalities()
+                                    : currentView == PREVIOUS_INTENTIONS_VIEW
+                                        ? _buildPreviousIntentions()
+                                        : IntentionContent(
+                                            tranceMethod: selectedMethod ?? session.TranceMethod.values.first,
+                                            onBack: _handleBack,
+                                            onContinue: _onIntentionSelected,
+                                            selectedGoalIds: intentionState.selectedGoalIds,
+                                            onGoalsSelected: _onGoalsSelected,
+                                            initialCustomIntention: customIntention,
+                                            isCustomMode: currentView == CUSTOM_INPUT_VIEW,
+                                          ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
+      ),
     );
   }
 }
