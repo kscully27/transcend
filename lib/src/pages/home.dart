@@ -13,6 +13,8 @@ import 'package:trancend/src/topics/bottomsheet_topics_list.dart';
 import 'package:trancend/src/topics/topics_list_view.dart';
 import 'package:trancend/src/ui/clay_bottom_nav/clay_bottom_nav.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
+import 'package:trancend/src/providers/intention_selection_provider.dart';
+import 'package:trancend/src/pages/previous_intentions_sheet.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -27,6 +29,10 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
+    // Clear selection when sheet is opened
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(intentionSelectionProvider.notifier).clearSelection();
+    });
   }
 
   @override
@@ -153,13 +159,20 @@ class _SheetState extends ConsumerState<Sheet> {
   void _handleBack() {
     setState(() {
       if (currentView == MODALITIES_VIEW) {
-        if (customIntention?.isNotEmpty == true) {
-          // If we came from custom intention, go back to it
-          currentView = CUSTOM_INPUT_VIEW;
-        } else {
-          // If we came from goals, go back to initial view
-          currentView = INITIAL_VIEW;
-          selectedGoalIds.clear();
+        final selectedType = ref.read(intentionSelectionProvider);
+        switch (selectedType) {
+          case IntentionSelectionType.custom:
+            // If we came from custom intention, go back to it
+            currentView = CUSTOM_INPUT_VIEW;
+            break;
+          case IntentionSelectionType.goals:
+          case IntentionSelectionType.previous:
+          case IntentionSelectionType.default_intention:
+          case IntentionSelectionType.none:
+            // For all other cases, go back to initial view
+            currentView = INITIAL_VIEW;
+            selectedGoalIds.clear();
+            break;
         }
         selectedMethod = null;
       } else if (currentView == CUSTOM_INPUT_VIEW) {
@@ -292,10 +305,10 @@ class _SheetState extends ConsumerState<Sheet> {
             itemCount: session.TranceMethod.values.length,
             itemBuilder: (context, index) {
               final method = session.TranceMethod.values[index];
-              final delay = Duration(milliseconds: 100 * index);
+              final delay = Duration(milliseconds: 150 * index);
 
               return TweenAnimationBuilder<double>(
-                duration: const Duration(milliseconds: 500),
+                duration: const Duration(milliseconds: 800),
                 curve: Curves.easeOutCubic,
                 tween: Tween(
                   begin: 1.0,
@@ -319,6 +332,8 @@ class _SheetState extends ConsumerState<Sheet> {
                       type: MaterialType.transparency,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(12),
+                        splashColor: Colors.white24,
+                        highlightColor: Colors.white12,
                         onTap: () {
                           setState(() {
                             isAnimatingOut = true;
@@ -365,7 +380,7 @@ class _SheetState extends ConsumerState<Sheet> {
   }
 }
 
-class IntentionContent extends StatefulWidget {
+class IntentionContent extends ConsumerStatefulWidget {
   final session.TranceMethod tranceMethod;
   final VoidCallback onBack;
   final Function(String intention) onContinue;
@@ -386,10 +401,10 @@ class IntentionContent extends StatefulWidget {
   });
 
   @override
-  State<IntentionContent> createState() => _IntentionContentState();
+  ConsumerState<IntentionContent> createState() => _IntentionContentState();
 }
 
-class _IntentionContentState extends State<IntentionContent>
+class _IntentionContentState extends ConsumerState<IntentionContent>
     with SingleTickerProviderStateMixin {
   late Set<String> _selectedGoalIds;
   final TextEditingController _intentionController = TextEditingController();
@@ -433,8 +448,8 @@ class _IntentionContentState extends State<IntentionContent>
       curve: Curves.easeInOut,
     ));
 
-    // Start the animation after a longer delay
-    Future.delayed(const Duration(milliseconds: 800), () {
+    // Start the animation after a shorter delay
+    Future.delayed(const Duration(milliseconds: 400), () {
       if (mounted) {
         _placeholderAnimationController.forward();
       }
@@ -464,7 +479,7 @@ class _IntentionContentState extends State<IntentionContent>
     // Re-run placeholder animation when switching to custom mode
     if (widget.isCustomMode && !oldWidget.isCustomMode) {
       _placeholderAnimationController.reset();
-      Future.delayed(const Duration(milliseconds: 800), () {
+      Future.delayed(const Duration(milliseconds: 400), () {
         if (mounted) {
           _placeholderAnimationController.forward();
         }
@@ -593,16 +608,84 @@ class _IntentionContentState extends State<IntentionContent>
 
   String get _getGoalButtonText {
     if (_selectedGoalIds.isEmpty) {
-      return "Select a Goal";
+      return "Select Intentions";
     }
     final count = _selectedGoalIds.length;
-    return "$count Goal${count > 1 ? 's' : ''} Selected";
+    return "$count Intention${count > 1 ? 's' : ''} Selected";
+  }
+
+  void _showPreviousIntentions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
+      builder: (context) => PreviousIntentionsSheet(
+        onIntentionSelected: (intention) {
+          widget.onContinue(intention);
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final currentLength = _intentionController.text.trim().length;
+    final selectedType = ref.watch(intentionSelectionProvider);
+
+    Widget buildIntentionButton({
+      required String title,
+      required IntentionSelectionType type,
+      required VoidCallback onTap,
+      required bool isSelected,
+    }) {
+      return GlassContainer(
+        margin: const EdgeInsets.only(bottom: 12),
+        borderRadius: BorderRadius.circular(12),
+        backgroundColor: Colors.white12,
+        child: ListTile(
+          leading: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected ? theme.colorScheme.primary : theme.colorScheme.shadow.withOpacity(0.7),
+                width: 2,
+              ),
+            ),
+            child: isSelected
+                ? Center(
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  )
+                : null,
+          ),
+          title: Text(
+            title,
+            style: TextStyle(
+              color: theme.colorScheme.shadow,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          trailing: Icon(
+            Icons.arrow_forward_ios,
+            color: theme.colorScheme.shadow.withOpacity(0.7),
+            size: 20,
+          ),
+          onTap: onTap,
+        ),
+      );
+    }
 
     if (widget.isCustomMode) {
       return Column(
@@ -775,93 +858,87 @@ class _IntentionContentState extends State<IntentionContent>
                   ),
                 ),
                 const SizedBox(height: 32),
-                GlassContainer(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  borderRadius: BorderRadius.circular(12),
-                  backgroundColor: Colors.white12,
-                  child: ListTile(
-                    title: Text(
-                      _getGoalButtonText,
-                      style: TextStyle(
-                        color: theme.colorScheme.shadow,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    trailing: Icon(
-                      _selectedGoalIds.isEmpty
-                          ? Icons.arrow_forward_ios
-                          : Icons.check_circle_rounded,
-                      color: _selectedGoalIds.isEmpty
-                          ? theme.colorScheme.shadow.withOpacity(0.7)
-                          : Colors.green.shade800,
-                      size: 20,
-                    ),
-                    onTap: _showGoalSelectionSheet,
-                  ),
+                buildIntentionButton(
+                  title: _getGoalButtonText,
+                  type: IntentionSelectionType.goals,
+                  isSelected: selectedType == IntentionSelectionType.goals,
+                  onTap: () {
+                    ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.goals);
+                    _showGoalSelectionSheet();
+                  },
                 ),
-                const SizedBox(height: 32),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 1,
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.black12,
-                              Colors.black87,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text(
-                        'OR',
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Container(
-                        height: 1,
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.black87,
-                              Colors.black12,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                buildIntentionButton(
+                  title: "Use Previous Intention",
+                  type: IntentionSelectionType.previous,
+                  isSelected: selectedType == IntentionSelectionType.previous,
+                  onTap: () {
+                    ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.previous);
+                    _showPreviousIntentions();
+                  },
                 ),
-                const SizedBox(height: 32),
-                GlassContainer(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  borderRadius: BorderRadius.circular(12),
-                  backgroundColor: Colors.white12,
-                  child: ListTile(
-                    title: Text(
-                      "Create Your Own",
-                      style: TextStyle(
-                        color: theme.colorScheme.shadow,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    trailing: Icon(
-                      Icons.arrow_forward_ios,
-                      color: theme.colorScheme.shadow.withOpacity(0.7),
-                      size: 20,
-                    ),
-                    onTap: _showCustomIntention,
-                  ),
+                buildIntentionButton(
+                  title: "Use Default Intention",
+                  type: IntentionSelectionType.default_intention,
+                  isSelected: selectedType == IntentionSelectionType.default_intention,
+                  onTap: () {
+                    ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.default_intention);
+                    widget.onContinue("I want to feel more relaxed and at peace"); // Default intention
+                  },
                 ),
+                buildIntentionButton(
+                  title: "Create An Intention",
+                  type: IntentionSelectionType.custom,
+                  isSelected: selectedType == IntentionSelectionType.custom,
+                  onTap: () {
+                    ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.custom);
+                    _showCustomIntention();
+                  },
+                ),
+
+
+                // Row(
+                //   children: [
+                //     Expanded(
+                //       child: Container(
+                //         height: 1,
+                //         decoration: const BoxDecoration(
+                //           gradient: LinearGradient(
+                //             colors: [
+                //               Colors.black12,
+                //               Colors.black87,
+                //             ],
+                //           ),
+                //         ),
+                //       ),
+                //     ),
+                //     const Padding(
+                //       padding: EdgeInsets.symmetric(horizontal: 16.0),
+                //       child: Text(
+                //         'OR',
+                //         style: TextStyle(
+                //           color: Colors.black87,
+                //           fontWeight: FontWeight.w500,
+                //           fontSize: 14,
+                //         ),
+                //       ),
+                //     ),
+                //     Expanded(
+                //       child: Container(
+                //         height: 1,
+                //         decoration: const BoxDecoration(
+                //           gradient: LinearGradient(
+                //             colors: [
+                //               Colors.black87,
+                //               Colors.black12,
+                //             ],
+                //           ),
+                //         ),
+                //       ),
+                //     ),
+                //   ],
+                // ),
+                // const SizedBox(height: 32),
+
               ],
             ),
           ),

@@ -80,7 +80,7 @@ class _CustomIntentionPageState extends State<CustomIntentionPage> with SingleTi
       curve: Curves.easeInOut,
     ));
 
-    Future.delayed(const Duration(milliseconds: 300), () {
+    Future.delayed(const Duration(milliseconds: 200), () {
       if (mounted) {
         _placeholderAnimationController.forward();
       }
