@@ -142,6 +142,19 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    ModalRoute.of(context)?.addScopedWillPopCallback(() async {
+      setState(() {
+        selectedMethod = null;
+        _selectedIndex = null;
+        _controller.reset();
+      });
+      return true;
+    });
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -157,9 +170,23 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
 
     _controller.forward().then((_) {
       if (mounted) {
-        setState(() {
-          currentView = MODALITIES_VIEW;
-        });
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => TopicSelectionPage(
+        //       tranceMethod: selectedMethod!,
+        //       intention: "",
+        //     ),
+        //   ),
+        // ).then((_) {
+        //   if (mounted) {
+        //     setState(() {
+        //       selectedMethod = null;
+        //       _selectedIndex = null;
+        //       _controller.reset();
+        //     });
+        //   }
+        // });
       }
     });
   }
@@ -176,6 +203,7 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
       } else {
         customIntention = intention;
         currentView = MODALITIES_VIEW;
+        _selectedIndex = null;
         _controller.reset();
       }
     });
@@ -186,6 +214,8 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
       if (goals.isNotEmpty) {
         currentView = MODALITIES_VIEW;
         customIntention = "";
+        _selectedIndex = null;
+        _controller.reset();
         ref.read(intentionSelectionProvider.notifier).setSelectedGoals(goals);
       }
     });
@@ -214,6 +244,8 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
       } else if (currentView == CUSTOM_INPUT_VIEW || currentView == PREVIOUS_INTENTIONS_VIEW) {
         currentView = INITIAL_VIEW;
         customIntention = null;
+        _selectedIndex = null;
+        _controller.reset();
       }
     });
   }
@@ -256,120 +288,71 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
           ],
         ),
         Expanded(
-          child: selectedMethod?.name == 'Hypnotherapy'
-              ? TweenAnimationBuilder<double>(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  builder: (context, value, child) {
-                    return Opacity(
-                      opacity: value,
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: session.TranceMethod.values.length,
+            itemBuilder: (context, index) {
+              final method = session.TranceMethod.values[index];
+              final isSelected = method == selectedMethod;
+              
+              return AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  final double t;
+                  if (isSelected) {
+                    // Selected item animates last
+                    t = _controller.value < 0.5 ? 0.0 : (_controller.value - 0.5) * 2;
+                  } else {
+                    // Other items animate based on their index, ensuring last item animates
+                    final itemCount = session.TranceMethod.values.length;
+                    final startTime = (index / (itemCount - 1)) * 0.5; // Spread animations over first half
+                    t = _controller.value < startTime ? 0.0 
+                        : (_controller.value - startTime) / (0.5 - startTime);
+                  }
+                  
+                  final progress = Curves.easeInOut.transform(t.clamp(0.0, 1.0));
+                  
+                  return Transform.translate(
+                    offset: Offset(-progress * MediaQuery.of(context).size.width, 0),
+                    child: Opacity(
+                      opacity: 1 - progress,
                       child: child,
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      const Expanded(
-                        child: Center(
-                          child: Text('Hypnotherapy content will go here'),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              isAnimatingOut = true;
-                            });
-                            Future.delayed(const Duration(milliseconds: 200), () {
-                              _navigatorKey.currentState?.pop();
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: theme.colorScheme.onPrimary,
-                            foregroundColor: theme.colorScheme.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            minimumSize: const Size(double.infinity, 0),
-                          ),
-                          child: const Text(
-                            'Start',
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: GlassContainer(
+                    borderRadius: BorderRadius.circular(12),
+                    backgroundColor: Colors.white12,
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        splashColor: Colors.white24,
+                        highlightColor: Colors.white12,
+                        onTap: () => _selectMethod(method, index),
+                        child: ListTile(
+                          title: Text(
+                            method.name,
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.shadow,
+                              fontWeight: FontWeight.w500,
                             ),
+                          ),
+                          trailing: Icon(
+                            Icons.arrow_forward_ios,
+                            color: theme.colorScheme.shadow.withOpacity(0.7),
+                            size: 20,
                           ),
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: session.TranceMethod.values.length,
-                  itemBuilder: (context, index) {
-                    final method = session.TranceMethod.values[index];
-                    final isSelected = index == _selectedIndex;
-                    
-                    return AnimatedBuilder(
-                      animation: _controller,
-                      builder: (context, child) {
-                        final double t;
-                        if (isSelected) {
-                          // Selected item animates last
-                          t = _controller.value < 0.5 ? 0.0 : (_controller.value - 0.5) * 2;
-                        } else {
-                          // Other items animate based on their index
-                          final startTime = index * 0.15;
-                          t = _controller.value < startTime ? 0.0 
-                              : (_controller.value - startTime) / (0.5 - startTime);
-                        }
-                        
-                        final progress = Curves.easeInOut.transform(t.clamp(0.0, 1.0));
-                        
-                        return Transform.translate(
-                          offset: Offset(-progress * MediaQuery.of(context).size.width, 0),
-                          child: Opacity(
-                            opacity: 1 - progress,
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: GlassContainer(
-                          borderRadius: BorderRadius.circular(12),
-                          backgroundColor: Colors.white12,
-                          child: Material(
-                            type: MaterialType.transparency,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(12),
-                              splashColor: Colors.white24,
-                              highlightColor: Colors.white12,
-                              onTap: () => _selectMethod(method, index),
-                              child: ListTile(
-                                title: Text(
-                                  method.name,
-                                  style: TextStyle(
-                                    color: theme.colorScheme.shadow,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                trailing: Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: theme.colorScheme.shadow.withOpacity(0.7),
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
                 ),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -462,6 +445,11 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    // Reset animation when returning to modalities view
+    if (currentView == MODALITIES_VIEW && _selectedIndex == null) {
+      _controller.reset();
+    }
+
     final theme = Theme.of(context);
     final intentionState = ref.watch(intentionSelectionProvider);
 
