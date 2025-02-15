@@ -124,7 +124,6 @@ class _SheetState extends ConsumerState<Sheet> {
   int currentView = INITIAL_VIEW;
   session.TranceMethod? selectedMethod;
   String? customIntention;
-  Set<String> selectedGoalIds = {};
   bool isAnimatingOut = false;
 
   void _selectMethod(session.TranceMethod method) {
@@ -148,10 +147,10 @@ class _SheetState extends ConsumerState<Sheet> {
 
   void _onGoalsSelected(Set<String> goals) {
     setState(() {
-      selectedGoalIds = goals;
       if (goals.isNotEmpty) {
         currentView = MODALITIES_VIEW;
         customIntention = ""; // Set empty string to indicate goal-based selection
+        ref.read(intentionSelectionProvider.notifier).setSelectedGoals(goals);
       }
     });
   }
@@ -159,7 +158,7 @@ class _SheetState extends ConsumerState<Sheet> {
   void _handleBack() {
     setState(() {
       if (currentView == MODALITIES_VIEW) {
-        final selectedType = ref.read(intentionSelectionProvider);
+        final selectedType = ref.read(intentionSelectionProvider).type;
         switch (selectedType) {
           case IntentionSelectionType.custom:
             // If we came from custom intention, go back to it
@@ -171,7 +170,6 @@ class _SheetState extends ConsumerState<Sheet> {
           case IntentionSelectionType.none:
             // For all other cases, go back to initial view
             currentView = INITIAL_VIEW;
-            selectedGoalIds.clear();
             break;
         }
         selectedMethod = null;
@@ -185,6 +183,7 @@ class _SheetState extends ConsumerState<Sheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final intentionState = ref.watch(intentionSelectionProvider);
 
     return TweenAnimationBuilder<double>(
       duration: const Duration(milliseconds: 300),
@@ -244,7 +243,7 @@ class _SheetState extends ConsumerState<Sheet> {
                                     tranceMethod: selectedMethod ?? session.TranceMethod.values.first,
                                     onBack: _handleBack,
                                     onContinue: _onIntentionSelected,
-                                    selectedGoalIds: selectedGoalIds,
+                                    selectedGoalIds: intentionState.selectedGoalIds,
                                     onGoalsSelected: _onGoalsSelected,
                                     initialCustomIntention: customIntention,
                                     isCustomMode: currentView == CUSTOM_INPUT_VIEW,
@@ -427,7 +426,7 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
   @override
   void initState() {
     super.initState();
-    _selectedGoalIds = widget.selectedGoalIds;
+    _selectedGoalIds = ref.read(intentionSelectionProvider).selectedGoalIds;
     isCustomMode = widget.isCustomMode;
     customIntention = widget.initialCustomIntention;
     
@@ -606,35 +605,11 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
     widget.onBack();
   }
 
-  String get _getGoalButtonText {
-    if (_selectedGoalIds.isEmpty) {
-      return "Select Intentions";
-    }
-    final count = _selectedGoalIds.length;
-    return "$count Intention${count > 1 ? 's' : ''} Selected";
-  }
-
-  void _showPreviousIntentions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8,
-      ),
-      builder: (context) => PreviousIntentionsSheet(
-        onIntentionSelected: (intention) {
-          widget.onContinue(intention);
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final currentLength = _intentionController.text.trim().length;
-    final selectedType = ref.watch(intentionSelectionProvider);
+    final intentionState = ref.watch(intentionSelectionProvider);
 
     Widget buildIntentionButton({
       required String title,
@@ -861,7 +836,7 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
                 buildIntentionButton(
                   title: _getGoalButtonText,
                   type: IntentionSelectionType.goals,
-                  isSelected: selectedType == IntentionSelectionType.goals,
+                  isSelected: intentionState.type == IntentionSelectionType.goals,
                   onTap: () {
                     ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.goals);
                     _showGoalSelectionSheet();
@@ -870,7 +845,7 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
                 buildIntentionButton(
                   title: "Use Previous Intention",
                   type: IntentionSelectionType.previous,
-                  isSelected: selectedType == IntentionSelectionType.previous,
+                  isSelected: intentionState.type == IntentionSelectionType.previous,
                   onTap: () {
                     ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.previous);
                     _showPreviousIntentions();
@@ -879,7 +854,7 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
                 buildIntentionButton(
                   title: "Use Default Intention",
                   type: IntentionSelectionType.default_intention,
-                  isSelected: selectedType == IntentionSelectionType.default_intention,
+                  isSelected: intentionState.type == IntentionSelectionType.default_intention,
                   onTap: () {
                     ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.default_intention);
                     widget.onContinue("I want to feel more relaxed and at peace"); // Default intention
@@ -888,62 +863,41 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
                 buildIntentionButton(
                   title: "Create An Intention",
                   type: IntentionSelectionType.custom,
-                  isSelected: selectedType == IntentionSelectionType.custom,
+                  isSelected: intentionState.type == IntentionSelectionType.custom,
                   onTap: () {
                     ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.custom);
                     _showCustomIntention();
                   },
                 ),
-
-
-                // Row(
-                //   children: [
-                //     Expanded(
-                //       child: Container(
-                //         height: 1,
-                //         decoration: const BoxDecoration(
-                //           gradient: LinearGradient(
-                //             colors: [
-                //               Colors.black12,
-                //               Colors.black87,
-                //             ],
-                //           ),
-                //         ),
-                //       ),
-                //     ),
-                //     const Padding(
-                //       padding: EdgeInsets.symmetric(horizontal: 16.0),
-                //       child: Text(
-                //         'OR',
-                //         style: TextStyle(
-                //           color: Colors.black87,
-                //           fontWeight: FontWeight.w500,
-                //           fontSize: 14,
-                //         ),
-                //       ),
-                //     ),
-                //     Expanded(
-                //       child: Container(
-                //         height: 1,
-                //         decoration: const BoxDecoration(
-                //           gradient: LinearGradient(
-                //             colors: [
-                //               Colors.black87,
-                //               Colors.black12,
-                //             ],
-                //           ),
-                //         ),
-                //       ),
-                //     ),
-                //   ],
-                // ),
-                // const SizedBox(height: 32),
-
               ],
             ),
           ),
         ),
       ],
+    );
+  }
+
+  String get _getGoalButtonText {
+    if (_selectedGoalIds.isEmpty) {
+      return "Select Intentions";
+    }
+    final count = _selectedGoalIds.length;
+    return "$count Intention${count > 1 ? 's' : ''} Selected";
+  }
+
+  void _showPreviousIntentions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
+      builder: (context) => PreviousIntentionsSheet(
+        onIntentionSelected: (intention) {
+          widget.onContinue(intention);
+        },
+      ),
     );
   }
 }
