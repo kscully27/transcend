@@ -20,11 +20,13 @@ double fourthDepth = 50;
 class BottomSheetTopicsListView extends ConsumerStatefulWidget {
   final Set<String> selectedGoalIds;
   final Function(String, bool) onSelectionChanged;
+  final Function(Set<String>) onGoalsSelected;
 
   const BottomSheetTopicsListView({
     super.key,
     required this.selectedGoalIds,
     required this.onSelectionChanged,
+    required this.onGoalsSelected,
   });
 
   static const routeName = '/';
@@ -158,99 +160,115 @@ class _BottomSheetTopicsListViewState
     final theme = Theme.of(context);
 
     return user.when(
-      data: (user) => Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).colorScheme.surfaceTint,
-              Theme.of(context).colorScheme.surface,
-            ],
-          ),
-        ),
-        child: Column(
-          children: [
-            // Padding(
-            //   padding:
-            //       const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-            //   child: Row(
-            //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //     children: [
-            //       TextButton(
-            //         onPressed: () => Navigator.pop(context),
-            //         child: Text(
-            //           'Cancel',
-            //           style: TextStyle(
-            //             color: theme.colorScheme.onSurface.withOpacity(0.8),
-            //           ),
-            //         ),
-            //       ),
-            //       Text(
-            //         'Goals',
-            //         style: theme.textTheme.titleMedium?.copyWith(
-            //           color: theme.colorScheme.onSurface,
-            //           fontWeight: FontWeight.w600,
-            //         ),
-            //       ),
-            //       TextButton(
-            //         onPressed: () => Navigator.pop(context),
-            //         child: Text(
-            //           'Done',
-            //           style: TextStyle(
-            //             color: theme.colorScheme.onSurface.withOpacity(0.8),
-            //           ),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
-            SizedBox(
-              height: 50,
-              child: ListView(
-                controller: _categoriesScrollController,
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                children: ref
-                    .read(topicsProvider.notifier)
-                    .getCategories()
-                    .map((category) {
-                  final isSelected = category ==
-                      ref.read(topicsProvider.notifier).selectedCategory;
-                  return Container(
-                    margin: const EdgeInsets.only(
-                      left: 4,
-                      top: 8,
-                      bottom: 8,
-                      right: 4, // Add right margin to prevent cut-off
-                    ),
-                    width: 120, // Fixed width for consistent sizing
-                    child: ClayButton(
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.surface
-                          : Theme.of(context).colorScheme.surfaceTint,
-                      parentColor: Theme.of(context).colorScheme.surfaceTint,
-                      borderRadius: 17,
-                      borderWidth: .5,
-                      borderColor: Colors.white24,
-                      text: ref
-                          .read(topicsProvider.notifier)
-                          .getDisplayCategory(category),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      textColor: Colors.white,
-                      onPressed: () => _onCategorySelected(category),
-                    ),
-                  );
-                }).toList(),
+      data: (user) => Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Theme.of(context).colorScheme.surfaceTint,
+                  Theme.of(context).colorScheme.surface,
+                ],
               ),
             ),
-            Expanded(child: _buildTopicsList()),
-          ],
-        ),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 50,
+                  child: ListView(
+                    controller: _categoriesScrollController,
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    children: ref
+                        .read(topicsProvider.notifier)
+                        .getCategories()
+                        .map((category) {
+                      final isSelected = category ==
+                          ref.read(topicsProvider.notifier).selectedCategory;
+                      return Container(
+                        margin: const EdgeInsets.only(
+                          left: 4,
+                          top: 8,
+                          bottom: 8,
+                          right: 4,
+                        ),
+                        width: 120,
+                        child: ClayButton(
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.surface
+                              : Theme.of(context).colorScheme.surfaceTint,
+                          parentColor: Theme.of(context).colorScheme.surfaceTint,
+                          borderRadius: 17,
+                          borderWidth: .5,
+                          borderColor: Colors.white24,
+                          text: ref
+                              .read(topicsProvider.notifier)
+                              .getDisplayCategory(category),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          textColor: Colors.white,
+                          onPressed: () => _onCategorySelected(category),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: widget.selectedGoalIds.isNotEmpty ? 120 : 0,
+                    ),
+                    child: _buildTopicsList(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (widget.selectedGoalIds.isNotEmpty)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(20),
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 24,
+                ),
+                child: ClayButton(
+                  color: Colors.white,
+                  parentColor: Theme.of(context).colorScheme.surface,
+                  borderRadius: 12,
+                  borderWidth: .5,
+                  borderColor: Colors.white24,
+                  text: 'Next',
+                  textColor: Theme.of(context).colorScheme.surface,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  onPressed: () {
+                    if (mounted) {
+                      widget.onSelectionChanged("", false); // Trigger parent update
+                      widget.onGoalsSelected(widget.selectedGoalIds);
+                    }
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ),
+        ],
       ),
       loading: () => const CircularProgressIndicator(),
       error: (error, stack) => Text('Error: $error'),

@@ -45,7 +45,7 @@ class PreviousIntentionsSheet extends StatelessWidget {
                 ),
                 Text(
                   'Previous Intentions',
-                  style: theme.textTheme.titleMedium?.copyWith(
+                  style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),

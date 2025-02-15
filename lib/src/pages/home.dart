@@ -119,7 +119,8 @@ class _SheetState extends ConsumerState<Sheet> {
   // The three possible views
   static const int INITIAL_VIEW = 0;
   static const int CUSTOM_INPUT_VIEW = 1;
-  static const int MODALITIES_VIEW = 2;
+  static const int PREVIOUS_INTENTIONS_VIEW = 2;
+  static const int MODALITIES_VIEW = 3;
 
   int currentView = INITIAL_VIEW;
   session.TranceMethod? selectedMethod;
@@ -135,8 +136,14 @@ class _SheetState extends ConsumerState<Sheet> {
   void _onIntentionSelected(String intention) {
     setState(() {
       if (intention.isEmpty) {
-        // Show custom input view
-        currentView = CUSTOM_INPUT_VIEW;
+        final selectedType = ref.read(intentionSelectionProvider).type;
+        if (selectedType == IntentionSelectionType.previous) {
+          // Show previous intentions view
+          currentView = PREVIOUS_INTENTIONS_VIEW;
+        } else {
+          // Show custom input view
+          currentView = CUSTOM_INPUT_VIEW;
+        }
       } else {
         // User entered text and clicked continue
         customIntention = intention;
@@ -164,8 +171,11 @@ class _SheetState extends ConsumerState<Sheet> {
             // If we came from custom intention, go back to it
             currentView = CUSTOM_INPUT_VIEW;
             break;
-          case IntentionSelectionType.goals:
           case IntentionSelectionType.previous:
+            // If we came from previous intentions, go back to it
+            currentView = PREVIOUS_INTENTIONS_VIEW;
+            break;
+          case IntentionSelectionType.goals:
           case IntentionSelectionType.default_intention:
           case IntentionSelectionType.none:
             // For all other cases, go back to initial view
@@ -173,7 +183,7 @@ class _SheetState extends ConsumerState<Sheet> {
             break;
         }
         selectedMethod = null;
-      } else if (currentView == CUSTOM_INPUT_VIEW) {
+      } else if (currentView == CUSTOM_INPUT_VIEW || currentView == PREVIOUS_INTENTIONS_VIEW) {
         currentView = INITIAL_VIEW;
         customIntention = null;
       }
@@ -239,15 +249,17 @@ class _SheetState extends ConsumerState<Sheet> {
                           Expanded(
                             child: currentView == MODALITIES_VIEW
                                 ? _buildModalities()
-                                : IntentionContent(
-                                    tranceMethod: selectedMethod ?? session.TranceMethod.values.first,
-                                    onBack: _handleBack,
-                                    onContinue: _onIntentionSelected,
-                                    selectedGoalIds: intentionState.selectedGoalIds,
-                                    onGoalsSelected: _onGoalsSelected,
-                                    initialCustomIntention: customIntention,
-                                    isCustomMode: currentView == CUSTOM_INPUT_VIEW,
-                                  ),
+                                : currentView == PREVIOUS_INTENTIONS_VIEW
+                                    ? _buildPreviousIntentions()
+                                    : IntentionContent(
+                                        tranceMethod: selectedMethod ?? session.TranceMethod.values.first,
+                                        onBack: _handleBack,
+                                        onContinue: _onIntentionSelected,
+                                        selectedGoalIds: intentionState.selectedGoalIds,
+                                        onGoalsSelected: _onGoalsSelected,
+                                        initialCustomIntention: customIntention,
+                                        isCustomMode: currentView == CUSTOM_INPUT_VIEW,
+                                      ),
                           ),
                         ],
                       ),
@@ -292,6 +304,7 @@ class _SheetState extends ConsumerState<Sheet> {
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.shadow,
                     fontWeight: FontWeight.w500,
+                    fontSize: 20
                   ),
                 ),
               ),
@@ -368,6 +381,91 @@ class _SheetState extends ConsumerState<Sheet> {
                         ),
                       ),
                     ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreviousIntentions() {
+    final theme = Theme.of(context);
+    final placeholders = [
+      "I want to feel more confident in social situations",
+      "I want to sleep more deeply and wake up refreshed",
+      "I want to develop a positive mindset",
+      "I want to overcome my fear of public speaking",
+      "I want to increase my focus and productivity",
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Stack(
+          children: [
+            Positioned(
+              left: 4,
+              top: 8,
+              bottom: 8,
+              child: IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios,
+                  color: theme.colorScheme.shadow.withOpacity(0.7),
+                  size: 20,
+                ),
+                onPressed: _handleBack,
+              ),
+            ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 48.0,
+                  vertical: 16.0,
+                ),
+                child: Text(
+                  'Previous Intentions',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.shadow,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 20
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            itemCount: placeholders.length,
+            itemBuilder: (context, index) {
+              final intention = placeholders[index];
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: index == placeholders.length - 1 ? 48 : 12,
+                ),
+                child: GlassContainer(
+                  borderRadius: BorderRadius.circular(12),
+                  backgroundColor: Colors.white12,
+                  child: ListTile(
+                    title: Text(
+                      intention,
+                      style: TextStyle(
+                        color: theme.colorScheme.shadow,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_forward_ios,
+                      color: theme.colorScheme.shadow.withOpacity(0.7),
+                      size: 20,
+                    ),
+                    onTap: () => _onIntentionSelected(intention),
                   ),
                 ),
               );
@@ -520,12 +618,37 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
                         ),
                       ),
                     ),
-                    Text(
-                      'Goals',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Intentions',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 22,
+                          ),
+                        ),
+                        if (tempSelectedGoals.isNotEmpty) ...[
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              tempSelectedGoals.length.toString(),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     TextButton(
                       onPressed: () {
@@ -558,6 +681,12 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
                       }
                     });
                   },
+                  onGoalsSelected: (goals) {
+                    if (mounted) {
+                      _selectedGoalIds = Set.from(goals);
+                      widget.onGoalsSelected(_selectedGoalIds);
+                    }
+                  },
                 ),
               ),
             ],
@@ -588,7 +717,7 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
     if (text.length < _minCharacters) {
       setState(() {
         _showError = true;
-        _errorMessage = 'Your intention should be at least $_minCharacters characters long to ensure it\'s specific enough';
+        _errorMessage = 'Your intention should be at least $_minCharacters characters long';
       });
       return;
     }
@@ -684,6 +813,7 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.shadow,
                     fontWeight: FontWeight.w600,
+                    fontSize: 20
                   ),
                 ),
                 const SizedBox(width: 48), // Balance the back button
@@ -768,11 +898,12 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
                     Icons.error_outline,
                     color: Colors.red.shade700,
-                    size: 16,
+                    size: 32,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -820,7 +951,7 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
       children: [
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -828,8 +959,8 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
                   'What would you like to accomplish today?',
                   style: TextStyle(
                     color: theme.colorScheme.shadow,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 24,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 20,
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -848,7 +979,7 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
                   isSelected: intentionState.type == IntentionSelectionType.previous,
                   onTap: () {
                     ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.previous);
-                    _showPreviousIntentions();
+                    widget.onContinue("");
                   },
                 ),
                 buildIntentionButton(
@@ -883,21 +1014,5 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
     }
     final count = _selectedGoalIds.length;
     return "$count Intention${count > 1 ? 's' : ''} Selected";
-  }
-
-  void _showPreviousIntentions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8,
-      ),
-      builder: (context) => PreviousIntentionsSheet(
-        onIntentionSelected: (intention) {
-          widget.onContinue(intention);
-        },
-      ),
-    );
   }
 }
