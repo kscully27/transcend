@@ -1,6 +1,7 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:trancend/src/ui/glass/glass_container.dart';
+import 'package:trancend/src/ui/time_slider.dart';
 
 class HypnotherapyBottomSheet extends StatefulWidget {
   final VoidCallback onBack;
@@ -16,6 +17,7 @@ class HypnotherapyBottomSheet extends StatefulWidget {
 
 class _HypnotherapyBottomSheetState extends State<HypnotherapyBottomSheet> {
   bool isAnimatingOut = false;
+  int _selectedDuration = 20;
 
   void _handleBack() {
     setState(() {
@@ -201,12 +203,30 @@ class _HypnotherapyBottomSheetState extends State<HypnotherapyBottomSheet> {
                         child: SingleChildScrollView(
                           controller: scrollController,
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const Center(
-                                child: Text('Hypnotherapy content will go here'),
+                              const SizedBox(height: 40),
+                              Text(
+                                'Session Duration',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: theme.colorScheme.shadow,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
+                              const SizedBox(height: 20),
+                              TimeSlider(
+                                color: theme.colorScheme.shadow,
+                                onValueChanged: (value) {
+                                  setState(() {
+                                    _selectedDuration = value;
+                                  });
+                                },
+                                height: 100,
+                              ),
+                              const SizedBox(height: 40),
                               Padding(
-                                padding: const EdgeInsets.all(20.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                                 child: ElevatedButton(
                                   onPressed: () {
                                     setState(() {
@@ -214,7 +234,7 @@ class _HypnotherapyBottomSheetState extends State<HypnotherapyBottomSheet> {
                                     });
                                     Future.delayed(const Duration(milliseconds: 300), () {
                                       Navigator.pop(context);
-                                      // TODO: Implement start functionality
+                                      // TODO: Implement start functionality with _selectedDuration
                                     });
                                   },
                                   style: ElevatedButton.styleFrom(
@@ -235,6 +255,7 @@ class _HypnotherapyBottomSheetState extends State<HypnotherapyBottomSheet> {
                                   ),
                                 ),
                               ),
+                              const SizedBox(height: 20),
                             ],
                           ),
                         ),

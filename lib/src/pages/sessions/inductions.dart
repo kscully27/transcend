@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
+import 'package:trancend/src/pages/sessions/hypnotherapy.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 
 class Inductions extends StatelessWidget {
@@ -21,6 +22,17 @@ class Inductions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    if (selectedMethod == session.TranceMethod.Hypnosis) {
+      return Hypnotherapy(
+        onBack: onBack,
+        onStart: (duration) {
+          // TODO: Implement start with duration
+          print('Starting hypnotherapy session with duration: $duration');
+        },
+      );
+    }
+
     return Column(
       children: [
         Stack(
