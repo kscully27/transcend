@@ -85,20 +85,36 @@ class _TimeSliderState extends State<TimeSlider> {
             bottom: 0,
             left: 4,
             right: 0,
-            child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: _handlePageChanged,
-              physics: const BouncingScrollPhysics(),
-              itemCount: widget.values.length,
-              itemBuilder: (context, index) {
-                return Center(
-                  child: Container(
-                    width: 2,
-                    height: 20,
-                    color: widget.color,
-                  ),
-                );
+            child: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Colors.transparent,
+                    widget.color,
+                    widget.color,
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.15, 0.85, 1.0],
+                ).createShader(bounds);
               },
+              blendMode: BlendMode.dstIn,
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: _handlePageChanged,
+                physics: const BouncingScrollPhysics(),
+                itemCount: widget.values.length,
+                itemBuilder: (context, index) {
+                  return Center(
+                    child: Container(
+                      width: 2,
+                      height: 20,
+                      color: widget.color,
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ],

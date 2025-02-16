@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:remixicon/remixicon.dart';
+import 'package:trancend/src/ui/glass/glass_button.dart';
 import 'package:trancend/src/ui/time_slider.dart';
 
 class Hypnotherapy extends StatefulWidget {
@@ -24,21 +26,18 @@ class _HypnotherapyState extends State<Hypnotherapy> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Stack(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Positioned(
-              left: 4,
-              top: 8,
-              bottom: 8,
-              child: IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios,
-                  color: theme.colorScheme.shadow.withOpacity(0.7),
-                  size: 20,
-                ),
-                onPressed: widget.onBack,
+            IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios,
+                color: theme.colorScheme.shadow.withOpacity(0.7),
+                size: 20,
               ),
+              onPressed: widget.onBack,
             ),
             Center(
               child: Padding(
@@ -56,19 +55,17 @@ class _HypnotherapyState extends State<Hypnotherapy> {
                 ),
               ),
             ),
+                        IconButton(
+              icon: Icon(
+                Remix.equalizer_3_fill,
+                color: theme.colorScheme.shadow.withOpacity(0.7),
+                size: 20,
+              ),
+              onPressed: widget.onBack,
+            ),
           ],
         ),
-        const SizedBox(height: 40),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Text(
-            'Session Duration',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.shadow,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
+
         const SizedBox(height: 20),
         SizedBox(
           height: 100,
@@ -82,15 +79,18 @@ class _HypnotherapyState extends State<Hypnotherapy> {
             color: theme.colorScheme.shadow,
           ),
         ),
-        const SizedBox(height: 40),
+        // const SizedBox(height: 40),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: ElevatedButton(
+          child: GlassButton(
             onPressed: () => widget.onStart(_selectedDuration),
-            child: const Text('Start Session'),
+            text: "Start Session",
+            textColor: theme.colorScheme.shadow,
+            glassColor: Colors.white10,
+            height: 60,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 80),
       ],
     );
   }
