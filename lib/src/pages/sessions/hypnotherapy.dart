@@ -20,6 +20,62 @@ class Hypnotherapy extends StatefulWidget {
 class _HypnotherapyState extends State<Hypnotherapy> {
   int _selectedDuration = 20;
 
+  void _showSettings(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        margin: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(width: 60), // Balance the Done button
+                  Text(
+                    'Hypnotherapy Settings',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Done',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: Container(
+                // Settings content will go here
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -55,13 +111,13 @@ class _HypnotherapyState extends State<Hypnotherapy> {
                 ),
               ),
             ),
-                        IconButton(
+            IconButton(
               icon: Icon(
                 Remix.equalizer_3_fill,
                 color: theme.colorScheme.shadow.withOpacity(0.7),
                 size: 20,
               ),
-              onPressed: widget.onBack,
+              onPressed: () => _showSettings(context),
             ),
           ],
         ),
@@ -87,6 +143,9 @@ class _HypnotherapyState extends State<Hypnotherapy> {
             text: "Start Session",
             textColor: theme.colorScheme.shadow,
             glassColor: Colors.white10,
+            // glassColor: Theme.of(context).colorScheme.onSurface,
+            borderWidth: 0,
+            opacity: 1,
             height: 60,
           ),
         ),
