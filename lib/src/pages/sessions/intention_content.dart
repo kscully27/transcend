@@ -510,7 +510,7 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
               left: 20.0,
               right: 20.0,
               top: _errorMessage != null ? 4.0 : 20.0,
-              bottom: 110.0,
+              bottom: 160.0,
             ),
             child: GlassContainer(
               borderRadius: BorderRadius.circular(12),

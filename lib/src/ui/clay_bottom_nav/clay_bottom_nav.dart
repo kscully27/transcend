@@ -222,7 +222,7 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
             ),
           ),
           Transform.translate(
-            offset: const Offset(0, 140),
+            offset: const Offset(0, 0),
             child: widget.sheet!,
           ),
         ],
@@ -366,7 +366,7 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
     ];
 
     return SizedBox(
-      height: 100,
+      height: 67,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -377,7 +377,7 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
             child: _sheetOpen ? Container() : CustomPaint(
               painter: painter,
               child: SizedBox(
-                height: 140,
+                height: 100,
                 width: MediaQuery.of(context).size.width,
               ),
             ),

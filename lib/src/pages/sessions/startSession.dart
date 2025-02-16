@@ -60,7 +60,7 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
 
   void _selectMethod(session.TranceMethod method, int index) {
     if (_selectedIndex != null) return;
-    
+
     setState(() {
       selectedMethod = method;
       _selectedIndex = index;
@@ -139,7 +139,8 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
         selectedMethod = null;
         _selectedIndex = null;
         _controller.reset();
-      } else if (currentView == CUSTOM_INPUT_VIEW || currentView == PREVIOUS_INTENTIONS_VIEW) {
+      } else if (currentView == CUSTOM_INPUT_VIEW ||
+          currentView == PREVIOUS_INTENTIONS_VIEW) {
         currentView = INITIAL_VIEW;
         customIntention = null;
         _selectedIndex = null;
@@ -158,96 +159,113 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
     final theme = Theme.of(context);
     final intentionState = ref.watch(intentionSelectionProvider);
 
-    return Navigator(
-      key: _navigatorKey,
-      onGenerateRoute: (settings) => MaterialPageRoute(
-        builder: (context) => TweenAnimationBuilder<double>(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          tween: Tween(
-            begin: currentView != INITIAL_VIEW ? 0.7 : 0.6,
-            end: currentView != INITIAL_VIEW ? 0.9 : 0.8,
-          ),
-          builder: (context, value, child) {
-            return DraggableScrollableSheet(
-              minChildSize: currentView != INITIAL_VIEW ? 0.7 : 0.6,
-              initialChildSize: value,
-              maxChildSize: 0.9,
-              builder: (context, controller) {
-                return Stack(
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white38,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                        border: Border.all(
-                          color: Colors.white24,
-                          width: 0.5,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(
-                            sigmaX: 20.0,
-                            sigmaY: 20.0,
+    return Transform.translate(
+      offset: const Offset(0, 0),
+      child: Navigator(
+        key: _navigatorKey,
+        onGenerateRoute: (settings) => MaterialPageRoute(
+          builder: (context) => TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            tween: Tween(
+              begin: currentView != INITIAL_VIEW ? 0.6 : 0.5,
+              end: currentView != INITIAL_VIEW ? 0.9 : 0.8,
+            ),
+            builder: (context, value, child) {
+              return DraggableScrollableSheet(
+                minChildSize: currentView != INITIAL_VIEW ? 0.6 : 0.5,
+                initialChildSize: value,
+                maxChildSize: 0.9,
+                builder: (context, controller) {
+                  return Stack(
+                    children: [
+                      Transform.translate(
+                        offset: const Offset(0, 120),
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white24,
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(20)),
+                            border: Border.all(
+                              color: Colors.white24,
+                              width: 0.5,
+                            ),
                           ),
-                          child: Column(
-                            children: [
-                              Center(
-                                child: FractionallySizedBox(
-                                  widthFactor: 0.25,
-                                  child: Container(
-                                    margin: const EdgeInsets.symmetric(vertical: 8),
-                                    height: 4,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(2),
-                                      border: Border.all(
-                                        color: Colors.black12,
-                                        width: 0.5,
+                          height: MediaQuery.of(context).size.height+120,
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(20)),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(
+                                sigmaX: 20.0,
+                                sigmaY: 20.0,
+                              ),
+                              child: Column(
+                                children: [
+                                  Center(
+                                    child: FractionallySizedBox(
+                                      widthFactor: 0.25,
+                                      child: Container(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 8),
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(2),
+                                          border: Border.all(
+                                            color: Colors.black12,
+                                            width: 0.5,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ),
-                              Expanded(
-                                child: currentView == MODALITIES_VIEW
-                                    ? Inductions(
-                                        controller: _controller,
-                                        selectedMethod: selectedMethod,
-                                        selectedIndex: _selectedIndex,
-                                        onBack: _handleBack,
-                                        onSelectMethod: _selectMethod,
-                                      )
-                                    : currentView == PREVIOUS_INTENTIONS_VIEW
-                                        ? PreviousIntentions(
+                                  Expanded(
+                                    child: currentView == MODALITIES_VIEW
+                                        ? Inductions(
+                                            controller: _controller,
+                                            selectedMethod: selectedMethod,
+                                            selectedIndex: _selectedIndex,
                                             onBack: _handleBack,
-                                            onIntentionSelected: _onIntentionSelected,
+                                            onSelectMethod: _selectMethod,
                                           )
-                                        : IntentionContent(
-                                            tranceMethod: selectedMethod ?? session.TranceMethod.values.first,
-                                            onBack: _handleBack,
-                                            onContinue: _onIntentionSelected,
-                                            selectedGoalIds: intentionState.selectedGoalIds,
-                                            onGoalsSelected: _onGoalsSelected,
-                                            initialCustomIntention: customIntention,
-                                            isCustomMode: currentView == CUSTOM_INPUT_VIEW,
-                                          ),
+                                        : currentView == PREVIOUS_INTENTIONS_VIEW
+                                            ? PreviousIntentions(
+                                                onBack: _handleBack,
+                                                onIntentionSelected:
+                                                    _onIntentionSelected,
+                                              )
+                                            : IntentionContent(
+                                                tranceMethod: selectedMethod ??
+                                                    session.TranceMethod.values
+                                                        .first,
+                                                onBack: _handleBack,
+                                                onContinue: _onIntentionSelected,
+                                                selectedGoalIds: intentionState
+                                                    .selectedGoalIds,
+                                                onGoalsSelected: _onGoalsSelected,
+                                                initialCustomIntention:
+                                                    customIntention,
+                                                isCustomMode: currentView ==
+                                                    CUSTOM_INPUT_VIEW,
+                                              ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
+                    ],
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
     );
   }
-} 
+}

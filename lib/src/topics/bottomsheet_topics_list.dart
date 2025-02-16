@@ -226,11 +226,11 @@ class _BottomSheetTopicsListViewState
             Positioned(
               left: 0,
               right: 0,
-              bottom: 120,
+              bottom: 8,
               child: Container(
                 height: 120,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
+                  color: Theme.of(context).colorScheme.primary,
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(20),
                   ),
