@@ -226,7 +226,7 @@ class _BottomSheetTopicsListViewState
             Positioned(
               left: 0,
               right: 0,
-              bottom: 60,
+              bottom: 120,
               child: Container(
                 height: 120,
                 decoration: BoxDecoration(

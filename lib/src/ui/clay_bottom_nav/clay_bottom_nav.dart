@@ -366,7 +366,7 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
     ];
 
     return SizedBox(
-      height: 160,
+      height: 100,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
