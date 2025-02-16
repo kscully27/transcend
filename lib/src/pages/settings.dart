@@ -494,7 +494,9 @@ class _BackgroundSoundBottomSheetState
           children: [
             AutoSizeText(
               'Select Background Sound',
-              style: theme.textTheme.titleMedium,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontSize: 20,
+              ),
             ),
             const SizedBox(height: 16),
             Flexible(

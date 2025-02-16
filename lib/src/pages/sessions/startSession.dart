@@ -1,12 +1,12 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
-import 'package:trancend/src/providers/intention_selection_provider.dart';
 import 'package:trancend/src/pages/sessions/inductions.dart';
 import 'package:trancend/src/pages/sessions/intention_content.dart';
 import 'package:trancend/src/pages/sessions/previous_intentions.dart';
+import 'package:trancend/src/providers/intention_selection_provider.dart';
 
 class Sheet extends ConsumerStatefulWidget {
   const Sheet({super.key});
@@ -164,18 +164,15 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
       child: Navigator(
         key: _navigatorKey,
         onGenerateRoute: (settings) => MaterialPageRoute(
-          builder: (context) => TweenAnimationBuilder<double>(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            tween: Tween(
-              begin: currentView != INITIAL_VIEW ? 0.6 : 0.5,
-              end: currentView != INITIAL_VIEW ? 0.9 : 0.8,
-            ),
-            builder: (context, value, child) {
+          builder: (context) => LayoutBuilder(
+            builder: (context, constraints) {
+              final double sheetSize = selectedMethod != null ? 0.7 : 0.8;
+              
               return DraggableScrollableSheet(
-                minChildSize: currentView != INITIAL_VIEW ? 0.6 : 0.5,
-                initialChildSize: value,
-                maxChildSize: 0.9,
+                minChildSize: sheetSize,
+                initialChildSize: sheetSize,
+                maxChildSize: sheetSize,
+                
                 builder: (context, controller) {
                   return Stack(
                     children: [
