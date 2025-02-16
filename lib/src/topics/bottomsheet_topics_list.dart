@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:trancend/src/locator.dart';
-import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/providers/topics_provider.dart';
-import 'package:trancend/src/providers/user_topics_provider.dart';
-import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/topics/candy_select_item.dart';
-import 'package:trancend/src/topics/candy_topic_item.dart';
 import 'package:trancend/src/ui/clay/clay_button.dart';
-import 'package:trancend/src/ui/glass/glass_button.dart';
-import 'package:trancend/src/ui/glass/glass_container.dart';
 
 double firstDepth = 15;
 double secondDepth = 10;
@@ -233,13 +226,13 @@ class _BottomSheetTopicsListViewState
             Positioned(
               left: 0,
               right: 0,
-              bottom: 0,
+              bottom: 60,
               child: Container(
                 height: 120,
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(20),
+                    top: Radius.circular(20),
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(
