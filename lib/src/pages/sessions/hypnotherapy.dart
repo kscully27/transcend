@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:remixicon/remixicon.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/pages/settings.dart';
+import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/services/background_audio.service.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 import 'package:trancend/src/ui/time_slider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:trancend/src/providers/auth_provider.dart';
-import 'package:trancend/src/ui/background_sound/background_sound_selector.dart';
 
 class HypnotherapySettings extends ConsumerWidget {
   const HypnotherapySettings({super.key});
@@ -16,19 +14,20 @@ class HypnotherapySettings extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      // Settings content will go here
-    );
+        // Settings content will go here
+        );
   }
 }
 
 class Hypnotherapy extends ConsumerStatefulWidget {
   final VoidCallback onBack;
   final Function(int duration) onStart;
-
+  final Function(String pageName) changePage;
   const Hypnotherapy({
     super.key,
     required this.onBack,
     required this.onStart,
+    required this.changePage,
   });
 
   @override
@@ -102,28 +101,32 @@ class _HypnotherapyState extends ConsumerState<Hypnotherapy> {
                   ),
                   GestureDetector(
                     onTap: () => {
-                      showModalBottomSheet(
-                        context: context,
-                        backgroundColor: Colors.transparent,
-                        isDismissible: true,
-                        enableDrag: true,
-                        barrierColor: Colors.black54,
-                        builder: (context) => BackgroundSoundBottomSheet(
-                          isPlaying: _isPlaying,
-                          onPlayStateChanged: (isPlaying) {
-                            setState(() => _isPlaying = isPlaying);
-                          },
-                          currentSound: user.backgroundSound,
-                          onSoundChanged: (sound) async {
-                            await ref
-                                .read(userProvider.notifier)
-                                .updateBackgroundSound(sound);
-                          },
-                        ),
-                      ).then((_) async {
-                        await _backgroundAudioService.stop();
-                        setState(() => _isPlaying = false);
-                      })
+                      print('onTap'),
+                      widget.changePage('/soundscapes'),
+                      // widget.navigatorKey.currentState
+                      //     ?.pushReplacementNamed('/modalities')
+                      // showModalBottomSheet(
+                      //   context: context,
+                      //   backgroundColor: Colors.transparent,
+                      //   isDismissible: true,
+                      //   enableDrag: true,
+                      //   barrierColor: Colors.black54,
+                      //   builder: (context) => BackgroundSoundBottomSheet(
+                      //     isPlaying: _isPlaying,
+                      //     onPlayStateChanged: (isPlaying) {
+                      //       setState(() => _isPlaying = isPlaying);
+                      //     },
+                      //     currentSound: user.backgroundSound,
+                      //     onSoundChanged: (sound) async {
+                      //       await ref
+                      //           .read(userProvider.notifier)
+                      //           .updateBackgroundSound(sound);
+                      //     },
+                      //   ),
+                      // ).then((_) async {
+                      //   await _backgroundAudioService.stop();
+                      //   setState(() => _isPlaying = false);
+                      // })
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -160,8 +163,9 @@ class _HypnotherapyState extends ConsumerState<Hypnotherapy> {
             text: "Start Session",
             textColor: theme.colorScheme.shadow,
             glassColor: Colors.white10,
+            // borderWidth: .4,
+            opacity: .15,
             borderWidth: 0,
-            opacity: 1,
             height: 60,
           ),
         ),

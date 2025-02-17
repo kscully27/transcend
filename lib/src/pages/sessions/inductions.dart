@@ -9,7 +9,7 @@ class Inductions extends StatelessWidget {
   final int? selectedIndex;
   final VoidCallback onBack;
   final Function(session.TranceMethod method, int index) onSelectMethod;
-
+  final GlobalKey<NavigatorState> navigatorKey;
   const Inductions({
     super.key,
     required this.controller,
@@ -17,6 +17,7 @@ class Inductions extends StatelessWidget {
     required this.selectedIndex,
     required this.onBack,
     required this.onSelectMethod,
+    required this.navigatorKey,
   });
 
   @override
@@ -30,6 +31,9 @@ class Inductions extends StatelessWidget {
           // TODO: Implement start with duration
           print('Starting hypnotherapy session with duration: $duration');
         },
+        changePage: (pageName) => {
+          navigatorKey.currentState?.pushReplacementNamed(pageName)
+        }
       );
     }
 
