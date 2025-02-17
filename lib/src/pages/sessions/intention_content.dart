@@ -7,7 +7,7 @@ import 'package:trancend/src/ui/glass/glass_container.dart';
 
 class IntentionContent extends ConsumerStatefulWidget {
   final session.TranceMethod tranceMethod;
-  final VoidCallback onBack;
+  final VoidCallback? onBack;
   final Function(String intention) onContinue;
   final Set<String> selectedGoalIds;
   final Function(Set<String> goals) onGoalsSelected;
@@ -17,7 +17,7 @@ class IntentionContent extends ConsumerStatefulWidget {
   const IntentionContent({
     super.key,
     required this.tranceMethod,
-    required this.onBack,
+    this.onBack,
     required this.onContinue,
     required this.selectedGoalIds,
     required this.onGoalsSelected,
@@ -54,7 +54,7 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
   @override
   void initState() {
     super.initState();
-    _selectedGoalIds = ref.read(intentionSelectionProvider).selectedGoalIds;
+    _selectedGoalIds = widget.selectedGoalIds;
     isCustomMode = widget.isCustomMode;
     customIntention = widget.initialCustomIntention;
     
@@ -391,7 +391,9 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
                       _selectedType = null;
                       _controller.reset();
                     });
-                    widget.onBack();
+                    if (widget.onBack != null) {
+                      widget.onBack!();
+                    }
                   },
                 ),
                 Text(
@@ -412,14 +414,14 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'What would you like to accomplish today?',
-                    style: TextStyle(
-                      color: theme.colorScheme.shadow,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
+                  // Text(
+                  //   'What would you like to accomplish today?',
+                  //   style: TextStyle(
+                  //     color: theme.colorScheme.shadow,
+                  //     fontWeight: FontWeight.w500,
+                  //   ),
+                  // ),
+                  // const SizedBox(height: 8),
                   GlassContainer(
                     backgroundColor: Colors.white12,
                     borderRadius: BorderRadius.circular(12),

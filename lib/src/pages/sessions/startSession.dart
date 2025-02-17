@@ -3,10 +3,16 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
+import 'package:trancend/src/pages/sessions/active.dart';
+import 'package:trancend/src/pages/sessions/breathwork.dart';
+import 'package:trancend/src/pages/sessions/hypnotherapy.dart';
 import 'package:trancend/src/pages/sessions/inductions.dart';
 import 'package:trancend/src/pages/sessions/intention_content.dart';
+import 'package:trancend/src/pages/sessions/meditation.dart';
 import 'package:trancend/src/pages/sessions/previous_intentions.dart';
+import 'package:trancend/src/pages/sessions/sleep.dart';
 import 'package:trancend/src/providers/intention_selection_provider.dart';
+import 'package:trancend/src/ui/bottom_sheet_page.dart';
 
 class Sheet extends ConsumerStatefulWidget {
   const Sheet({super.key});
@@ -16,19 +22,13 @@ class Sheet extends ConsumerStatefulWidget {
 }
 
 class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
-  // The three possible views
-  static const int INITIAL_VIEW = 0;
-  static const int CUSTOM_INPUT_VIEW = 1;
-  static const int PREVIOUS_INTENTIONS_VIEW = 2;
-  static const int MODALITIES_VIEW = 3;
-
-  int currentView = INITIAL_VIEW;
   session.TranceMethod? selectedMethod;
   String? customIntention;
   bool isAnimatingOut = false;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   late AnimationController _controller;
   int? _selectedIndex;
+  final ValueNotifier<double> _heightNotifier = ValueNotifier(0.65);
 
   @override
   void initState() {
@@ -40,26 +40,27 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    ModalRoute.of(context)?.addScopedWillPopCallback(() async {
-      setState(() {
-        selectedMethod = null;
-        _selectedIndex = null;
-        _controller.reset();
-      });
-      return true;
-    });
-  }
-
-  @override
   void dispose() {
     _controller.dispose();
+    _heightNotifier.dispose();
     super.dispose();
   }
 
+  double _getSheetHeight(String route) {
+    switch (route) {
+      case '/modalities':
+        return 0.7;
+      case '/intention_selection':
+        return 0.65;
+      case '/hypnotherapy':
+        return 0.6;
+      default:
+        return 0.65;
+    }
+  }
+
   void _selectMethod(session.TranceMethod method, int index) {
-    if (_selectedIndex != null) return;
+    if (_selectedIndex != null || !mounted) return;
 
     setState(() {
       selectedMethod = method;
@@ -67,202 +68,357 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
     });
 
     _controller.forward().then((_) {
-      if (mounted) {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => TopicSelectionPage(
-        //       tranceMethod: selectedMethod!,
-        //       intention: "",
-        //     ),
-        //   ),
-        // ).then((_) {
-        //   if (mounted) {
-        //     setState(() {
-        //       selectedMethod = null;
-        //       _selectedIndex = null;
-        //       _controller.reset();
-        //     });
-        //   }
-        // });
+      if (!mounted) return;
+      
+      String route = '';
+      switch (method) {
+        case session.TranceMethod.Hypnosis:
+          route = '/hypnotherapy';
+          break;
+        case session.TranceMethod.Meditation:
+          route = '/meditation';
+          break;
+        case session.TranceMethod.Breathe:
+          route = '/breathwork';
+          break;
+        case session.TranceMethod.Active:
+          route = '/active';
+          break;
+        case session.TranceMethod.Sleep:
+          route = '/sleep';
+          break;
       }
+
+      _heightNotifier.value = _getSheetHeight(route);
+      _navigatorKey.currentState?.pushReplacementNamed(route);
     });
   }
 
-  void _onIntentionSelected(String intention) {
-    setState(() {
-      if (intention.isEmpty) {
-        final selectedType = ref.read(intentionSelectionProvider).type;
-        if (selectedType == IntentionSelectionType.previous) {
-          currentView = PREVIOUS_INTENTIONS_VIEW;
-        } else {
-          currentView = CUSTOM_INPUT_VIEW;
-        }
+  Future<void> _onIntentionSelected(String intention) async {
+    if (!mounted) return;
+
+    if (intention.isEmpty) {
+      final selectedType = ref.read(intentionSelectionProvider).type;
+      if (selectedType == IntentionSelectionType.previous) {
+        _heightNotifier.value = _getSheetHeight('/previous_intentions');
+        await _navigatorKey.currentState?.pushReplacementNamed('/previous_intentions');
       } else {
+        _heightNotifier.value = _getSheetHeight('/custom_intention');
+        await _navigatorKey.currentState?.pushReplacementNamed('/custom_intention');
+      }
+    } else {
+      setState(() {
         customIntention = intention;
-        currentView = MODALITIES_VIEW;
-        _selectedIndex = null;
-        _controller.reset();
-      }
-    });
+      });
+      _heightNotifier.value = _getSheetHeight('/modalities');
+      await _navigatorKey.currentState?.pushReplacementNamed('/modalities');
+    }
   }
 
-  void _onGoalsSelected(Set<String> goals) {
-    setState(() {
-      if (goals.isNotEmpty) {
-        currentView = MODALITIES_VIEW;
-        customIntention = "";
-        _selectedIndex = null;
-        _controller.reset();
-        ref.read(intentionSelectionProvider.notifier).setSelectedGoals(goals);
-      }
-    });
-  }
-
-  void _handleBack() {
-    setState(() {
-      if (currentView == MODALITIES_VIEW) {
-        final selectedType = ref.read(intentionSelectionProvider).type;
-        switch (selectedType) {
-          case IntentionSelectionType.custom:
-            currentView = CUSTOM_INPUT_VIEW;
-            break;
-          case IntentionSelectionType.previous:
-            currentView = PREVIOUS_INTENTIONS_VIEW;
-            break;
-          case IntentionSelectionType.goals:
-          case IntentionSelectionType.default_intention:
-          case IntentionSelectionType.none:
-            currentView = INITIAL_VIEW;
-            break;
-        }
-        selectedMethod = null;
-        _selectedIndex = null;
-        _controller.reset();
-      } else if (currentView == CUSTOM_INPUT_VIEW ||
-          currentView == PREVIOUS_INTENTIONS_VIEW) {
-        currentView = INITIAL_VIEW;
-        customIntention = null;
-        _selectedIndex = null;
-        _controller.reset();
-      }
-    });
+  Future<void> _onGoalsSelected(Set<String> goals) async {
+    if (!mounted) return;
+    
+    if (goals.isNotEmpty) {
+      ref.read(intentionSelectionProvider.notifier).setSelectedGoals(goals);
+      _heightNotifier.value = _getSheetHeight('/modalities');
+      await _navigatorKey.currentState?.pushReplacementNamed('/modalities');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Reset animation when returning to modalities view
-    if (currentView == MODALITIES_VIEW && _selectedIndex == null) {
-      _controller.reset();
-    }
+    return WillPopScope(
+      onWillPop: () async {
+        if (_navigatorKey.currentState?.canPop() ?? false) {
+          _navigatorKey.currentState?.pop();
+          return false;
+        }
+        return true;
+      },
+      child: ValueListenableBuilder<double>(
+        valueListenable: _heightNotifier,
+        builder: (context, height, child) {
+          return DraggableScrollableSheet(
+            initialChildSize: height,
+            maxChildSize: 0.95,
+            minChildSize: 0.15,
+            snap: true,
+            snapSizes: const [0.65, 0.75, 0.85],
+            builder: (context, scrollController) {
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  border: Border.all(
+                    color: Colors.white24,
+                    width: 0.5,
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                      sigmaX: 20.0,
+                      sigmaY: 20.0,
+                    ),
+                    child: Navigator(
+                      key: _navigatorKey,
+                      initialRoute: '/intention_selection',
+                      onGenerateRoute: (settings) {
+                        Widget page;
 
-    final theme = Theme.of(context);
-    final intentionState = ref.watch(intentionSelectionProvider);
+                        switch (settings.name) {
+                          case '/intention_selection':
+                            page = IntentionContent(
+                              tranceMethod: selectedMethod ?? session.TranceMethod.values.first,
+                              onBack: null,
+                              onContinue: _onIntentionSelected,
+                              selectedGoalIds: ref.watch(intentionSelectionProvider).selectedGoalIds,
+                              onGoalsSelected: _onGoalsSelected,
+                              initialCustomIntention: customIntention,
+                              isCustomMode: false,
+                            );
+                            break;
 
-    return Transform.translate(
-      offset: const Offset(0, 0),
-      child: Navigator(
-        key: _navigatorKey,
-        onGenerateRoute: (settings) => MaterialPageRoute(
-          builder: (context) => LayoutBuilder(
-            builder: (context, constraints) {
-              final double sheetSize = selectedMethod != null ? 0.7 : 0.8;
-              
-              return DraggableScrollableSheet(
-                minChildSize: sheetSize,
-                initialChildSize: sheetSize,
-                maxChildSize: sheetSize,
-                
-                builder: (context, controller) {
-                  return Stack(
-                    children: [
-                      Transform.translate(
-                        offset: const Offset(0, 120),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white24,
-                            borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(20)),
-                            border: Border.all(
-                              color: Colors.white24,
-                              width: 0.5,
-                            ),
-                          ),
-                          height: MediaQuery.of(context).size.height+120,
-                          child: ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(20)),
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(
-                                sigmaX: 20.0,
-                                sigmaY: 20.0,
-                              ),
-                              child: Column(
-                                children: [
-                                  Center(
-                                    child: FractionallySizedBox(
-                                      widthFactor: 0.25,
-                                      child: Container(
-                                        margin: const EdgeInsets.symmetric(
-                                            vertical: 8),
-                                        height: 4,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(2),
-                                          border: Border.all(
-                                            color: Colors.black12,
-                                            width: 0.5,
-                                          ),
-                                        ),
+                          case '/custom_intention':
+                            page = IntentionContent(
+                              tranceMethod: selectedMethod ?? session.TranceMethod.values.first,
+                              onBack: () {
+                                _heightNotifier.value = _getSheetHeight('/intention_selection');
+                                _navigatorKey.currentState?.pushReplacementNamed('/intention_selection');
+                              },
+                              onContinue: _onIntentionSelected,
+                              selectedGoalIds: ref.watch(intentionSelectionProvider).selectedGoalIds,
+                              onGoalsSelected: _onGoalsSelected,
+                              initialCustomIntention: customIntention,
+                              isCustomMode: true,
+                            );
+                            break;
+
+                          case '/previous_intentions':
+                            page = PreviousIntentions(
+                              onBack: () {
+                                _heightNotifier.value = _getSheetHeight('/intention_selection');
+                                _navigatorKey.currentState?.pushReplacementNamed('/intention_selection');
+                              },
+                              onIntentionSelected: _onIntentionSelected,
+                            );
+                            break;
+
+                          case '/modalities':
+                            page = Inductions(
+                              controller: _controller,
+                              selectedMethod: _selectedIndex == null ? null : selectedMethod,
+                              selectedIndex: _selectedIndex,
+                              onBack: () {
+                                setState(() {
+                                  selectedMethod = null;
+                                  _selectedIndex = null;
+                                  _controller.reset();
+                                });
+                                _heightNotifier.value = _getSheetHeight('/modalities');
+                                _navigatorKey.currentState?.pushReplacementNamed('/modalities');
+                              },
+                              onSelectMethod: _selectMethod,
+                            );
+                            break;
+
+                          case '/hypnotherapy':
+                            page = Hypnotherapy(
+                              onBack: () {
+                                setState(() {
+                                  selectedMethod = null;
+                                  _selectedIndex = null;
+                                  _controller.reset();
+                                });
+                                _heightNotifier.value = _getSheetHeight('/hypnotherapy');
+                                _navigatorKey.currentState?.pushReplacementNamed('/hypnotherapy');
+                              },
+                              onStart: (duration) {
+                                // Handle start session
+                              },
+                            );
+                            break;
+
+                          case '/meditation':
+                            page = Meditation(
+                              onBack: () {
+                                setState(() {
+                                  selectedMethod = null;
+                                  _selectedIndex = null;
+                                  _controller.reset();
+                                });
+                                _heightNotifier.value = _getSheetHeight('/modalities');
+                                _navigatorKey.currentState?.pushReplacementNamed('/modalities');
+                              },
+                              onStart: (duration) {
+                                // Handle start session
+                              },
+                            );
+                            break;
+
+                          case '/breathwork':
+                            page = Breathwork(
+                              onBack: () {
+                                setState(() {
+                                  selectedMethod = null;
+                                  _selectedIndex = null;
+                                  _controller.reset();
+                                });
+                                _heightNotifier.value = _getSheetHeight('/modalities');
+                                _navigatorKey.currentState?.pushReplacementNamed('/modalities');
+                              },
+                              onStart: (duration) {
+                                // Handle start session
+                              },
+                            );
+                            break;
+
+                          case '/active':
+                            page = Active(
+                              onBack: () {
+                                setState(() {
+                                  selectedMethod = null;
+                                  _selectedIndex = null;
+                                  _controller.reset();
+                                });
+                                _heightNotifier.value = _getSheetHeight('/modalities');
+                                _navigatorKey.currentState?.pushReplacementNamed('/modalities');
+                              },
+                              onStart: (duration) {
+                                // Handle start session
+                              },
+                            );
+                            break;
+
+                          case '/sleep':
+                            page = Sleep(
+                              onBack: () {
+                                setState(() {
+                                  selectedMethod = null;
+                                  _selectedIndex = null;
+                                  _controller.reset();
+                                });
+                                _heightNotifier.value = _getSheetHeight('/modalities');
+                                _navigatorKey.currentState?.pushReplacementNamed('/modalities');
+                              },
+                              onStart: (duration) {
+                                // Handle start session
+                              },
+                            );
+                            break;
+
+                          default:
+                            page = const SizedBox();
+                        }
+
+                        return MaterialPageRoute(
+                          builder: (context) => Column(
+                            children: [
+                              Center(
+                                child: FractionallySizedBox(
+                                  widthFactor: 0.25,
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(vertical: 8),
+                                    height: 4,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(2),
+                                      border: Border.all(
+                                        color: Colors.black12,
+                                        width: 0.5,
                                       ),
                                     ),
                                   ),
-                                  Expanded(
-                                    child: currentView == MODALITIES_VIEW
-                                        ? Inductions(
-                                            controller: _controller,
-                                            selectedMethod: selectedMethod,
-                                            selectedIndex: _selectedIndex,
-                                            onBack: _handleBack,
-                                            onSelectMethod: _selectMethod,
-                                          )
-                                        : currentView == PREVIOUS_INTENTIONS_VIEW
-                                            ? PreviousIntentions(
-                                                onBack: _handleBack,
-                                                onIntentionSelected:
-                                                    _onIntentionSelected,
-                                              )
-                                            : IntentionContent(
-                                                tranceMethod: selectedMethod ??
-                                                    session.TranceMethod.values
-                                                        .first,
-                                                onBack: _handleBack,
-                                                onContinue: _onIntentionSelected,
-                                                selectedGoalIds: intentionState
-                                                    .selectedGoalIds,
-                                                onGoalsSelected: _onGoalsSelected,
-                                                initialCustomIntention:
-                                                    customIntention,
-                                                isCustomMode: currentView ==
-                                                    CUSTOM_INPUT_VIEW,
-                                              ),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
+                              if (settings.name != '/intention_selection')
+                                Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.arrow_back_ios,
+                                          color: Theme.of(context).colorScheme.shadow.withOpacity(0.7),
+                                          size: 20,
+                                        ),
+                                        onPressed: () {
+                                          if (settings.name == '/modalities') {
+                                            setState(() {
+                                              selectedMethod = null;
+                                              _selectedIndex = null;
+                                              _controller.reset();
+                                            });
+                                            _heightNotifier.value = _getSheetHeight('/intention_selection');
+                                            _navigatorKey.currentState?.pushReplacementNamed('/intention_selection');
+                                          } else {
+                                            setState(() {
+                                              selectedMethod = null;
+                                              _selectedIndex = null;
+                                              _controller.reset();
+                                            });
+                                            _heightNotifier.value = _getSheetHeight('/modalities');
+                                            _navigatorKey.currentState?.pushReplacementNamed('/modalities');
+                                          }
+                                        },
+                                      ),
+                                    Text(
+                                      _getTitle(settings.name ?? ''),
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        color: Theme.of(context).colorScheme.shadow,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 48),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: page,
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
+                          settings: settings,
+                        );
+                      },
+                    ),
+                  ),
+                ),
               );
             },
-          ),
-        ),
+          );
+        },
       ),
     );
+  }
+
+  String _getTitle(String route) {
+    switch (route) {
+      case '/intention_selection':
+        return '';
+      case '/custom_intention':
+        return 'Create Intention';
+      case '/previous_intentions':
+        return 'Previous Intentions';
+      case '/modalities':
+        return 'Select Modality';
+      case '/hypnotherapy':
+        return 'Hypnotherapy';
+      case '/meditation':
+        return 'Meditation';
+      case '/breathwork':
+        return 'Breathwork';
+      case '/active':
+        return 'Active Hypnotherapy';
+      case '/sleep':
+        return 'Sleep Programming';
+      default:
+        return '';
+    }
   }
 }

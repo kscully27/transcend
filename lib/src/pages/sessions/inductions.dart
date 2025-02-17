@@ -35,39 +35,6 @@ class Inductions extends StatelessWidget {
 
     return Column(
       children: [
-        Stack(
-          children: [
-            Positioned(
-              left: 4,
-              top: 8,
-              bottom: 8,
-              child: IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios,
-                  color: theme.colorScheme.shadow.withOpacity(0.7),
-                  size: 20,
-                ),
-                onPressed: onBack,
-              ),
-            ),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 48.0,
-                  vertical: 16.0,
-                ),
-                child: Text(
-                  selectedMethod?.name ?? 'Select a Modality',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.shadow,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 20
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 20),
