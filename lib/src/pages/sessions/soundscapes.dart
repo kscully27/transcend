@@ -73,8 +73,6 @@ class _Soundscapes extends ConsumerState<Soundscapes> {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
-        // mainAxisAlignment: MainAxisAlignment.,
-        // mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(

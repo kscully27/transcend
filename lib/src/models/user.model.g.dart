@@ -147,6 +147,9 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
       subscriptionEnd: (json['subscriptionEnd'] as num?)?.toInt() ?? 0,
       trialEnd: (json['trialEnd'] as num?)?.toInt() ?? 0,
       currentProductId: json['currentProductId'] as String? ?? '',
+      hypnotherapyMethod: $enumDecodeNullable(
+              _$HypnotherapyMethodEnumMap, json['hypnotherapyMethod']) ??
+          null,
     );
 
 Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
@@ -251,6 +254,8 @@ Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
       'subscriptionEnd': instance.subscriptionEnd,
       'trialEnd': instance.trialEnd,
       'currentProductId': instance.currentProductId,
+      'hypnotherapyMethod':
+          _$HypnotherapyMethodEnumMap[instance.hypnotherapyMethod],
     };
 
 const _$AppGenderEnumMap = {
@@ -411,4 +416,10 @@ const _$SigninMethodEnumMap = {
   SigninMethod.EmailLink: 'EmailLink',
   SigninMethod.Anonymous: 'Anonymous',
   SigninMethod.None: 'None',
+};
+
+const _$HypnotherapyMethodEnumMap = {
+  HypnotherapyMethod.Guided: 'Guided',
+  HypnotherapyMethod.Cognitive: 'Cognitive',
+  HypnotherapyMethod.Relaxed: 'Relaxed',
 };

@@ -6,6 +6,7 @@ import 'package:trancend/src/models/session.model.dart' as session;
 import 'package:trancend/src/pages/sessions/active.dart';
 import 'package:trancend/src/pages/sessions/breathwork.dart';
 import 'package:trancend/src/pages/sessions/hypnotherapy.dart';
+import 'package:trancend/src/pages/sessions/hypnotherapyMethods.dart';
 import 'package:trancend/src/pages/sessions/inductions.dart';
 import 'package:trancend/src/pages/sessions/intention_content.dart';
 import 'package:trancend/src/pages/sessions/meditation.dart';
@@ -13,7 +14,6 @@ import 'package:trancend/src/pages/sessions/previous_intentions.dart';
 import 'package:trancend/src/pages/sessions/sleep.dart';
 import 'package:trancend/src/pages/sessions/soundscapes.dart';
 import 'package:trancend/src/providers/intention_selection_provider.dart';
-import 'package:trancend/src/ui/bottom_sheet_page.dart';
 
 class Sheet extends ConsumerStatefulWidget {
   const Sheet({super.key});
@@ -57,6 +57,8 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
         return 0.6;
       case '/soundscapes':
         return 0.9;
+      case '/hypnotherapy_methods':
+        return 0.5;
       default:
         return 0.65;
     }
@@ -279,7 +281,6 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
                             );
                             break;
 
-
                           case '/soundscapes':
                             page = Soundscapes(
                               onPlayStateChanged: (isPlaying) {
@@ -301,6 +302,17 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
                             );
                             break;
 
+                          case '/hypnotherapy_methods':
+                            page = HypnosisMethods(
+                              onBack: () async {
+                                print('onBack');
+                                // Wait a frame to ensure Firestore update is complete
+                                await Future.delayed(const Duration(milliseconds: 100));
+                                _heightNotifier.value = _getSheetHeight('/hypnotherapy');
+                                _navigatorKey.currentState?.pushReplacementNamed('/hypnotherapy');
+                              },
+                            );
+                            break;
 
                           case '/meditation':
                             page = Meditation(
@@ -497,6 +509,8 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
         return 'Hypnotherapy';
       case '/soundscapes':
         return 'Select Background Sound';
+      case '/hypnotherapy_methods':
+        return 'Hypnotherapy Methods';
       case '/meditation':
         return 'Meditation';
       case '/breathwork':

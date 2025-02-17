@@ -87,6 +87,22 @@ extension ActiveBackgroundSoundX on ActiveBackgroundSound {
 }
 
 
+enum HypnotherapyMethod {
+  Guided,
+  Cognitive,
+  // Ericksonian,
+  // NLP,
+  Relaxed
+}
+
+Map<HypnotherapyMethod, String> hypnotherapyMethods = {
+  HypnotherapyMethod.Guided: 'Guided',
+  HypnotherapyMethod.Cognitive: 'Cognitive',
+  // HypnotherapyMethod.Ericksonian: 'Ericksonian',
+  // HypnotherapyMethod.NLP: 'NLP',
+  HypnotherapyMethod.Relaxed: 'Relaxed',
+};
+
 enum BackgroundSound {
   Waves,
   Rain,
@@ -284,6 +300,7 @@ class User with _$User {
     @Default(0) int subscriptionEnd,
     @Default(0) int trialEnd,
     @Default('') String currentProductId,
+    @Default(null) HypnotherapyMethod? hypnotherapyMethod,
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

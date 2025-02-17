@@ -115,6 +115,8 @@ mixin _$User {
   int get subscriptionEnd => throw _privateConstructorUsedError;
   int get trialEnd => throw _privateConstructorUsedError;
   String get currentProductId => throw _privateConstructorUsedError;
+  HypnotherapyMethod? get hypnotherapyMethod =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this User to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -221,7 +223,8 @@ abstract class $UserCopyWith<$Res> {
       int subscriptionStart,
       int subscriptionEnd,
       int trialEnd,
-      String currentProductId});
+      String currentProductId,
+      HypnotherapyMethod? hypnotherapyMethod});
 }
 
 /// @nodoc
@@ -330,6 +333,7 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
     Object? subscriptionEnd = null,
     Object? trialEnd = null,
     Object? currentProductId = null,
+    Object? hypnotherapyMethod = freezed,
   }) {
     return _then(_value.copyWith(
       uid: null == uid
@@ -696,6 +700,10 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
           ? _value.currentProductId
           : currentProductId // ignore: cast_nullable_to_non_nullable
               as String,
+      hypnotherapyMethod: freezed == hypnotherapyMethod
+          ? _value.hypnotherapyMethod
+          : hypnotherapyMethod // ignore: cast_nullable_to_non_nullable
+              as HypnotherapyMethod?,
     ) as $Val);
   }
 }
@@ -798,7 +806,8 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
       int subscriptionStart,
       int subscriptionEnd,
       int trialEnd,
-      String currentProductId});
+      String currentProductId,
+      HypnotherapyMethod? hypnotherapyMethod});
 }
 
 /// @nodoc
@@ -904,6 +913,7 @@ class __$$UserImplCopyWithImpl<$Res>
     Object? subscriptionEnd = null,
     Object? trialEnd = null,
     Object? currentProductId = null,
+    Object? hypnotherapyMethod = freezed,
   }) {
     return _then(_$UserImpl(
       uid: null == uid
@@ -1270,6 +1280,10 @@ class __$$UserImplCopyWithImpl<$Res>
           ? _value.currentProductId
           : currentProductId // ignore: cast_nullable_to_non_nullable
               as String,
+      hypnotherapyMethod: freezed == hypnotherapyMethod
+          ? _value.hypnotherapyMethod
+          : hypnotherapyMethod // ignore: cast_nullable_to_non_nullable
+              as HypnotherapyMethod?,
     ));
   }
 }
@@ -1369,7 +1383,8 @@ class _$UserImpl implements _User {
       this.subscriptionStart = 0,
       this.subscriptionEnd = 0,
       this.trialEnd = 0,
-      this.currentProductId = ''})
+      this.currentProductId = '',
+      this.hypnotherapyMethod = null})
       : _friends = friends,
         _categories = categories,
         _entitlements = entitlements,
@@ -1684,10 +1699,13 @@ class _$UserImpl implements _User {
   @override
   @JsonKey()
   final String currentProductId;
+  @override
+  @JsonKey()
+  final HypnotherapyMethod? hypnotherapyMethod;
 
   @override
   String toString() {
-    return 'User(uid: $uid, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, firstName: $firstName, friends: $friends, age: $age, gender: $gender, breathingMethod: $breathingMethod, categories: $categories, entitlements: $entitlements, topCategory: $topCategory, experienceLevel: $experienceLevel, reminderPreference: $reminderPreference, reminderHour: $reminderHour, reminderMinute: $reminderMinute, created: $created, categoriesSorted: $categoriesSorted, notificationsAuthorized: $notificationsAuthorized, tranceInterests: $tranceInterests, primaryGoalId: $primaryGoalId, lastTranceMethod: $lastTranceMethod, doesntLikeVoice: $doesntLikeVoice, completedTraining: $completedTraining, accepted10DayChallenge: $accepted10DayChallenge, shownPremiumOption: $shownPremiumOption, tranceTypesCompleted: $tranceTypesCompleted, skillsCompleted: $skillsCompleted, defaultBreathTime: $defaultBreathTime, defaultMeditationTime: $defaultMeditationTime, defaultHypnotherapyTime: $defaultHypnotherapyTime, defaultActiveHypnotherapyTime: $defaultActiveHypnotherapyTime, defaultSleepDelay: $defaultSleepDelay, usesSleepDelay: $usesSleepDelay, activeBackgroundSound: $activeBackgroundSound, backgroundSound: $backgroundSound, backgroundVolume: $backgroundVolume, voiceVolume: $voiceVolume, defaultInduction: $defaultInduction, defaultDeepening: $defaultDeepening, defaultAwakening: $defaultAwakening, usesDeepening: $usesDeepening, isStripe: $isStripe, secondsDelayBetweenTracks: $secondsDelayBetweenTracks, score: $score, longestStreak: $longestStreak, currentStreak: $currentStreak, totalSessions: $totalSessions, totalMinutes: $totalMinutes, mindfulDays: $mindfulDays, lastStreakSave: $lastStreakSave, totalBreaths: $totalBreaths, givenFeedback: $givenFeedback, totalSharesAccepted: $totalSharesAccepted, referrerUid: $referrerUid, onboarededHypnotherapy: $onboarededHypnotherapy, onboarededActive: $onboarededActive, onboarededBreathing: $onboarededBreathing, onboarededSleep: $onboarededSleep, onboarededMeditation: $onboarededMeditation, alarmSound: $alarmSound, defaultSound: $defaultSound, breathSeconds: $breathSeconds, emailSubscribed: $emailSubscribed, premiumUntil: $premiumUntil, isAnonymous: $isAnonymous, emailVerified: $emailVerified, madePurchase: $madePurchase, defaultPlaylist: $defaultPlaylist, oldUid: $oldUid, notificationsEnabled: $notificationsEnabled, needsMerge: $needsMerge, isOnboarded: $isOnboarded, hasRatedApp: $hasRatedApp, createdTime: $createdTime, lastSignInTime: $lastSignInTime, role: $role, signinMethod: $signinMethod, isEmailVerified: $isEmailVerified, isOnboardingComplete: $isOnboardingComplete, isPremium: $isPremium, isSubscribed: $isSubscribed, stripeCustomerId: $stripeCustomerId, subscriptionId: $subscriptionId, subscriptionStatus: $subscriptionStatus, subscriptionPriceId: $subscriptionPriceId, subscriptionStart: $subscriptionStart, subscriptionEnd: $subscriptionEnd, trialEnd: $trialEnd, currentProductId: $currentProductId)';
+    return 'User(uid: $uid, email: $email, displayName: $displayName, photoUrl: $photoUrl, phoneNumber: $phoneNumber, firstName: $firstName, friends: $friends, age: $age, gender: $gender, breathingMethod: $breathingMethod, categories: $categories, entitlements: $entitlements, topCategory: $topCategory, experienceLevel: $experienceLevel, reminderPreference: $reminderPreference, reminderHour: $reminderHour, reminderMinute: $reminderMinute, created: $created, categoriesSorted: $categoriesSorted, notificationsAuthorized: $notificationsAuthorized, tranceInterests: $tranceInterests, primaryGoalId: $primaryGoalId, lastTranceMethod: $lastTranceMethod, doesntLikeVoice: $doesntLikeVoice, completedTraining: $completedTraining, accepted10DayChallenge: $accepted10DayChallenge, shownPremiumOption: $shownPremiumOption, tranceTypesCompleted: $tranceTypesCompleted, skillsCompleted: $skillsCompleted, defaultBreathTime: $defaultBreathTime, defaultMeditationTime: $defaultMeditationTime, defaultHypnotherapyTime: $defaultHypnotherapyTime, defaultActiveHypnotherapyTime: $defaultActiveHypnotherapyTime, defaultSleepDelay: $defaultSleepDelay, usesSleepDelay: $usesSleepDelay, activeBackgroundSound: $activeBackgroundSound, backgroundSound: $backgroundSound, backgroundVolume: $backgroundVolume, voiceVolume: $voiceVolume, defaultInduction: $defaultInduction, defaultDeepening: $defaultDeepening, defaultAwakening: $defaultAwakening, usesDeepening: $usesDeepening, isStripe: $isStripe, secondsDelayBetweenTracks: $secondsDelayBetweenTracks, score: $score, longestStreak: $longestStreak, currentStreak: $currentStreak, totalSessions: $totalSessions, totalMinutes: $totalMinutes, mindfulDays: $mindfulDays, lastStreakSave: $lastStreakSave, totalBreaths: $totalBreaths, givenFeedback: $givenFeedback, totalSharesAccepted: $totalSharesAccepted, referrerUid: $referrerUid, onboarededHypnotherapy: $onboarededHypnotherapy, onboarededActive: $onboarededActive, onboarededBreathing: $onboarededBreathing, onboarededSleep: $onboarededSleep, onboarededMeditation: $onboarededMeditation, alarmSound: $alarmSound, defaultSound: $defaultSound, breathSeconds: $breathSeconds, emailSubscribed: $emailSubscribed, premiumUntil: $premiumUntil, isAnonymous: $isAnonymous, emailVerified: $emailVerified, madePurchase: $madePurchase, defaultPlaylist: $defaultPlaylist, oldUid: $oldUid, notificationsEnabled: $notificationsEnabled, needsMerge: $needsMerge, isOnboarded: $isOnboarded, hasRatedApp: $hasRatedApp, createdTime: $createdTime, lastSignInTime: $lastSignInTime, role: $role, signinMethod: $signinMethod, isEmailVerified: $isEmailVerified, isOnboardingComplete: $isOnboardingComplete, isPremium: $isPremium, isSubscribed: $isSubscribed, stripeCustomerId: $stripeCustomerId, subscriptionId: $subscriptionId, subscriptionStatus: $subscriptionStatus, subscriptionPriceId: $subscriptionPriceId, subscriptionStart: $subscriptionStart, subscriptionEnd: $subscriptionEnd, trialEnd: $trialEnd, currentProductId: $currentProductId, hypnotherapyMethod: $hypnotherapyMethod)';
   }
 
   @override
@@ -1821,7 +1839,8 @@ class _$UserImpl implements _User {
             (identical(other.subscriptionStart, subscriptionStart) || other.subscriptionStart == subscriptionStart) &&
             (identical(other.subscriptionEnd, subscriptionEnd) || other.subscriptionEnd == subscriptionEnd) &&
             (identical(other.trialEnd, trialEnd) || other.trialEnd == trialEnd) &&
-            (identical(other.currentProductId, currentProductId) || other.currentProductId == currentProductId));
+            (identical(other.currentProductId, currentProductId) || other.currentProductId == currentProductId) &&
+            (identical(other.hypnotherapyMethod, hypnotherapyMethod) || other.hypnotherapyMethod == hypnotherapyMethod));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1918,7 +1937,8 @@ class _$UserImpl implements _User {
         subscriptionStart,
         subscriptionEnd,
         trialEnd,
-        currentProductId
+        currentProductId,
+        hypnotherapyMethod
       ]);
 
   /// Create a copy of User
@@ -2029,7 +2049,8 @@ abstract class _User implements User {
       final int subscriptionStart,
       final int subscriptionEnd,
       final int trialEnd,
-      final String currentProductId}) = _$UserImpl;
+      final String currentProductId,
+      final HypnotherapyMethod? hypnotherapyMethod}) = _$UserImpl;
 
   factory _User.fromJson(Map<String, dynamic> json) = _$UserImpl.fromJson;
 
@@ -2215,6 +2236,8 @@ abstract class _User implements User {
   int get trialEnd;
   @override
   String get currentProductId;
+  @override
+  HypnotherapyMethod? get hypnotherapyMethod;
 
   /// Create a copy of User
   /// with the given fields replaced by the non-null parameter values.

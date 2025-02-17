@@ -15,9 +15,9 @@ class UserNotifier extends AsyncNotifier<user_model.User?> {
   Future<user_model.User?> build() async {
     final firestoreService = locator<FirestoreService>();
     final firebaseUser = auth.FirebaseAuth.instance.currentUser;
-    
+
     if (firebaseUser == null) return null;
-    
+
     try {
       return await firestoreService.getUser(firebaseUser.uid);
     } catch (e) {
@@ -37,10 +37,22 @@ class UserNotifier extends AsyncNotifier<user_model.User?> {
     if (user == null) return;
 
     final firestoreService = locator<FirestoreService>();
-    await firestoreService.updateUserFromData(user.uid, {
-      'backgroundSound': sound.toString().split('.').last
-    });
-    
+    await firestoreService.updateUserFromData(
+        user.uid, {'backgroundSound': sound.toString().split('.').last});
+
+    // Refresh user data after saving
+    state = await AsyncValue.guard(() => build());
+  }
+
+  Future<void> updateHypnotherapyMethod(
+      user_model.HypnotherapyMethod method) async {
+    final user = state.value;
+    if (user == null) return;
+
+    final firestoreService = locator<FirestoreService>();
+    await firestoreService.updateUserFromData(
+        user.uid, {'hypnotherapyMethod': method.toString().split('.').last});
+
     // Refresh user data after saving
     state = await AsyncValue.guard(() => build());
   }
@@ -49,7 +61,7 @@ class UserNotifier extends AsyncNotifier<user_model.User?> {
 final userSettingsProvider = StreamProvider<UserSettings?>((ref) {
   final user = ref.watch(userProvider);
   final firestoreService = locator<FirestoreService>();
-  
+
   return user.when(
     data: (user) {
       if (user == null) return Stream.value(null);
@@ -69,20 +81,26 @@ final currentUserProvider = StreamProvider<user_model.User>((ref) {
   return authService.onAuthStateChanged;
 });
 
-final backgroundSoundProvider = StateNotifierProvider<BackgroundSoundNotifier, user_model.BackgroundSound>((ref) {
+final backgroundSoundProvider =
+    StateNotifierProvider<BackgroundSoundNotifier, user_model.BackgroundSound>(
+        (ref) {
   final user = ref.watch(currentUserProvider).valueOrNull;
-  return BackgroundSoundNotifier(user?.backgroundSound ?? user_model.BackgroundSound.Waves);
+  return BackgroundSoundNotifier(
+      user?.backgroundSound ?? user_model.BackgroundSound.Waves);
 });
 
-class BackgroundSoundNotifier extends StateNotifier<user_model.BackgroundSound> {
-  BackgroundSoundNotifier(user_model.BackgroundSound initialState) : super(initialState);
+class BackgroundSoundNotifier
+    extends StateNotifier<user_model.BackgroundSound> {
+  BackgroundSoundNotifier(user_model.BackgroundSound initialState)
+      : super(initialState);
 
   Future<void> updateSound(user_model.BackgroundSound sound) async {
     state = sound;
   }
 }
 
-final userRefreshProvider = StateNotifierProvider<UserRefreshNotifier, int>((ref) {
+final userRefreshProvider =
+    StateNotifierProvider<UserRefreshNotifier, int>((ref) {
   return UserRefreshNotifier();
 });
 
@@ -90,4 +108,4 @@ class UserRefreshNotifier extends StateNotifier<int> {
   UserRefreshNotifier() : super(0);
 
   void refresh() => state++;
-} 
+}
