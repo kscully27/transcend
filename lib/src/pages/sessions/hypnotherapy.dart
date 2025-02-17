@@ -9,6 +9,7 @@ import 'package:trancend/src/ui/glass/glass_container.dart';
 import 'package:trancend/src/ui/time_slider.dart';
 import 'package:trancend/src/models/user.model.dart' as user_model;
 import 'package:trancend/src/pages/sessions/hypnotherapyMethods.dart';
+import 'package:trancend/src/pages/sessions/soundscapes.dart';
 
 class HypnotherapySettings extends ConsumerWidget {
   const HypnotherapySettings({super.key});
@@ -45,6 +46,7 @@ class _HypnotherapyState extends ConsumerState<Hypnotherapy> {
     final theme = Theme.of(context);
     final userAsync = ref.watch(userProvider);
     final selectedMethod = ref.watch(hypnotherapyMethodProvider);
+    final selectedSound = ref.watch(soundscapeProvider);
     
     return userAsync.when(
       data: (user) {
@@ -52,6 +54,7 @@ class _HypnotherapyState extends ConsumerState<Hypnotherapy> {
 
         final _backgroundAudioService = locator<BackgroundAudioService>();
         final method = selectedMethod ?? user.hypnotherapyMethod ?? user_model.HypnotherapyMethod.values.first;
+        final sound = selectedSound ?? user.backgroundSound;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -117,7 +120,7 @@ class _HypnotherapyState extends ConsumerState<Hypnotherapy> {
                           child: Column(
                             children: [
                               Text(
-                                user.backgroundSound.name.toUpperCase(),
+                                sound.name.toUpperCase(),
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.shadow,
                                   fontWeight: FontWeight.w700,

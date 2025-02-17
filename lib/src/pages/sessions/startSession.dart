@@ -445,6 +445,11 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
                                             _navigatorKey.currentState
                                                 ?.pushReplacementNamed(
                                                     '/intention_selection');
+                                          } else if (settings.name == '/hypnotherapy_methods' || settings.name == '/soundscapes') {
+                                            _heightNotifier.value =
+                                                _getSheetHeight('/hypnotherapy');
+                                            _navigatorKey.currentState
+                                                ?.pushReplacementNamed('/hypnotherapy');
                                           } else {
                                             setState(() {
                                               selectedMethod = null;

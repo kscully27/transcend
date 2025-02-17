@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/user.model.dart' as user_model;
-import 'package:trancend/src/models/user.model.dart';
+import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/services/background_audio.service.dart';
 import 'package:trancend/src/services/storage_service.dart';
 import 'package:trancend/src/ui/glass/glass_radio_button.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
 
-final backgroundSoundProvider =
+final soundscapeProvider =
     StateProvider<user_model.BackgroundSound?>((ref) => null);
 
 class Soundscapes extends ConsumerStatefulWidget {
@@ -27,18 +27,10 @@ class Soundscapes extends ConsumerStatefulWidget {
 
 class _Soundscapes extends ConsumerState<Soundscapes> {
   final Function() onBack;
-  // final bool isPlaying;
-  // final Function(bool) onPlayStateChanged;
-  // final user_model.BackgroundSound currentSound;
-  // final Function(user_model.BackgroundSound) onSoundChanged;
   final _backgroundAudioService = locator<BackgroundAudioService>();
   final _cloudStorageService = locator<CloudStorageService>();
-  late user_model.BackgroundSound _selectedSound =
-      user_model.BackgroundSound.values.first;
   final Function(bool) onPlayStateChanged;
   bool _isPlaying = false;
-
-  // late user_model.BackgroundSound _selectedSound;
 
   _Soundscapes({
     required this.onPlayStateChanged,
@@ -54,92 +46,100 @@ class _Soundscapes extends ConsumerState<Soundscapes> {
 
   @override
   void dispose() {
-    print('dispose');
     _stopAudio();
     super.dispose();
   }
 
   @override
-  void initState() {
-    super.initState();
-    // _selectedSound = _currentSound;
-    // setState(() => _selectedSound = _currentSound);
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final userAsync = ref.watch(userProvider);
+    
+    return userAsync.when(
+      data: (user) {
+        if (user == null) return const SizedBox();
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: user_model.BackgroundSound.values.length,
-              itemBuilder: (context, index) {
-                final sound = user_model.BackgroundSound.values[index];
+        final currentSound = ref.watch(soundscapeProvider) ?? user.backgroundSound;
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: GlassRadioButton<user_model.BackgroundSound>(
-                    value: sound,
-                    groupValue: _selectedSound,
-                    onChanged: (value) async {
-                      if (value == null) return;
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: user_model.BackgroundSound.values.length,
+                  itemBuilder: (context, index) {
+                    final sound = user_model.BackgroundSound.values[index];
 
-                      // Stop current audio before playing new one
-                      await _stopAudio();
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: GlassRadioButton<user_model.BackgroundSound>(
+                        value: sound,
+                        groupValue: currentSound,
+                        onChanged: (value) async {
+                          if (value == null) return;
 
-                      setState(() => _selectedSound = value);
+                          // Stop current audio before playing new one
+                          await _stopAudio();
 
-                      try {
-                        final result = await _cloudStorageService.getFile(
-                          bucket: "background_loops",
-                          fileName: value.path,
-                        );
+                          // Update local state immediately
+                          ref.read(soundscapeProvider.notifier).state = value;
 
-                        if (mounted) {
-                          await _backgroundAudioService.play(result.url);
-                          widget.onPlayStateChanged(true);
-                        }
-                      } catch (e) {
-                        if (mounted) {
-                          setState(() => _selectedSound = _selectedSound);
-                        }
-                        print("error playing audio: $e");
-                      }
-                    },
-                    icon: sound.icon,
-                    title: sound.string,
-                    titleStyle: TextStyle(
-                      color: theme.colorScheme.shadow,
-                      fontSize: 16,
-                    ),
-                  ),
-                );
-              },
-            ),
+                          try {
+                            // Play the new sound
+                            final result = await _cloudStorageService.getFile(
+                              bucket: "background_loops",
+                              fileName: value.path,
+                            );
+
+                            if (mounted) {
+                              await _backgroundAudioService.play(result.url);
+                              widget.onPlayStateChanged(true);
+                              setState(() => _isPlaying = true);
+                            }
+
+                            // Then update Firestore
+                            await ref
+                                .read(userProvider.notifier)
+                                .updateBackgroundSound(value);
+                          } catch (e) {
+                            print("error playing audio: $e");
+                          }
+                        },
+                        icon: sound.icon,
+                        title: sound.string,
+                        titleStyle: TextStyle(
+                          color: theme.colorScheme.shadow,
+                          fontSize: 16,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.only(top: 16),
+                child: GlassButton(
+                  onPressed: () {
+                    _stopAudio();
+                    widget.onBack();
+                  },
+                  text: "Done",
+                  textColor: theme.colorScheme.shadow,
+                  glassColor: Colors.white10,
+                  borderWidth: 0,
+                  opacity: .4,
+                  height: 60,
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
-          Container(
-            padding: const EdgeInsets.only(top: 16),
-            child: GlassButton(
-              onPressed: () {
-                _stopAudio();
-                widget.onBack();
-              },
-              text: "Done",
-              textColor: theme.colorScheme.shadow,
-              glassColor: Colors.white10,
-              borderWidth: 0,
-              opacity: .4,
-              height: 60,
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
+        );
+      },
+      error: (e, _) => Text('Error: $e'),
+      loading: () => const CircularProgressIndicator(),
     );
   }
 }
