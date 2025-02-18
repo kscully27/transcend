@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/constants/app_colors.dart';
+import 'package:trancend/src/pages/day.dart';
 import 'package:trancend/src/pages/settings.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
 import 'package:trancend/src/topics/topics_list_view.dart';
@@ -50,7 +51,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 : null,
             child: _index == 0
                 ? data.topics.when(
-                    data: (topics) => TopicsListView(),
+                    data: (topics) => Day(),
                     loading: () => Material(
                       color: theme.colorScheme.onSurface,
                       child: const Center(child: CircularProgressIndicator()),
