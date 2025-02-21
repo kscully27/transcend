@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:trancend/src/ui/clay/extensions/clay_extensions.dart';
 import 'package:trancend/src/ui/clay/utils/clay_utils.dart';
@@ -121,7 +120,7 @@ class _ClayContainerState extends State<ClayContainer> {
     }
     if (surfaceColor != null) colorValue = surfaceColorValue;
 
-    late List<Color?> gradientColors;
+    late List<Color> gradientColors;
     switch (curveTypeValue) {
       case CurveType.concave:
         gradientColors = ClayUtils.getConcaveGradients(
@@ -149,7 +148,7 @@ class _ClayContainerState extends State<ClayContainer> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: gradientColors as List<Color>,
+          colors: gradientColors,
         ),
         boxShadow: shadowList,
       ),

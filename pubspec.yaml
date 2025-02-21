@@ -92,3 +92,6 @@ flutter:
     - family: AppIcons
       fonts:
         - asset: assets/fonts/AppIcons.ttf
+
+scripts:
+  postinstall: bash scripts/install-hooks.sh

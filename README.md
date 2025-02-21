@@ -27,3 +27,14 @@ To do list:
 - [ ] Save/load background audio
 - [ ] Deep Linking
 - [ ] V2 Onboarding (Ghostie)
+
+## Development Setup
+
+### Git Hooks
+This project uses Git hooks to ensure code quality. To install the hooks:
+
+1. Make sure you have Flutter installed and available in your PATH
+2. Run the following command from the project root:
+   ```bash
+   ./scripts/install-hooks.sh
+   ```

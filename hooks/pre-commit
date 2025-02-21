@@ -1,0 +1,14 @@
+#!/bin/bash
+
+echo "Running Flutter analyze..."
+output=$(flutter analyze)
+exit_code=$?
+
+if [ $exit_code -ne 0 ]; then
+    echo "Flutter analyze found issues:"
+    echo "$output"
+    exit 1
+fi
+
+echo "No issues found!"
+exit 0 
