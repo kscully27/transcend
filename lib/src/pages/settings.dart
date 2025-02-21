@@ -74,7 +74,7 @@ class _SettingsState extends ConsumerState<SettingsPage> {
         heightFactor: 0.9,
         child: GlassContainer(
           backgroundColor:
-              Theme.of(context).colorScheme.surfaceTint.withOpacity(0.5),
+              Theme.of(context).colorScheme.surface.withOpacity(0.5),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: isSignUp
@@ -181,6 +181,7 @@ class _SettingsState extends ConsumerState<SettingsPage> {
     final userAsync = ref.watch(userProvider);
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         title: Text('Settings', style: theme.textTheme.headlineSmall),
       ),
@@ -216,8 +217,8 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                   const SizedBox(height: 32),
                   ClayButton(
                     text: "Sign up",
-                    color: theme.colorScheme.surfaceTint,
-                    parentColor: theme.colorScheme.surfaceTint,
+                    color: theme.colorScheme.surface,
+                    parentColor: theme.colorScheme.surface,
                     size: ClayButtonSize.large,
                     onPressed: () => _showAuthSheet(context, isSignUp: true),
                     textColor: theme.colorScheme.onPrimary,
@@ -259,8 +260,8 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                   _buildUserInfo(context, ref, user),
                   const SizedBox(height: 24),
                   ClayContainer(
-                    color: theme.colorScheme.surfaceTint,
-                    parentColor: theme.colorScheme.surfaceTint,
+                    color: theme.colorScheme.surface,
+                    parentColor: theme.colorScheme.surface,
                     borderRadius: 12,
                     width: double.infinity,
                     height: 100,
@@ -339,8 +340,8 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                   ],
                   const Divider(),
                   ClayContainer(
-                    color: theme.colorScheme.surfaceTint,
-                    parentColor: theme.colorScheme.surfaceTint,
+                    color: theme.colorScheme.surface,
+                    parentColor: theme.colorScheme.surface,
                     borderRadius: 12,
                     width: double.infinity,
                     height: 100,
@@ -403,8 +404,8 @@ class _SettingsState extends ConsumerState<SettingsPage> {
                   const SizedBox(height: 24),
                   ClayButton(
                     text: "Log Out",
-                    color: theme.colorScheme.surfaceTint,
-                    parentColor: theme.colorScheme.surfaceTint,
+                    color: theme.colorScheme.surface,
+                    parentColor: theme.colorScheme.surface,
                     size: ClayButtonSize.large,
                     onPressed: () => _handleLogout(context),
                     textColor: theme.colorScheme.onPrimary,
