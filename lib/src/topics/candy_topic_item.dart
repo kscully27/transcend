@@ -147,7 +147,6 @@ class _CandyTopicItemState extends State<CandyTopicItem> {
         stops: const [0.0, 1.0],
       ),
       border: Border.all(color: Colors.white24, width: 0.5),
-      animationSpeed: AnimationSpeed.medium,
       content: _TopicBottomSheetContent(
         topic: widget.topic,
         onFavoritePressed: widget.onFavoritePressed,
