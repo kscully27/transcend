@@ -17,7 +17,6 @@ class HypnotherapyBottomSheet extends StatefulWidget {
 
 class _HypnotherapyBottomSheetState extends State<HypnotherapyBottomSheet> {
   bool isAnimatingOut = false;
-  int _selectedDuration = 20;
 
   void _handleBack() {
     setState(() {
@@ -116,7 +115,7 @@ class _HypnotherapyBottomSheetState extends State<HypnotherapyBottomSheet> {
           minChildSize: 0.6,
           initialChildSize: value,
           maxChildSize: 0.9,
-          builder: (context, scrollController) {
+          builder: (context, _) {
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               decoration: BoxDecoration(
@@ -201,7 +200,6 @@ class _HypnotherapyBottomSheetState extends State<HypnotherapyBottomSheet> {
                       ),
                       Expanded(
                         child: SingleChildScrollView(
-                          controller: scrollController,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -218,9 +216,9 @@ class _HypnotherapyBottomSheetState extends State<HypnotherapyBottomSheet> {
                               TimeSlider(
                                 color: theme.colorScheme.shadow,
                                 onValueChanged: (value) {
-                                  setState(() {
-                                    _selectedDuration = value;
-                                  });
+                                  // setState(() {
+                                  //   _selectedDuration = value;
+                                  // });
                                 },
                                 height: 100,
                               ),

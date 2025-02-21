@@ -2,12 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:trancend/src/ui/glass/glass_icon_button.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 
-enum AnimationSpeed {
-  slow,
-  medium,
-  fast,
-}
-
 class GlassBottomSheet extends StatelessWidget {
   final Widget content;
   final bool hasCloseButton;
@@ -19,7 +13,6 @@ class GlassBottomSheet extends StatelessWidget {
   final double? opacity;
   final Gradient? fade;
   final Border? border;
-  final AnimationSpeed animationSpeed;
 
   const GlassBottomSheet({
     super.key,
@@ -33,30 +26,7 @@ class GlassBottomSheet extends StatelessWidget {
     this.opacity,
     this.fade,
     this.border,
-    this.animationSpeed = AnimationSpeed.medium,
   });
-
-  Duration get _animationDuration {
-    switch (animationSpeed) {
-      case AnimationSpeed.slow:
-        return const Duration(milliseconds: 800);
-      case AnimationSpeed.medium:
-        return const Duration(milliseconds: 500);
-      case AnimationSpeed.fast:
-        return const Duration(milliseconds: 300);
-    }
-  }
-
-  Duration get _delayDuration {
-    switch (animationSpeed) {
-      case AnimationSpeed.slow:
-        return const Duration(milliseconds: 500);
-      case AnimationSpeed.medium:
-        return const Duration(milliseconds: 360);
-      case AnimationSpeed.fast:
-        return const Duration(milliseconds: 200);
-    }
-  }
 
   static Future<T?> show<T>({
     required BuildContext context,
@@ -70,7 +40,6 @@ class GlassBottomSheet extends StatelessWidget {
     double? opacity,
     Gradient? fade,
     Border? border,
-    AnimationSpeed animationSpeed = AnimationSpeed.medium,
   }) {
     return Future.delayed(
       const Duration(milliseconds: 360),
@@ -118,7 +87,6 @@ class GlassBottomSheet extends StatelessWidget {
                       opacity: opacity,
                       fade: fade,
                       border: border,
-                      animationSpeed: animationSpeed,
                     ),
                   ),
                 ),

@@ -11,7 +11,7 @@ import 'package:trancend/src/models/track.model.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/services/audio_service.dart';
-import 'package:trancend/src/models/user.model.dart' hide TranceMethod;
+import 'package:trancend/src/models/user.model.dart';
 import 'package:trancend/src/services/storage_service.dart';
 import 'package:get_it/get_it.dart';
 
@@ -42,10 +42,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   Timer? _timer;
   bool _isPlaying = false;
   bool _isLoadingAudio = true;
-  final int _currentMillisecond = 0;
   int _cumulativeMilliseconds = 0;
-  int _previousTracksDuration = 0;
-  DateTime? _lastTrackStartTime;
   DateTime? _sessionStartTime;
   List<Track> _tracks = [];
   int _currentTrackIndex = 0;
@@ -89,7 +86,6 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
   bool get isPlaying => _isPlaying;
   bool get isLoadingAudio => _isLoadingAudio;
   Stream<Duration> get positionStream => _audioPlayer.positionStream;
-  int get currentMillisecond => _cumulativeMilliseconds;
   Track? get currentTrack => _currentTrack;
   double get backgroundVolume => _backgroundVolume;
   double get voiceVolume => _voiceVolume;
@@ -304,7 +300,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
         return;
       }
 
-      _lastTrackStartTime = DateTime.now();
+      _sessionStartTime = DateTime.now();
       _ensureTimerIsRunning();
 
       print('Set current track: ${_currentTrack!.id}');
@@ -373,12 +369,6 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
       await _firestoreService.updateSession(updatedSession);
       state = AsyncValue.data(updatedSession);
     }
-  }
-
-  Future<void> _playAndUpdateSession() async {
-    await _updateSession();
-    _ensureTimerIsRunning();
-    await _audioPlayer.play();
   }
 
   Future<void> playCombinedAudio() async {
@@ -483,8 +473,7 @@ class TranceState extends StateNotifier<AsyncValue<Session?>> {
     
     // Reset all state variables
     _isLoadingAudio = true;
-    _previousTracksDuration = 0;
-    _lastTrackStartTime = null;
+    _sessionStartTime = null;
     _tracks = [];
     _currentTrackIndex = 0;
     _currentTopic = null;

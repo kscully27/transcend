@@ -242,11 +242,8 @@ class TimelineCard extends StatelessWidget {
 }
 
 class Day extends StatelessWidget {
-  final String userName;
-
   const Day({
     Key? key,
-    this.userName = 'Kevin',
   }) : super(key: key);
 
   String _getGreeting() {

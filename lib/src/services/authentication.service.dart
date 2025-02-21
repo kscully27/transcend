@@ -11,7 +11,6 @@ import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/goal.model.dart';
 import 'package:trancend/src/models/settings.model.dart';
 import 'package:trancend/src/models/user.model.dart' as user_model;
-import 'package:trancend/src/services/analytics.service.dart';
 import 'package:trancend/src/services/firestore.service.dart';
 import 'package:trancend/src/services/user.service.dart';
 
@@ -70,7 +69,6 @@ class AuthenticationServiceAdapter implements AuthenticationService {
   final auth.FirebaseAuth _firebaseAuth = auth.FirebaseAuth.instance;
   final FirestoreService _firestoreService = locator<FirestoreService>();
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final _analytics = locator<AnalyticsService>();
 
   UserService get _userService => _ref.read(userServiceInstanceProvider);
 

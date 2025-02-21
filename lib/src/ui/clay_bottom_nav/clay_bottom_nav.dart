@@ -9,11 +9,6 @@ part 'bottom_clipper.dart';
 part 'bottom_painter.dart';
 part 'sheet_toggle_button.dart';
 
-Color _adjustColor(Color color, double amount) {
-  final hsl = HSLColor.fromColor(color);
-  return hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0)).toColor();
-}
-
 class ClipShadowPath extends StatelessWidget {
   final List<BoxShadow> shadow;
   final CustomClipper<Path> clipper;
@@ -188,8 +183,6 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
 
   PersistentBottomSheetController? _bottomSheetController;
 
-  GlobalKey<ScaffoldState> key = GlobalKey<ScaffoldState>();
-
   _onSheetToggle(bool value) {
     setState(() {
       _sheetOpen = value;
@@ -263,8 +256,8 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     List<ClayBottomNavItem> _items = widget.items;
-    var theme = Theme.of(context);
     var items = <Widget>[];
 
     for (var item in _items) {
@@ -378,7 +371,7 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
               painter: painter,
               child: SizedBox(
                 height: 100,
-                width: MediaQuery.of(context).size.width,
+                width: size.width,
               ),
             ),
           ),

@@ -6,7 +6,7 @@ import 'package:trancend/src/models/session.model.dart' as session;
 import 'package:trancend/src/pages/sessions/active.dart';
 import 'package:trancend/src/pages/sessions/breathwork.dart';
 import 'package:trancend/src/pages/sessions/hypnotherapy.dart';
-import 'package:trancend/src/pages/sessions/hypnotherapyMethods.dart';
+import 'package:trancend/src/pages/sessions/hypnotherapy_methods.dart';
 import 'package:trancend/src/pages/sessions/inductions.dart';
 import 'package:trancend/src/pages/sessions/intention_content.dart';
 import 'package:trancend/src/pages/sessions/meditation.dart';
@@ -25,7 +25,6 @@ class Sheet extends ConsumerStatefulWidget {
 class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
   session.TranceMethod? selectedMethod;
   String? customIntention;
-  bool isAnimatingOut = false;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   late AnimationController _controller;
   int? _selectedIndex;
@@ -151,7 +150,7 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
             minChildSize: 0.15,
             snap: true,
             snapSizes: const [0.65, 0.75, 0.85],
-            builder: (context, scrollController) {
+            builder: (context, _) {
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 decoration: BoxDecoration(

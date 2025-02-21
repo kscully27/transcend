@@ -23,47 +23,15 @@ class TrancePlayer extends ConsumerStatefulWidget {
   ConsumerState<TrancePlayer> createState() => _TrancePlayerState();
 }
 
-class _TrancePlayerState extends ConsumerState<TrancePlayer>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController1;
-  late AnimationController _animationController2;
-  late Animation<double> _scaleAnimation1;
-  late Animation<double> _scaleAnimation2;
+class _TrancePlayerState extends ConsumerState<TrancePlayer> {
   double backgroundVolume = 0.4;
   double voiceVolume = 0.5;
-  int _currentMillisecond = 0;
   final GlobalKey<PondEffectState> _pondEffectKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
-
-    _animationController1 = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3000),
-    );
-
-    _animationController2 = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3000),
-    );
-
-    _scaleAnimation1 = Tween<double>(
-      begin: 0.9,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController1,
-      curve: Curves.easeInOut,
-    ));
-
-    _scaleAnimation2 = Tween<double>(
-      begin: 0.95,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController2,
-      curve: Curves.easeInOut,
-    ));
-
+    
     // Initialize the trance session without auto-playing
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -83,45 +51,7 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer>
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (mounted) {
-      // Start animations with a slight offset
-      _animationController1.repeat(reverse: true);
-      Future.delayed(const Duration(milliseconds: 1500), () {
-        if (mounted) {
-          _animationController2.repeat(reverse: true);
-        }
-      });
-
-      // Start listening to audio position
-      ref.read(tranceStateProvider.notifier).positionStream.listen((position) {
-        if (mounted) {
-          setState(() {
-            _currentMillisecond = position.inMilliseconds;
-          });
-        }
-      });
-    }
-  }
-
-  @override
-  void deactivate() {
-    _animationController1.stop();
-    _animationController2.stop();
-    super.deactivate();
-  }
-
-  @override
   void dispose() {
-    print('dispose in trance player');
-
-    // Only handle animation cleanup in dispose
-    _animationController1.stop();
-    _animationController2.stop();
-    _animationController1.dispose();
-    _animationController2.dispose();
-
     super.dispose();
   }
 
@@ -131,17 +61,8 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer>
 
     final tranceState = ref.watch(tranceStateProvider.notifier);
 
-    final sessionState = ref.watch(tranceStateProvider);
-    final isLoading = sessionState.isLoading;
     final isLoadingAudio = tranceState.isLoadingAudio;
     final isPlaying = tranceState.isPlaying;
-
-    // Control animation based on play state
-    if (isPlaying && !_animationController1.isAnimating) {
-      _animationController1.repeat(reverse: true);
-    } else if (!isPlaying && _animationController1.isAnimating) {
-      _animationController1.stop();
-    }
 
     final size = MediaQuery.of(context).size;
     final outerSize = size.width * 0.3;
@@ -300,8 +221,8 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer>
                           // ),
 
                           // Inner circle with play button
-                          ScaleTransition(
-                            scale: _scaleAnimation2,
+                          Transform.scale(
+                            scale: 1.0,
                             child: ClayContainer(
                                 color: theme.colorScheme.surface,
                                 parentColor: theme.colorScheme.surface,
@@ -431,13 +352,6 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer>
         ),
       ),
     );
-  }
-
-  String _formatDuration(int milliseconds) {
-    final seconds = (milliseconds / 1000).floor();
-    final minutes = (seconds / 60).floor();
-    final remainingSeconds = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 
   void _showPlayedTracks(BuildContext context) {
@@ -602,13 +516,5 @@ class _TrancePlayerState extends ConsumerState<TrancePlayer>
         ),
       ),
     );
-  }
-
-  String _formatTrackText(String? text) {
-    if (text == null) return 'Loading...';
-    final cleanText = text.replaceAll("\n", " ");
-    return cleanText.length > 30
-        ? cleanText.substring(0, 30) + "..."
-        : cleanText;
   }
 }

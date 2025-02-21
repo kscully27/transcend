@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:trancend/src/locator.dart';
-import 'package:trancend/src/pages/settings.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
-import 'package:trancend/src/services/background_audio.service.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 import 'package:trancend/src/ui/time_slider.dart';
 import 'package:trancend/src/models/user.model.dart' as user_model;
-import 'package:trancend/src/pages/sessions/hypnotherapyMethods.dart';
+import 'package:trancend/src/pages/sessions/hypnotherapy_methods.dart';
 import 'package:trancend/src/pages/sessions/soundscapes.dart';
 
 class HypnotherapySettings extends ConsumerWidget {
@@ -39,7 +36,6 @@ class Hypnotherapy extends ConsumerStatefulWidget {
 
 class _HypnotherapyState extends ConsumerState<Hypnotherapy> {
   int _selectedDuration = 20;
-  bool _isPlaying = false;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +48,6 @@ class _HypnotherapyState extends ConsumerState<Hypnotherapy> {
       data: (user) {
         if (user == null) return const SizedBox();
 
-        final _backgroundAudioService = locator<BackgroundAudioService>();
         final method = selectedMethod ?? user.hypnotherapyMethod ?? user_model.HypnotherapyMethod.values.first;
         final sound = selectedSound ?? user.backgroundSound;
 

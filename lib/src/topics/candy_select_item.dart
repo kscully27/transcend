@@ -69,7 +69,6 @@ class _RenderInnerShadow extends RenderProxyBox {
 
     // Create a picture recorder
     final recorder = PictureRecorder();
-    final Canvas canvas = Canvas(recorder);
 
     // Calculate the extended bounds to account for shadow blur
     final Rect bounds = offset & size;

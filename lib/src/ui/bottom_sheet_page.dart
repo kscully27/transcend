@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import 'package:remixicon/remixicon.dart';
 
 class BottomSheetPage extends StatefulWidget {
   final String backPage;
@@ -66,8 +65,6 @@ class _BottomSheetPageState extends State<BottomSheetPage> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
@@ -117,7 +114,7 @@ class _BottomSheetPageState extends State<BottomSheetPage> with SingleTickerProv
                           IconButton(
                             icon: Icon(
                               Icons.arrow_back_ios,
-                              color: theme.colorScheme.shadow.withOpacity(0.7),
+                              color: Theme.of(context).colorScheme.shadow.withOpacity(0.7),
                               size: 20,
                             ),
                             onPressed: () {
@@ -130,8 +127,8 @@ class _BottomSheetPageState extends State<BottomSheetPage> with SingleTickerProv
                           const SizedBox(width: 48),
                         Text(
                           widget.title,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.shadow,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.shadow,
                             fontWeight: FontWeight.w600,
                             fontSize: 20,
                           ),
@@ -159,7 +156,7 @@ class _BottomSheetPageState extends State<BottomSheetPage> with SingleTickerProv
                           title: Text(
                             widget.bottomButtonText ?? "Continue",
                             style: TextStyle(
-                              color: theme.colorScheme.shadow,
+                              color: Theme.of(context).colorScheme.shadow,
                               fontWeight: FontWeight.w500,
                             ),
                             textAlign: TextAlign.center,

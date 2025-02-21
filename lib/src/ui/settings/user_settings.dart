@@ -4,8 +4,6 @@ import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/models/user.model.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/services/background_audio.service.dart';
-import 'package:trancend/src/services/firestore.service.dart';
-import 'package:trancend/src/services/storage_service.dart';
 import 'package:trancend/src/ui/background_sound/background_sound_selector.dart';
 
 class UserSettings extends ConsumerStatefulWidget {
@@ -16,10 +14,8 @@ class UserSettings extends ConsumerStatefulWidget {
 }
 
 class _UserSettingsState extends ConsumerState<UserSettings> {
-  final _cloudStorageService = locator<CloudStorageService>();
   final _backgroundAudioService = locator<BackgroundAudioService>();
-  final _firestoreService = locator<FirestoreService>();
-  bool _isPlaying = false;
+  final bool _isPlaying = false;
 
   @override
   void dispose() {
@@ -31,7 +27,6 @@ class _UserSettingsState extends ConsumerState<UserSettings> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final user = ref.watch(userProvider).value;
     if (user == null) return const SizedBox();
 

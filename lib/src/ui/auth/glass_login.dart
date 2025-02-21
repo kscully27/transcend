@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/locator.dart';
-import 'package:trancend/src/models/user.model.dart' as user_model;
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/services/analytics.service.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
@@ -193,11 +192,15 @@ class _GlassLoginState extends ConsumerState<GlassLogin> {
                   password: _passwordController.text,
                 );
 
+                if (!mounted) return;
+
                 if (result.success) {
                   await _analytics.logLogin('email');
+                  if (!mounted) return;
                   Navigator.pop(context);
                   widget.onAuthSuccess();
                 } else {
+                  if (!mounted) return;
                   setState(() {
                     _serverError = result.errorMessage;
                   });
@@ -225,11 +228,14 @@ class _GlassLoginState extends ConsumerState<GlassLogin> {
                   onPressed: () async {
                     final authService = ref.read(authServiceProvider);
                     final result = await authService.googleSignIn();
+                    if (!mounted) return;
                     if (result.success) {
                       await _analytics.logLogin('google');
+                      if (!mounted) return;
                       Navigator.pop(context);
                       widget.onAuthSuccess();
                     } else {
+                      if (!mounted) return;
                       setState(() {
                         _serverError = result.errorMessage;
                       });
@@ -245,11 +251,14 @@ class _GlassLoginState extends ConsumerState<GlassLogin> {
                   onPressed: () async {
                     final authService = ref.read(authServiceProvider);
                     final result = await authService.appleLogin();
+                    if (!mounted) return;
                     if (result.success) {
                       await _analytics.logLogin('apple');
+                      if (!mounted) return;
                       Navigator.pop(context);
                       widget.onAuthSuccess();
                     } else {
+                      if (!mounted) return;
                       setState(() {
                         _serverError = result.errorMessage;
                       });
@@ -265,11 +274,14 @@ class _GlassLoginState extends ConsumerState<GlassLogin> {
                   onPressed: () async {
                     final authService = ref.read(authServiceProvider);
                     final result = await authService.facebookLogin();
+                    if (!mounted) return;
                     if (result.success) {
                       await _analytics.logLogin('facebook');
+                      if (!mounted) return;
                       Navigator.pop(context);
                       widget.onAuthSuccess();
                     } else {
+                      if (!mounted) return;
                       setState(() {
                         _serverError = result.errorMessage;
                       });

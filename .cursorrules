@@ -1,0 +1,150 @@
+{
+  "rules": [
+    {
+      "name": "Project Structure Adherence",
+      "description": "Enforce adherence to the established Flutter project structure.",
+      "enabled": true,
+      "rules": [
+        {
+          "pattern": "lib/",
+          "message": "Maintain the existing directory structure under the lib/ folder."
+        },
+        {
+          "pattern": "assets/",
+          "message": "Keep all assets organized within the assets/ directory."
+        },
+        {
+          "pattern": "android/",
+          "message": "Respect the file structure for the Android project."
+        },
+        {
+          "pattern": "ios/",
+          "message": "Respect the file structure for the iOS project."
+        }
+      ]
+    },
+    {
+      "name": "Coding Style",
+      "description": "Enforce consistent Dart coding style and best practices.",
+      "enabled": true,
+      "rules": [
+        {
+          "pattern": "snake_case",
+          "message": "Use snake_case for file names, directories, and variables."
+        },
+        {
+          "pattern": "PascalCase",
+          "message": "Use PascalCase for class names."
+        },
+        {
+          "pattern": "MaterialApp",
+          "message": "Stick to already added Material Widget"
+        },
+        {
+          "pattern": "camelCase",
+          "message": "Use camelCase for variables, and methods."
+        },
+        {
+          "pattern": "Riverpod",
+          "message": "Make use of Riverpod for efficient state management. Use `ConsumerWidget` and `ConsumerStatefulWidget` and their hooks."
+        },
+        {
+          "pattern": "Flutter Hooks",
+          "message": "Use hooks to reuse logic, reduce the amount of boilerplate code."
+        },
+        {
+          "pattern": "Avoid == null",
+          "message": "Use modern null-aware operators rather than comparisons to `null`."
+        },
+        {
+          "pattern": "Material Design 3",
+          "message": "When creating new components make use of Material 3 guidelines."
+        }
+      ]
+    },
+    {
+      "name": "UI/UX Consistency",
+      "description": "Ensure consistency in UI/UX design and implementation.",
+      "enabled": true,
+      "rules": [
+        {
+          "pattern": "Animations package",
+          "message": "If possible use widgets already implemented"
+        },
+        {
+          "pattern": "Remix Icons",
+          "message": "Make use of Remix Icons for brand consitentcy."
+        },
+        {
+          "pattern": "Colors import",
+          "message": "Utilize `AppColors` for the theme's color palette. To ensure consistent style, get colors from the theme."
+        },
+        {
+          "pattern": "Custom Font",
+          "message": "Make use of the already imported Font families and fonts and make sure the are correctly set up."
+        },
+        {
+          "pattern": "Clay and Glassmorph",
+          "message": "Make use of the already implemented neumorphic and glassmorph widgets."
+        }
+      ]
+    },
+    {
+      "name": "Firebase Integration",
+      "description": "Enforce correct Firebase usage.",
+      "enabled": true,
+      "rules": [
+        {
+          "pattern": "FirebaseOptions",
+          "message": " Use `DefaultFirebaseOptions.currentPlatform`"
+        },
+        {
+          "pattern": "GoogleService-Info.plist",
+          "message": "Make sure the the correct GoogleService-Info.plist for each flavor."
+        },
+        {
+          "pattern": "google-services.json",
+          "message": "Make sure the the correct google-services.json for each flavor"
+        },
+        {
+          "pattern": "Authentication",
+          "message": "Be aware of secure authentication methods like apple, google, facebook"
+        }
+      ]
+    },
+    {
+      "name": "File Management",
+      "description": "Important file management rules",
+      "enabled": true,
+      "rules": [
+        {
+          "pattern": "generated files",
+          "message": "Do not edit files that are automatically generated (like `*.g.dart` or `firebase_options.dart`)."
+        },
+                {
+          "pattern": "key files",
+          "message": "Make sure to never publish api key to a repository or a similar unsafe environment."
+        },
+        {
+          "pattern": "app.dart , main.dart",
+          "message": "When ever touching core app file make sure you're using the app and the main and main app is called properly"
+        }
+      ]
+    },
+    {
+      "name": "Security and Permissions",
+      "description": "General good coding practices.",
+      "enabled": true,
+      "rules": [
+        {
+          "pattern": "Always use named parameters",
+          "message": "Always make use of named parameters"
+        },
+        {
+          "pattern": "Use secure storage where applicable",
+          "message": "Please store data in secure place"
+        }
+      ]
+    }
+  ]
+}

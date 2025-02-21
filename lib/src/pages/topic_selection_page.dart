@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:trancend/src/models/topic.model.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
 import 'package:trancend/src/providers/topics_provider.dart';
 import 'package:trancend/src/trance/trance_player.dart';

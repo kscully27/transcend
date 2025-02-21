@@ -243,11 +243,15 @@ class _GlassSignUpState extends ConsumerState<GlassSignUp> {
                   password: _passwordController.text,
                 );
 
+                if (!mounted) return;
+
                 if (result.success) {
                   await _analytics.logSignUp('email');
+                  if (!mounted) return;
                   Navigator.pop(context);
                   widget.onAuthSuccess();
                 } else {
+                  if (!mounted) return;
                   setState(() {
                     _serverError = result.errorMessage;
                   });
@@ -275,11 +279,14 @@ class _GlassSignUpState extends ConsumerState<GlassSignUp> {
                   onPressed: () async {
                     final authService = ref.read(authServiceProvider);
                     final result = await authService.googleSignIn();
+                    if (!mounted) return;
                     if (result.success) {
                       await _analytics.logSignUp('google');
+                      if (!mounted) return;
                       Navigator.pop(context);
                       widget.onAuthSuccess();
                     } else {
+                      if (!mounted) return;
                       setState(() {
                         _serverError = result.errorMessage;
                       });
@@ -295,11 +302,14 @@ class _GlassSignUpState extends ConsumerState<GlassSignUp> {
                   onPressed: () async {
                     final authService = ref.read(authServiceProvider);
                     final result = await authService.appleLogin();
+                    if (!mounted) return;
                     if (result.success) {
                       await _analytics.logSignUp('apple');
+                      if (!mounted) return;
                       Navigator.pop(context);
                       widget.onAuthSuccess();
                     } else {
+                      if (!mounted) return;
                       setState(() {
                         _serverError = result.errorMessage;
                       });
@@ -315,11 +325,14 @@ class _GlassSignUpState extends ConsumerState<GlassSignUp> {
                   onPressed: () async {
                     final authService = ref.read(authServiceProvider);
                     final result = await authService.facebookLogin();
+                    if (!mounted) return;
                     if (result.success) {
                       await _analytics.logSignUp('facebook');
+                      if (!mounted) return;
                       Navigator.pop(context);
                       widget.onAuthSuccess();
                     } else {
+                      if (!mounted) return;
                       setState(() {
                         _serverError = result.errorMessage;
                       });

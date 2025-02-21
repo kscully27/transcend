@@ -41,7 +41,6 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
   late AnimationController _controller;
   late AnimationController _placeholderController;
   late Animation<double> _placeholderOpacity;
-  IntentionSelectionType? _selectedType;
   
   final List<String> _placeholders = [
     "I want to feel more confident in social situations",
@@ -124,10 +123,6 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
       widget.onContinue(intention);
       return;
     }
-
-    setState(() {
-      _selectedType = type;
-    });
 
     _controller.forward().then((_) {
       switch (type) {
@@ -261,7 +256,6 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
                     TextButton(
                       onPressed: () {
                         setState(() {
-                          _selectedType = null;
                           _controller.reset();
                         });
                         Navigator.pop(context);
@@ -388,7 +382,6 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
                   ),
                   onPressed: () {
                     setState(() {
-                      _selectedType = null;
                       _controller.reset();
                     });
                     if (widget.onBack != null) {

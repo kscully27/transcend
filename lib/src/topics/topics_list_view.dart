@@ -73,7 +73,6 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
       data: (topics) {
         final categories = ref.read(topicsProvider.notifier).getCategories();
         final selectedCategory = ref.watch(topicsProvider.notifier).selectedCategory;
-        final selectedIndex = categories.indexOf(selectedCategory);
 
         return PageView(
           controller: _pageController,
@@ -236,6 +235,7 @@ class _TopicsListViewState extends ConsumerState<TopicsListView> {
 
   @override
   Widget build(BuildContext context) {
+    final topics = ref.watch(topicsProvider);
     final user = ref.watch(userProvider);
     final theme = Theme.of(context);
 

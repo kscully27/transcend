@@ -5,9 +5,8 @@ import 'package:trancend/src/constants/app_colors.dart';
 import 'package:trancend/src/pages/day.dart';
 import 'package:trancend/src/pages/settings.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
-import 'package:trancend/src/topics/topics_list_view.dart';
 import 'package:trancend/src/ui/clay_bottom_nav/clay_bottom_nav.dart';
-import 'package:trancend/src/pages/sessions/startSession.dart';
+import 'package:trancend/src/pages/sessions/start_session.dart';
 import 'package:trancend/src/providers/intention_selection_provider.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -51,7 +50,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 : null,
             child: _index == 0
                 ? data.topics.when(
-                    data: (topics) => Day(),
+                    data: (topics) => const Day(),
                     loading: () => Material(
                       color: theme.colorScheme.onSurface,
                       child: const Center(child: CircularProgressIndicator()),

@@ -27,7 +27,7 @@ class _ClayTrancePlayerState extends ConsumerState<ClayTrancePlayer> with Ticker
   late Animation<double> _scaleAnimation1;
   late Animation<double> _scaleAnimation2;
   double backgroundVolume = 0.4;
-  int _currentMillisecond = 0;
+  int _position = 0;
 
   @override
   void initState() {
@@ -71,7 +71,7 @@ class _ClayTrancePlayerState extends ConsumerState<ClayTrancePlayer> with Ticker
     ref.read(tranceStateProvider.notifier).positionStream.listen((position) {
       if (mounted) {
         setState(() {
-          _currentMillisecond = position.inMilliseconds;
+          _position = position.inMilliseconds;
         });
       }
     });
@@ -87,10 +87,11 @@ class _ClayTrancePlayerState extends ConsumerState<ClayTrancePlayer> with Ticker
 
   @override
   Widget build(BuildContext context) {
-    final tranceState = ref.watch(tranceStateProvider.notifier);
-    final sessionState = ref.watch(tranceStateProvider);
-    final isLoading = sessionState.isLoading;
-    final isPlaying = tranceState.isPlaying;
+    final tranceNotifier = ref.watch(tranceStateProvider.notifier);
+    final tranceState = ref.watch(tranceStateProvider);
+    final isLoading = tranceState.isLoading;
+    final isPlaying = tranceNotifier.isPlaying;
+    final isLoadingAudio = tranceNotifier.isLoadingAudio;
     
     // Control animation based on play state
     if (isPlaying && !_animationController1.isAnimating) {
@@ -190,7 +191,9 @@ class _ClayTrancePlayerState extends ConsumerState<ClayTrancePlayer> with Ticker
                           height: outerSize * 0.85,
                           width: outerSize * 0.85,
                           child: CircularProgressIndicator(
-                            value: tranceState.currentMillisecond / (TranceState.DEFAULT_SESSION_MINUTES * 60 * 1000),
+                            value: isPlaying ? 
+                              _position / (tranceNotifier.getTranceTime() * 60 * 1000) : 
+                              0.0,
                             strokeWidth: 40,
                             color: Colors.white70,
                             backgroundColor: Colors.white10,
@@ -212,15 +215,15 @@ class _ClayTrancePlayerState extends ConsumerState<ClayTrancePlayer> with Ticker
                           emboss: isPlaying,
                           child: IconButton(
                             iconSize: innerSize * 0.4,
-                            icon: sessionState.isLoading 
+                            icon: isLoading || isLoadingAudio
                               ? const CircularProgressIndicator(color: Colors.white70)
                               : Icon(
                                   isPlaying ? Icons.pause : Icons.play_arrow,
                                   color: Colors.white70,
                                 ),
-                            onPressed: sessionState.isLoading || tranceState.isLoadingAudio 
+                            onPressed: isLoading || isLoadingAudio
                               ? null 
-                              : () => tranceState.togglePlayPause(),
+                              : () => tranceNotifier.togglePlayPause(),
                           ),
                         ),
                       ),
@@ -240,11 +243,11 @@ class _ClayTrancePlayerState extends ConsumerState<ClayTrancePlayer> with Ticker
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            _formatDuration(tranceState.currentMillisecond),
+                            _formatDuration(_position),
                             style: const TextStyle(color: Colors.white70),
                           ),
                           Text(
-                            _formatDuration(TranceState.DEFAULT_SESSION_MINUTES * 60 * 1000),
+                            _formatDuration(tranceNotifier.getTranceTime() * 60 * 1000),
                             style: const TextStyle(color: Colors.white70),
                           ),
                         ],
