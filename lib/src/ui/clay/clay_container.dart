@@ -150,7 +150,7 @@ class _ClayContainerState extends State<ClayContainer> {
           end: Alignment.bottomRight,
           colors: gradientColors,
         ),
-        boxShadow: shadowList,
+        boxShadow: shadowList2,
       ),
       child: widget.child,
     );
