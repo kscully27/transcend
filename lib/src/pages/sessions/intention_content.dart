@@ -401,103 +401,62 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
               ],
             ),
           ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Text(
-                  //   'What would you like to accomplish today?',
-                  //   style: TextStyle(
-                  //     color: theme.colorScheme.shadow,
-                  //     fontWeight: FontWeight.w500,
-                  //   ),
-                  // ),
-                  // const SizedBox(height: 8),
-                  GlassContainer(
-                    backgroundColor: Colors.white12,
-                    borderRadius: BorderRadius.circular(12),
-                    border: _showError 
-                      ? Border.all(color: Colors.red.withOpacity(0.7), width: 1.5)
-                      : null,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        FadeTransition(
-                          opacity: _placeholderOpacity,
-                          child: TextField(
-                            controller: _intentionController,
-                            maxLines: 5,
-                            style: const TextStyle(
-                              color: Colors.black87,
-                              fontSize: 16,
-                            ),
-                            onSubmitted: (_) => FocusScope.of(context).unfocus(),
-                            textInputAction: TextInputAction.done,
-                            decoration: InputDecoration(
-                              hintText: _placeholders[
-                                  DateTime.now().microsecond % _placeholders.length],
-                              hintStyle: const TextStyle(
-                                color: Colors.black54,
-                                fontSize: 16,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 24,
-                              ),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(right: 16.0, bottom: 8.0),
-                          child: currentLength >= _minCharacters
-                            ? Icon(
-                                Icons.check_circle_rounded,
-                                color: Colors.green.shade800,
-                                size: 26,
-                              )
-                            : Text(
-                                '$currentLength/$_minCharacters characters',
-                                style: const TextStyle(
-                                  color: Colors.black54,
-                                  fontSize: 12,
-                                ),
-                              ),
-                        ),
-                      ],
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                FadeTransition(
+                  opacity: _placeholderOpacity,
+                  child: TextField(
+                    controller: _intentionController,
+                    maxLines: 5,
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 16,
+                    ),
+                    onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                    textInputAction: TextInputAction.done,
+                    decoration: InputDecoration(
+                      hintText: _placeholders[
+                          DateTime.now().microsecond % _placeholders.length],
+                      hintStyle: const TextStyle(
+                        color: Colors.black54,
+                        fontSize: 16,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 24,
+                      ),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          if (_errorMessage != null)
+          if (_showError && _errorMessage != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: Colors.red.shade700,
-                    size: 32,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _errorMessage!,
-                      style: TextStyle(
-                        color: Colors.red.shade700,
-                        fontSize: 14,
-                      ),
-                      textAlign: TextAlign.left,
-                    ),
-                  ),
-                ],
+              child: Text(
+                _errorMessage!,
+                style: TextStyle(
+                  color: theme.colorScheme.error,
+                  fontSize: 12,
+                ),
               ),
             ),
           Padding(
@@ -530,51 +489,49 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'What would you like to accomplish today?',
-                  style: TextStyle(
-                    color: theme.colorScheme.shadow,
-                    fontWeight: FontWeight.w400,
-                    fontSize: 20,
-                  ),
+        SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'What would you like to accomplish today?',
+                style: TextStyle(
+                  color: theme.colorScheme.shadow,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 20,
                 ),
-                const SizedBox(height: 32),
-                _buildIntentionButton(
-                  title: _getGoalButtonText,
-                  type: IntentionSelectionType.goals,
-                  isSelected: intentionState.type == IntentionSelectionType.goals,
-                  index: 0,
-                  onTap: () => _handleIntentionSelection(IntentionSelectionType.goals),
-                ),
-                _buildIntentionButton(
-                  title: "Use Previous Intention",
-                  type: IntentionSelectionType.previous,
-                  isSelected: intentionState.type == IntentionSelectionType.previous,
-                  index: 1,
-                  onTap: () => _handleIntentionSelection(IntentionSelectionType.previous),
-                ),
-                _buildIntentionButton(
-                  title: "Use Default Intention",
-                  type: IntentionSelectionType.default_intention,
-                  isSelected: intentionState.type == IntentionSelectionType.default_intention,
-                  index: 2,
-                  onTap: () => _handleIntentionSelection(IntentionSelectionType.default_intention),
-                ),
-                _buildIntentionButton(
-                  title: "Create An Intention",
-                  type: IntentionSelectionType.custom,
-                  isSelected: intentionState.type == IntentionSelectionType.custom,
-                  index: 3,
-                  onTap: () => _handleIntentionSelection(IntentionSelectionType.custom),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 32),
+              _buildIntentionButton(
+                title: _getGoalButtonText,
+                type: IntentionSelectionType.goals,
+                isSelected: intentionState.type == IntentionSelectionType.goals,
+                index: 0,
+                onTap: () => _handleIntentionSelection(IntentionSelectionType.goals),
+              ),
+              _buildIntentionButton(
+                title: "Use Previous Intention",
+                type: IntentionSelectionType.previous,
+                isSelected: intentionState.type == IntentionSelectionType.previous,
+                index: 1,
+                onTap: () => _handleIntentionSelection(IntentionSelectionType.previous),
+              ),
+              _buildIntentionButton(
+                title: "Use Default Intention",
+                type: IntentionSelectionType.default_intention,
+                isSelected: intentionState.type == IntentionSelectionType.default_intention,
+                index: 2,
+                onTap: () => _handleIntentionSelection(IntentionSelectionType.default_intention),
+              ),
+              _buildIntentionButton(
+                title: "Create An Intention",
+                type: IntentionSelectionType.custom,
+                isSelected: intentionState.type == IntentionSelectionType.custom,
+                index: 3,
+                onTap: () => _handleIntentionSelection(IntentionSelectionType.custom),
+              ),
+            ],
           ),
         ),
       ],

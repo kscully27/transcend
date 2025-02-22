@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
@@ -8,6 +9,9 @@ import 'package:trancend/src/providers/app_state_provider.dart';
 import 'package:trancend/src/ui/clay_bottom_nav/clay_bottom_nav.dart';
 import 'package:trancend/src/pages/sessions/start_session.dart';
 import 'package:trancend/src/providers/intention_selection_provider.dart';
+import 'package:trancend/src/pages/sessions/intention_content.dart';
+import 'package:trancend/src/models/session.model.dart' as session;
+import 'package:trancend/src/pages/sessions/previous_intentions.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -76,12 +80,19 @@ class _HomePageState extends ConsumerState<HomePage> {
                 _index = index;
               });
             },
-            sheet: const Sheet(),
-            sheetOpenIcon: Remix.play_large_line,
-            sheetCloseIcon: Remix.add_line,
-            onSheetToggle: (v) {
+            onSheetToggle: (isOpen) {
+              if (isOpen) {
+                Future(() {
+                  ref.read(intentionSelectionProvider.notifier).clearSelection();
+                  final controller = ref.read(sheetControllerProvider);
+                  controller.showSheet(context);
+                });
+              }
               setState(() {});
             },
+            sheet: const SizedBox(),
+            sheetOpenIcon: Remix.play_large_line,
+            sheetCloseIcon: Remix.add_line,
             items: [
               ClayBottomNavItem(
                 activeIcon: Remix.home_6_fill,

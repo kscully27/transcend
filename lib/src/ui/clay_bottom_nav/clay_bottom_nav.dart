@@ -184,9 +184,9 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
   PersistentBottomSheetController? _bottomSheetController;
 
   _onSheetToggle(bool value) {
-    setState(() {
-      _sheetOpen = value;
-    });
+    // setState(() {
+    //   _sheetOpen = value;
+    // });
     if (widget.onSheetToggle != null) widget.onSheetToggle!(value);
   }
 
@@ -197,36 +197,36 @@ class _ClayBottomNavNSheetState extends State<ClayBottomNavNSheet>
       return;
     }
     _onSheetToggle(true);
-    _animationController.reset();
-    _animationController.animateTo(1.0);
-    _bottomSheetController = Scaffold.of(context).showBottomSheet(
-      (_) => Stack(
-        children: [
-          // Add GestureDetector to handle outside taps
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: () {
-                if (_sheetOpen) {
-                  Scaffold.of(context).showBodyScrim(false, 0.0);
-                  _bottomSheetController?.close();
-                }
-              },
-              child: Container(color: Colors.transparent),
-            ),
-          ),
-          Transform.translate(
-            offset: const Offset(0, 0),
-            child: widget.sheet!,
-          ),
-        ],
-      ),
-      backgroundColor: Colors.transparent,
-      transitionAnimationController: _animationController,
-    )..closed.whenComplete(() {
-        _animationController.animateBack(0.0).then((value) {
-          _onSheetToggle(false);
-        });
-      });
+    // _animationController.reset();
+    // _animationController.animateTo(1.0);
+    // _bottomSheetController = Scaffold.of(context).showBottomSheet(
+    //   (_) => Stack(
+    //     children: [
+    //       // Add GestureDetector to handle outside taps
+    //       Positioned.fill(
+    //         child: GestureDetector(
+    //           onTap: () {
+    //             if (_sheetOpen) {
+    //               Scaffold.of(context).showBodyScrim(false, 0.0);
+    //               _bottomSheetController?.close();
+    //             }
+    //           },
+    //           child: Container(color: Colors.transparent),
+    //         ),
+    //       ),
+    //       Transform.translate(
+    //         offset: const Offset(0, 0),
+    //         child: widget.sheet!,
+    //       ),
+    //     ],
+    //   ),
+    //   backgroundColor: Colors.transparent,
+    //   transitionAnimationController: _animationController,
+    // )..closed.whenComplete(() {
+    //     _animationController.animateBack(0.0).then((value) {
+    //       _onSheetToggle(false);
+    //     });
+    //   });
   }
 
   _initAnimation() {

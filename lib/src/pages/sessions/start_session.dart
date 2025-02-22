@@ -2,18 +2,361 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
+import 'package:trancend/src/providers/intention_selection_provider.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
+import 'package:trancend/src/pages/sessions/intention_content.dart';
 import 'package:trancend/src/pages/sessions/active.dart';
 import 'package:trancend/src/pages/sessions/breathwork.dart';
 import 'package:trancend/src/pages/sessions/hypnotherapy.dart';
 import 'package:trancend/src/pages/sessions/hypnotherapy_methods.dart';
 import 'package:trancend/src/pages/sessions/inductions.dart';
-import 'package:trancend/src/pages/sessions/intention_content.dart';
 import 'package:trancend/src/pages/sessions/meditation.dart';
 import 'package:trancend/src/pages/sessions/previous_intentions.dart';
 import 'package:trancend/src/pages/sessions/sleep.dart';
 import 'package:trancend/src/pages/sessions/soundscapes.dart';
-import 'package:trancend/src/providers/intention_selection_provider.dart';
+
+/// The provider for the sheet controller
+final sheetControllerProvider = Provider.autoDispose((ref) => SheetController());
+
+class SheetController {
+  session.TranceMethod? selectedMethod;
+  String? customIntention;
+  AnimationController? _controller;
+  int? selectedIndex;
+
+  AnimationController _getController(BuildContext context) {
+    _controller ??= AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: Navigator.of(context).overlay!,
+    );
+    return _controller!;
+  }
+
+  void dispose() {
+    _controller?.dispose();
+    _controller = null;
+  }
+
+  void showSheet(BuildContext context) {
+    WoltModalSheet.show<void>(
+      context: context,
+      pageListBuilder: (modalContext) => [
+        WoltModalSheetPage(
+          hasSabGradient: false,
+          isTopBarLayerAlwaysVisible: true,
+          backgroundColor: Colors.transparent,
+          hasTopBarLayer: false,
+          child: Consumer(
+            builder: (context, ref, _) {
+              final intentionState = ref.watch(intentionSelectionProvider);
+              return IntentionContent(
+                tranceMethod: selectedMethod ?? session.TranceMethod.values.first,
+                onBack: null,
+                onContinue: (intention) => _onIntentionSelected(context, ref, intention),
+                selectedGoalIds: intentionState.selectedGoalIds,
+                onGoalsSelected: (goals) => _onGoalsSelected(context, ref, goals),
+                initialCustomIntention: customIntention,
+                isCustomMode: false,
+              );
+            }
+          ),
+        ),
+      ],
+      modalTypeBuilder: (context) => const WoltBottomSheetType(),
+      onModalDismissedWithBarrierTap: () => Navigator.of(context).pop(),
+      onModalDismissedWithDrag: () => Navigator.of(context).pop(),
+      modalBarrierColor: Colors.transparent,
+      useSafeArea: true,
+      enableDrag: true,
+      showDragHandle: true,
+      barrierDismissible: true,
+      pageContentDecorator: (child) => child,
+      modalDecorator: (child) => BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: 20.0,
+          sigmaY: 20.0,
+        ),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white24,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border.all(
+              color: Colors.white24,
+              width: 0.5,
+            ),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToPage(BuildContext context, WoltModalSheetPage page) {
+    WoltModalSheet.of(context).pushPage(page);
+  }
+
+  Future<void> _onIntentionSelected(BuildContext context, WidgetRef ref, String intention) async {
+    if (intention.isEmpty) {
+      final selectedType = ref.read(intentionSelectionProvider).type;
+      if (selectedType == IntentionSelectionType.previous) {
+        _navigateToPage(context, WoltModalSheetPage(
+          hasSabGradient: false,
+          isTopBarLayerAlwaysVisible: true,
+          backgroundColor: Colors.transparent,
+          hasTopBarLayer: true,
+          topBarTitle: const Text('Previous Intentions'),
+          leadingNavBarWidget: IconButton(
+            padding: const EdgeInsets.all(16),
+            icon: const Icon(Icons.arrow_back_ios),
+            onPressed: WoltModalSheet.of(context).showPrevious,
+          ),
+          child: PreviousIntentions(
+            onBack: WoltModalSheet.of(context).showPrevious,
+            onIntentionSelected: (intention) => _onIntentionSelected(context, ref, intention),
+          ),
+        ));
+      } else {
+        _navigateToPage(context, WoltModalSheetPage(
+          hasSabGradient: false,
+          isTopBarLayerAlwaysVisible: true,
+          backgroundColor: Colors.transparent,
+          hasTopBarLayer: true,
+          topBarTitle: const Text('Create Intention'),
+          leadingNavBarWidget: IconButton(
+            padding: const EdgeInsets.all(16),
+            icon: const Icon(Icons.arrow_back_ios),
+            onPressed: WoltModalSheet.of(context).showPrevious,
+          ),
+          child: IntentionContent(
+            tranceMethod: selectedMethod ?? session.TranceMethod.values.first,
+            onBack: WoltModalSheet.of(context).showPrevious,
+            onContinue: (intention) => _onIntentionSelected(context, ref, intention),
+            selectedGoalIds: ref.read(intentionSelectionProvider).selectedGoalIds,
+            onGoalsSelected: (goals) => _onGoalsSelected(context, ref, goals),
+            initialCustomIntention: customIntention,
+            isCustomMode: true,
+          ),
+        ));
+      }
+    } else {
+      customIntention = intention;
+      _navigateToPage(context, WoltModalSheetPage(
+        hasSabGradient: false,
+        isTopBarLayerAlwaysVisible: true,
+        backgroundColor: Colors.transparent,
+        hasTopBarLayer: true,
+        topBarTitle: const Text('Select Modality'),
+        leadingNavBarWidget: IconButton(
+          padding: const EdgeInsets.all(16),
+          icon: const Icon(Icons.arrow_back_ios),
+          onPressed: WoltModalSheet.of(context).showPrevious,
+        ),
+        child: Inductions(
+          controller: _getController(context),
+          selectedMethod: selectedIndex == null ? null : selectedMethod,
+          selectedIndex: selectedIndex,
+          navigatorKey: GlobalKey<NavigatorState>(),
+          onBack: () {
+            selectedMethod = null;
+            selectedIndex = null;
+            _controller?.reset();
+            WoltModalSheet.of(context).showPrevious();
+          },
+          onSelectMethod: (method, index) => _selectMethod(context, ref, method, index),
+        ),
+      ));
+    }
+  }
+
+  void _selectMethod(BuildContext context, WidgetRef ref, session.TranceMethod method, int index) {
+    if (selectedIndex != null) return;
+
+    selectedMethod = method;
+    selectedIndex = index;
+
+    _controller?.forward().then((_) {
+      late WoltModalSheetPage page;
+      switch (method) {
+        case session.TranceMethod.Hypnosis:
+          page = WoltModalSheetPage(
+            hasSabGradient: false,
+            isTopBarLayerAlwaysVisible: true,
+            backgroundColor: Colors.transparent,
+            hasTopBarLayer: true,
+            topBarTitle: const Text('Hypnotherapy'),
+            leadingNavBarWidget: IconButton(
+              padding: const EdgeInsets.all(16),
+              icon: const Icon(Icons.arrow_back_ios),
+              onPressed: WoltModalSheet.of(context).showPrevious,
+            ),
+            child: Hypnotherapy(
+              onBack: WoltModalSheet.of(context).showPrevious,
+              changePage: (pageName) {
+                selectedMethod = null;
+                selectedIndex = null;
+                _controller?.reset();
+                if (pageName == '/hypnotherapy_methods') {
+                  _navigateToPage(context, WoltModalSheetPage(
+                    hasSabGradient: false,
+                    isTopBarLayerAlwaysVisible: true,
+                    backgroundColor: Colors.transparent,
+                    hasTopBarLayer: true,
+                    topBarTitle: const Text('Hypnotherapy Methods'),
+                    leadingNavBarWidget: IconButton(
+                      padding: const EdgeInsets.all(16),
+                      icon: const Icon(Icons.arrow_back_ios),
+                      onPressed: WoltModalSheet.of(context).showPrevious,
+                    ),
+                    child: HypnosisMethods(
+                      onBack: WoltModalSheet.of(context).showPrevious,
+                    ),
+                  ));
+                } else if (pageName == '/soundscapes') {
+                  _navigateToPage(context, WoltModalSheetPage(
+                    hasSabGradient: false,
+                    isTopBarLayerAlwaysVisible: true,
+                    backgroundColor: Colors.transparent,
+                    hasTopBarLayer: true,
+                    topBarTitle: const Text('Select Background Sound'),
+                    leadingNavBarWidget: IconButton(
+                      padding: const EdgeInsets.all(16),
+                      icon: const Icon(Icons.arrow_back_ios),
+                      onPressed: WoltModalSheet.of(context).showPrevious,
+                    ),
+                    child: Soundscapes(
+                      onPlayStateChanged: (isPlaying) {
+                        print('isPlaying: $isPlaying');
+                      },
+                      onBack: WoltModalSheet.of(context).showPrevious,
+                    ),
+                  ));
+                }
+              },
+              onStart: (duration) {
+                // Handle start session
+              },
+            ),
+          );
+          break;
+        case session.TranceMethod.Meditation:
+          page = WoltModalSheetPage(
+            hasSabGradient: false,
+            isTopBarLayerAlwaysVisible: true,
+            backgroundColor: Colors.transparent,
+            hasTopBarLayer: true,
+            topBarTitle: const Text('Meditation'),
+            leadingNavBarWidget: IconButton(
+              padding: const EdgeInsets.all(16),
+              icon: const Icon(Icons.arrow_back_ios),
+              onPressed: WoltModalSheet.of(context).showPrevious,
+            ),
+            child: Meditation(
+              onBack: WoltModalSheet.of(context).showPrevious,
+              onStart: (duration) {
+                // Handle start session
+              },
+            ),
+          );
+          break;
+        case session.TranceMethod.Breathe:
+          page = WoltModalSheetPage(
+            hasSabGradient: false,
+            isTopBarLayerAlwaysVisible: true,
+            backgroundColor: Colors.transparent,
+            hasTopBarLayer: true,
+            topBarTitle: const Text('Breathwork'),
+            leadingNavBarWidget: IconButton(
+              padding: const EdgeInsets.all(16),
+              icon: const Icon(Icons.arrow_back_ios),
+              onPressed: WoltModalSheet.of(context).showPrevious,
+            ),
+            child: Breathwork(
+              onBack: WoltModalSheet.of(context).showPrevious,
+              onStart: (duration) {
+                // Handle start session
+              },
+            ),
+          );
+          break;
+        case session.TranceMethod.Active:
+          page = WoltModalSheetPage(
+            hasSabGradient: false,
+            isTopBarLayerAlwaysVisible: true,
+            backgroundColor: Colors.transparent,
+            hasTopBarLayer: true,
+            topBarTitle: const Text('Active Hypnotherapy'),
+            leadingNavBarWidget: IconButton(
+              padding: const EdgeInsets.all(16),
+              icon: const Icon(Icons.arrow_back_ios),
+              onPressed: WoltModalSheet.of(context).showPrevious,
+            ),
+            child: Active(
+              onBack: WoltModalSheet.of(context).showPrevious,
+              onStart: (duration) {
+                // Handle start session
+              },
+            ),
+          );
+          break;
+        case session.TranceMethod.Sleep:
+          page = WoltModalSheetPage(
+            hasSabGradient: false,
+            isTopBarLayerAlwaysVisible: true,
+            backgroundColor: Colors.transparent,
+            hasTopBarLayer: true,
+            topBarTitle: const Text('Sleep Programming'),
+            leadingNavBarWidget: IconButton(
+              padding: const EdgeInsets.all(16),
+              icon: const Icon(Icons.arrow_back_ios),
+              onPressed: WoltModalSheet.of(context).showPrevious,
+            ),
+            child: Sleep(
+              onBack: WoltModalSheet.of(context).showPrevious,
+              onStart: (duration) {
+                // Handle start session
+              },
+            ),
+          );
+          break;
+      }
+
+      _navigateToPage(context, page);
+    });
+  }
+
+  Future<void> _onGoalsSelected(BuildContext context, WidgetRef ref, Set<String> goals) async {
+    if (goals.isNotEmpty) {
+      ref.read(intentionSelectionProvider.notifier).setSelectedGoals(goals);
+      _navigateToPage(context, WoltModalSheetPage(
+        hasSabGradient: false,
+        isTopBarLayerAlwaysVisible: true,
+        backgroundColor: Colors.transparent,
+        hasTopBarLayer: true,
+        topBarTitle: const Text('Select Modality'),
+        leadingNavBarWidget: IconButton(
+          padding: const EdgeInsets.all(16),
+          icon: const Icon(Icons.arrow_back_ios),
+          onPressed: WoltModalSheet.of(context).showPrevious,
+        ),
+        child: Inductions(
+          controller: _getController(context),
+          selectedMethod: selectedIndex == null ? null : selectedMethod,
+          selectedIndex: selectedIndex,
+          navigatorKey: GlobalKey<NavigatorState>(),
+          onBack: () {
+            selectedMethod = null;
+            selectedIndex = null;
+            _controller?.reset();
+            WoltModalSheet.of(context).showPrevious();
+          },
+          onSelectMethod: (method, index) => _selectMethod(context, ref, method, index),
+        ),
+      ));
+    }
+  }
+}
 
 class Sheet extends ConsumerStatefulWidget {
   const Sheet({super.key});
@@ -23,12 +366,10 @@ class Sheet extends ConsumerStatefulWidget {
 }
 
 class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
+  late AnimationController _controller;
   session.TranceMethod? selectedMethod;
   String? customIntention;
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
-  late AnimationController _controller;
-  int? _selectedIndex;
-  final ValueNotifier<double> _heightNotifier = ValueNotifier(0.65);
+  int? selectedIndex;
 
   @override
   void initState() {
@@ -42,60 +383,21 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
   @override
   void dispose() {
     _controller.dispose();
-    _heightNotifier.dispose();
     super.dispose();
   }
 
-  double _getSheetHeight(String route) {
-    switch (route) {
-      case '/modalities':
-        return 0.7;
-      case '/intention_selection':
-        return 0.65;
-      case '/hypnotherapy':
-        return 0.6;
-      case '/soundscapes':
-        return 0.9;
-      case '/hypnotherapy_methods':
-        return 0.5;
-      default:
-        return 0.65;
-    }
-  }
-
-  void _selectMethod(session.TranceMethod method, int index) {
-    if (_selectedIndex != null || !mounted) return;
-
-    setState(() {
-      selectedMethod = method;
-      _selectedIndex = index;
-    });
-
-    _controller.forward().then((_) {
-      if (!mounted) return;
-
-      String route = '';
-      switch (method) {
-        case session.TranceMethod.Hypnosis:
-          route = '/hypnotherapy';
-          break;
-        case session.TranceMethod.Meditation:
-          route = '/meditation';
-          break;
-        case session.TranceMethod.Breathe:
-          route = '/breathwork';
-          break;
-        case session.TranceMethod.Active:
-          route = '/active';
-          break;
-        case session.TranceMethod.Sleep:
-          route = '/sleep';
-          break;
-      }
-
-      _heightNotifier.value = _getSheetHeight(route);
-      _navigatorKey.currentState?.pushReplacementNamed(route);
-    });
+  @override
+  Widget build(BuildContext context) {
+    final intentionState = ref.watch(intentionSelectionProvider);
+    return IntentionContent(
+      tranceMethod: selectedMethod ?? session.TranceMethod.values.first,
+      onBack: null,
+      onContinue: _onIntentionSelected,
+      selectedGoalIds: intentionState.selectedGoalIds,
+      onGoalsSelected: _onGoalsSelected,
+      initialCustomIntention: customIntention,
+      isCustomMode: false,
+    );
   }
 
   Future<void> _onIntentionSelected(String intention) async {
@@ -104,21 +406,158 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
     if (intention.isEmpty) {
       final selectedType = ref.read(intentionSelectionProvider).type;
       if (selectedType == IntentionSelectionType.previous) {
-        _heightNotifier.value = _getSheetHeight('/previous_intentions');
-        await _navigatorKey.currentState
-            ?.pushReplacementNamed('/previous_intentions');
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => PreviousIntentions(
+              onBack: () => Navigator.of(context).pop(),
+              onIntentionSelected: _onIntentionSelected,
+            ),
+          ),
+        );
       } else {
-        _heightNotifier.value = _getSheetHeight('/custom_intention');
-        await _navigatorKey.currentState
-            ?.pushReplacementNamed('/custom_intention');
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => IntentionContent(
+              tranceMethod: selectedMethod ?? session.TranceMethod.values.first,
+              onBack: () => Navigator.of(context).pop(),
+              onContinue: _onIntentionSelected,
+              selectedGoalIds: ref.read(intentionSelectionProvider).selectedGoalIds,
+              onGoalsSelected: _onGoalsSelected,
+              initialCustomIntention: customIntention,
+              isCustomMode: true,
+            ),
+          ),
+        );
       }
     } else {
       setState(() {
         customIntention = intention;
       });
-      _heightNotifier.value = _getSheetHeight('/modalities');
-      await _navigatorKey.currentState?.pushReplacementNamed('/modalities');
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => Inductions(
+            controller: _controller,
+            selectedMethod: selectedIndex == null ? null : selectedMethod,
+            selectedIndex: selectedIndex,
+            navigatorKey: GlobalKey<NavigatorState>(),
+            onBack: () {
+              setState(() {
+                selectedMethod = null;
+                selectedIndex = null;
+                _controller.reset();
+              });
+              Navigator.of(context).pop();
+            },
+            onSelectMethod: _selectMethod,
+          ),
+        ),
+      );
     }
+  }
+
+  void _selectMethod(session.TranceMethod method, int index) {
+    if (selectedIndex != null || !mounted) return;
+
+    setState(() {
+      selectedMethod = method;
+      selectedIndex = index;
+    });
+
+    _controller.forward().then((_) {
+      if (!mounted) return;
+
+      late Widget page;
+      String title = '';
+      switch (method) {
+        case session.TranceMethod.Hypnosis:
+          title = 'Hypnotherapy';
+          page = Hypnotherapy(
+            onBack: () => Navigator.of(context).pop(),
+            changePage: (pageName) {
+              setState(() {
+                selectedMethod = null;
+                selectedIndex = null;
+                _controller.reset();
+              });
+              if (pageName == '/hypnotherapy_methods') {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => HypnosisMethods(
+                      onBack: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                );
+              } else if (pageName == '/soundscapes') {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => Soundscapes(
+                      onPlayStateChanged: (isPlaying) {
+                        print('isPlaying: $isPlaying');
+                      },
+                      onBack: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                );
+              }
+            },
+            onStart: (duration) {
+              // Handle start session
+            },
+          );
+          break;
+        case session.TranceMethod.Meditation:
+          title = 'Meditation';
+          page = Meditation(
+            onBack: () => Navigator.of(context).pop(),
+            onStart: (duration) {
+              // Handle start session
+            },
+          );
+          break;
+        case session.TranceMethod.Breathe:
+          title = 'Breathwork';
+          page = Breathwork(
+            onBack: () => Navigator.of(context).pop(),
+            onStart: (duration) {
+              // Handle start session
+            },
+          );
+          break;
+        case session.TranceMethod.Active:
+          title = 'Active Hypnotherapy';
+          page = Active(
+            onBack: () => Navigator.of(context).pop(),
+            onStart: (duration) {
+              // Handle start session
+            },
+          );
+          break;
+        case session.TranceMethod.Sleep:
+          title = 'Sleep Programming';
+          page = Sleep(
+            onBack: () => Navigator.of(context).pop(),
+            onStart: (duration) {
+              // Handle start session
+            },
+          );
+          break;
+      }
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => Scaffold(
+            appBar: AppBar(
+              title: Text(title),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+            body: page,
+          ),
+        ),
+      );
+    });
   }
 
   Future<void> _onGoalsSelected(Set<String> goals) async {
@@ -126,405 +565,25 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
 
     if (goals.isNotEmpty) {
       ref.read(intentionSelectionProvider.notifier).setSelectedGoals(goals);
-      _heightNotifier.value = _getSheetHeight('/modalities');
-      await _navigatorKey.currentState?.pushReplacementNamed('/modalities');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        if (_navigatorKey.currentState?.canPop() ?? false) {
-          _navigatorKey.currentState?.pop();
-          return false;
-        }
-        return true;
-      },
-      child: ValueListenableBuilder<double>(
-        valueListenable: _heightNotifier,
-        builder: (context, height, child) {
-          return DraggableScrollableSheet(
-            initialChildSize: height,
-            maxChildSize: 0.95,
-            minChildSize: 0.15,
-            snap: true,
-            snapSizes: const [0.65, 0.75, 0.85],
-            builder: (context, _) {
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(20)),
-                  border: Border.all(
-                    color: Colors.white24,
-                    width: 0.5,
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(20)),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(
-                      sigmaX: 20.0,
-                      sigmaY: 20.0,
-                    ),
-                    child: Navigator(
-                      key: _navigatorKey,
-                      initialRoute: '/intention_selection',
-                      onGenerateRoute: (settings) {
-                        Widget page;
-
-                        switch (settings.name) {
-                          case '/intention_selection':
-                            page = IntentionContent(
-                              tranceMethod: selectedMethod ??
-                                  session.TranceMethod.values.first,
-                              onBack: null,
-                              onContinue: _onIntentionSelected,
-                              selectedGoalIds: ref
-                                  .watch(intentionSelectionProvider)
-                                  .selectedGoalIds,
-                              onGoalsSelected: _onGoalsSelected,
-                              initialCustomIntention: customIntention,
-                              isCustomMode: false,
-                            );
-                            break;
-
-                          case '/custom_intention':
-                            page = IntentionContent(
-                              tranceMethod: selectedMethod ??
-                                  session.TranceMethod.values.first,
-                              onBack: () {
-                                _heightNotifier.value =
-                                    _getSheetHeight('/intention_selection');
-                                _navigatorKey.currentState
-                                    ?.pushReplacementNamed(
-                                        '/intention_selection');
-                              },
-                              onContinue: _onIntentionSelected,
-                              selectedGoalIds: ref
-                                  .watch(intentionSelectionProvider)
-                                  .selectedGoalIds,
-                              onGoalsSelected: _onGoalsSelected,
-                              initialCustomIntention: customIntention,
-                              isCustomMode: true,
-                            );
-                            break;
-
-                          case '/previous_intentions':
-                            page = PreviousIntentions(
-                              onBack: () {
-                                _heightNotifier.value =
-                                    _getSheetHeight('/intention_selection');
-                                _navigatorKey.currentState
-                                    ?.pushReplacementNamed(
-                                        '/intention_selection');
-                              },
-                              onIntentionSelected: _onIntentionSelected,
-                            );
-                            break;
-
-                          case '/modalities':
-                            page = Inductions(
-                              controller: _controller,
-                              selectedMethod: _selectedIndex == null
-                                  ? null
-                                  : selectedMethod,
-                              selectedIndex: _selectedIndex,
-                              navigatorKey: _navigatorKey,
-                              onBack: () {
-                                setState(() {
-                                  selectedMethod = null;
-                                  _selectedIndex = null;
-                                  _controller.reset();
-                                });
-                                _heightNotifier.value =
-                                    _getSheetHeight('/modalities');
-                                _navigatorKey.currentState
-                                    ?.pushReplacementNamed('/modalities');
-                              },
-                              onSelectMethod: _selectMethod,
-                            );
-                            break;
-
-                          case '/hypnotherapy':
-                            page = Hypnotherapy(
-                              onBack: () {
-                                setState(() {
-                                  selectedMethod = null;
-                                  _selectedIndex = null;
-                                  _controller.reset();
-                                });
-                                _heightNotifier.value =
-                                    _getSheetHeight('/hypnotherapy');
-
-                                _navigatorKey.currentState
-                                    ?.pushReplacementNamed('/hypnotherapy');
-                              },
-                              changePage: (pageName) => {
-                                setState(() {
-                                  selectedMethod = null;
-                                  _selectedIndex = null;
-                                  _controller.reset();
-                                }),
-                                _heightNotifier.value =
-                                    _getSheetHeight(pageName),
-                                _navigatorKey.currentState
-                                    ?.pushReplacementNamed(pageName)
-                              },
-                              onStart: (duration) {
-                                // Handle start session
-                              },
-                            );
-                            break;
-
-                          case '/soundscapes':
-                            page = Soundscapes(
-                              onPlayStateChanged: (isPlaying) {
-                                print('isPlaying: $isPlaying');
-                                // setState(() => _isPlaying = isPlaying);
-                              },
-                              onBack: () {
-                                print('onBack');
-                                setState(() {
-                                  selectedMethod = null;
-                                  _selectedIndex = null;
-                                  _controller.reset();
-                                });
-                                _heightNotifier.value =
-                                    _getSheetHeight('/hypnotherapy');
-                                _navigatorKey.currentState
-                                    ?.pushReplacementNamed('/hypnotherapy');
-                              },
-                            );
-                            break;
-
-                          case '/hypnotherapy_methods':
-                            page = HypnosisMethods(
-                              onBack: () async {
-                                print('onBack');
-                                // Wait a frame to ensure Firestore update is complete
-                                await Future.delayed(const Duration(milliseconds: 100));
-                                _heightNotifier.value = _getSheetHeight('/hypnotherapy');
-                                _navigatorKey.currentState?.pushReplacementNamed('/hypnotherapy');
-                              },
-                            );
-                            break;
-
-                          case '/meditation':
-                            page = Meditation(
-                              onBack: () {
-                                setState(() {
-                                  selectedMethod = null;
-                                  _selectedIndex = null;
-                                  _controller.reset();
-                                });
-                                _heightNotifier.value =
-                                    _getSheetHeight('/modalities');
-                                _navigatorKey.currentState
-                                    ?.pushReplacementNamed('/modalities');
-                              },
-                              onStart: (duration) {
-                                // Handle start session
-                              },
-                            );
-                            break;
-
-                          case '/breathwork':
-                            page = Breathwork(
-                              onBack: () {
-                                setState(() {
-                                  selectedMethod = null;
-                                  _selectedIndex = null;
-                                  _controller.reset();
-                                });
-                                _heightNotifier.value =
-                                    _getSheetHeight('/modalities');
-                                _navigatorKey.currentState
-                                    ?.pushReplacementNamed('/modalities');
-                              },
-                              onStart: (duration) {
-                                // Handle start session
-                              },
-                            );
-                            break;
-
-                          case '/active':
-                            page = Active(
-                              onBack: () {
-                                setState(() {
-                                  selectedMethod = null;
-                                  _selectedIndex = null;
-                                  _controller.reset();
-                                });
-                                _heightNotifier.value =
-                                    _getSheetHeight('/modalities');
-                                _navigatorKey.currentState
-                                    ?.pushReplacementNamed('/modalities');
-                              },
-                              onStart: (duration) {
-                                // Handle start session
-                              },
-                            );
-                            break;
-
-                          case '/sleep':
-                            page = Sleep(
-                              onBack: () {
-                                setState(() {
-                                  selectedMethod = null;
-                                  _selectedIndex = null;
-                                  _controller.reset();
-                                });
-                                _heightNotifier.value =
-                                    _getSheetHeight('/modalities');
-                                _navigatorKey.currentState
-                                    ?.pushReplacementNamed('/modalities');
-                              },
-                              onStart: (duration) {
-                                // Handle start session
-                              },
-                            );
-                            break;
-
-                          default:
-                            page = const SizedBox();
-                        }
-
-                        return MaterialPageRoute(
-                          builder: (context) => Column(
-                            children: [
-                              Center(
-                                child: FractionallySizedBox(
-                                  widthFactor: 0.25,
-                                  child: Container(
-                                    margin:
-                                        const EdgeInsets.symmetric(vertical: 8),
-                                    height: 4,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(2),
-                                      border: Border.all(
-                                        color: Colors.black12,
-                                        width: 0.5,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              if (settings.name != '/intention_selection')
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0, vertical: 8.0),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.arrow_back_ios,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .shadow
-                                              .withOpacity(0.7),
-                                          size: 20,
-                                        ),
-                                        onPressed: () {
-                                          if (settings.name == '/modalities') {
-                                            setState(() {
-                                              selectedMethod = null;
-                                              _selectedIndex = null;
-                                              _controller.reset();
-                                            });
-                                            _heightNotifier.value =
-                                                _getSheetHeight(
-                                                    '/intention_selection');
-                                            _navigatorKey.currentState
-                                                ?.pushReplacementNamed(
-                                                    '/intention_selection');
-                                          } else if (settings.name == '/hypnotherapy_methods' || settings.name == '/soundscapes') {
-                                            _heightNotifier.value =
-                                                _getSheetHeight('/hypnotherapy');
-                                            _navigatorKey.currentState
-                                                ?.pushReplacementNamed('/hypnotherapy');
-                                          } else {
-                                            setState(() {
-                                              selectedMethod = null;
-                                              _selectedIndex = null;
-                                              _controller.reset();
-                                            });
-                                            _heightNotifier.value =
-                                                _getSheetHeight('/modalities');
-                                            _navigatorKey.currentState
-                                                ?.pushReplacementNamed(
-                                                    '/modalities');
-                                          }
-                                        },
-                                      ),
-                                      Text(
-                                        _getTitle(settings.name ?? ''),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium
-                                            ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .shadow,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 20,
-                                            ),
-                                      ),
-                                      const SizedBox(width: 48),
-                                    ],
-                                  ),
-                                ),
-                              Expanded(
-                                child: page,
-                              ),
-                            ],
-                          ),
-                          settings: settings,
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              );
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => Inductions(
+            controller: _controller,
+            selectedMethod: selectedIndex == null ? null : selectedMethod,
+            selectedIndex: selectedIndex,
+            navigatorKey: GlobalKey<NavigatorState>(),
+            onBack: () {
+              setState(() {
+                selectedMethod = null;
+                selectedIndex = null;
+                _controller.reset();
+              });
+              Navigator.of(context).pop();
             },
-          );
-        },
-      ),
-    );
-  }
-
-  String _getTitle(String route) {
-    switch (route) {
-      case '/intention_selection':
-        return '';
-      case '/custom_intention':
-        return 'Create Intention';
-      case '/previous_intentions':
-        return 'Previous Intentions';
-      case '/modalities':
-        return 'Select Modality';
-      case '/hypnotherapy':
-        return 'Hypnotherapy';
-      case '/soundscapes':
-        return 'Select Background Sound';
-      case '/hypnotherapy_methods':
-        return 'Hypnotherapy Methods';
-      case '/meditation':
-        return 'Meditation';
-      case '/breathwork':
-        return 'Breathwork';
-      case '/active':
-        return 'Active Hypnotherapy';
-      case '/sleep':
-        return 'Sleep Programming';
-      default:
-        return '';
+            onSelectMethod: _selectMethod,
+          ),
+        ),
+      );
     }
   }
 }

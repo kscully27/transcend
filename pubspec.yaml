@@ -53,6 +53,7 @@ dependencies:
     git:
       url: https://github.com/satoshiiorg/simple_eye_dropper.git
   inner_shadow_widget: ^0.0.3
+  wolt_modal_sheet: ^0.11.0
 
 dev_dependencies:
   flutter_test:
