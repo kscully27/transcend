@@ -13,6 +13,9 @@ import 'package:trancend/src/providers/intention_selection_provider.dart';
 import 'package:trancend/src/pages/sessions/intention_content.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
 import 'package:trancend/src/pages/sessions/previous_intentions.dart';
+import 'package:trancend/src/navigation/bottomsheet_flow_notifier.dart';
+import 'package:trancend/src/navigation/bottomsheet_declarative_routing.dart';
+import 'package:trancend/src/navigation/bottomsheet_flow_widget.dart';
 
 class BlurBackground extends StatefulWidget {
   final bool isSheetExpanded;
@@ -90,15 +93,12 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   int _index = 0;
-  bool _isSheetExpanded = false;
 
   void _handleKeyPress(RawKeyEvent event) {
     if (event is RawKeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
-      if (_isSheetExpanded) {
-        Navigator.of(context).pop();
-        setState(() {
-          _isSheetExpanded = false;
-        });
+      final sheetState = ref.read(bottomSheetFlowProvider);
+      if (sheetState.isOpen) {
+        ref.read(bottomSheetFlowProvider.notifier).closeFlow();
       }
     }
   }
@@ -115,109 +115,95 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
-    var theme = Theme.of(context);
+    final theme = Theme.of(context);
+    final sheetState = ref.watch(bottomSheetFlowProvider);
 
-    return RawKeyboardListener(
-      focusNode: FocusNode(),
-      autofocus: true,
-      onKey: _handleKeyPress,
-      child: appState.when(
-        data: (data) {
-          if (!data.isInitialized) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return BottomSheetFlowWidget(
+      child: RawKeyboardListener(
+        focusNode: FocusNode(),
+        autofocus: true,
+        onKey: _handleKeyPress,
+        child: appState.when(
+          data: (data) {
+            if (!data.isInitialized) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          return Stack(
-            children: [
-              Scaffold(
-                extendBody: true,
-                backgroundColor: theme.colorScheme.surface,
-                body: Container(
-                  decoration: AppColors.enableGradients
-                      ? BoxDecoration(
-                          gradient: AppColors.marsBackgroundGradient(context),
-                        )
-                      : null,
-                  child: _index == 0
-                      ? data.topics.when(
-                          data: (topics) => const Day(),
-                          loading: () => Material(
-                            color: theme.colorScheme.onSurface,
-                            child: const Center(child: CircularProgressIndicator()),
-                          ),
-                          error: (error, stack) =>
-                              Center(child: Text('Error loading topics: $error')),
-                        )
-                      : const SettingsPage(),
-                ),
-                bottomNavigationBar: ClayBottomNavNSheet(
+            return Stack(
+              children: [
+                Scaffold(
+                  extendBody: true,
                   backgroundColor: theme.colorScheme.surface,
-                  emboss: false,
-                  parentColor: theme.colorScheme.surface,
-                  selectedItemColor: theme.colorScheme.onSurface,
-                  unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.6),
-                  sheetOpenIconBoxColor: theme.colorScheme.primary,
-                  sheetOpenIconColor: theme.colorScheme.onPrimary,
-                  sheetCloseIconBoxColor: theme.colorScheme.surface,
-                  sheetCloseIconColor: theme.colorScheme.onSurfaceVariant,
-                  initialSelectedIndex: _index,
-                  onTap: (index) {
-                    setState(() {
-                      _index = index;
-                    });
-                  },
-                  onSheetToggle: (isOpen) {
-                    if (isOpen) {
-                      ref.read(intentionSelectionProvider.notifier).clearSelection();
-                      final controller = ref.read(sheetControllerProvider);
-                      controller.onDismiss = () {
-                        if (mounted) {
-                          setState(() {
-                            _isSheetExpanded = false;
-                          });
-                        }
-                      };
-                      controller.showSheet(context);
-                      Future.delayed(const Duration(milliseconds: 300), () {
-                        if (mounted) {
-                          setState(() {
-                            _isSheetExpanded = true;
-                          });
-                        }
-                      });
-                    }
-                    // Sheet was closed by the toggle button
-                    if (!isOpen && _isSheetExpanded) {
+                  body: Container(
+                    decoration: AppColors.enableGradients
+                        ? BoxDecoration(
+                            gradient: AppColors.marsBackgroundGradient(context),
+                          )
+                        : null,
+                    child: _index == 0
+                        ? data.topics.when(
+                            data: (topics) => const Day(),
+                            loading: () => Material(
+                              color: theme.colorScheme.onSurface,
+                              child: const Center(child: CircularProgressIndicator()),
+                            ),
+                            error: (error, stack) =>
+                                Center(child: Text('Error loading topics: $error')),
+                          )
+                        : const SettingsPage(),
+                  ),
+                  bottomNavigationBar: ClayBottomNavNSheet(
+                    backgroundColor: theme.colorScheme.surface,
+                    emboss: false,
+                    parentColor: theme.colorScheme.surface,
+                    selectedItemColor: theme.colorScheme.onSurface,
+                    unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.6),
+                    sheetOpenIconBoxColor: theme.colorScheme.primary,
+                    sheetOpenIconColor: theme.colorScheme.onPrimary,
+                    sheetCloseIconBoxColor: theme.colorScheme.surface,
+                    sheetCloseIconColor: theme.colorScheme.onSurfaceVariant,
+                    initialSelectedIndex: _index,
+                    onTap: (index) {
                       setState(() {
-                        _isSheetExpanded = false;
+                        _index = index;
                       });
-                    }
-                  },
-                  sheet: const SizedBox(),
-                  sheetOpenIcon: Remix.play_large_line,
-                  sheetCloseIcon: Remix.add_line,
-                  items: [
-                    ClayBottomNavItem(
-                      activeIcon: Remix.home_6_fill,
-                      icon: Remix.home_6_line,
-                    ),
-                    ClayBottomNavItem(
-                      icon: Remix.user_3_line,
-                      activeIcon: Remix.user_3_fill,
-                    ),
-                  ],
+                    },
+                    onSheetToggle: (isOpen) {
+                      if (isOpen) {
+                        ref.read(intentionSelectionProvider.notifier).clearSelection();
+                        ref.read(bottomSheetFlowProvider.notifier).openFlow(
+                          BottomSheetFlowName.defaultIntentionFlow,
+                        );
+                      } else {
+                        ref.read(bottomSheetFlowProvider.notifier).closeFlow();
+                      }
+                    },
+                    sheet: const SizedBox(),
+                    sheetOpenIcon: Remix.play_large_line,
+                    sheetCloseIcon: Remix.add_line,
+                    items: [
+                      ClayBottomNavItem(
+                        activeIcon: Remix.home_6_fill,
+                        icon: Remix.home_6_line,
+                      ),
+                      ClayBottomNavItem(
+                        icon: Remix.user_3_line,
+                        activeIcon: Remix.user_3_fill,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: BlurBackground(isSheetExpanded: _isSheetExpanded),
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: BlurBackground(isSheetExpanded: sheetState.isOpen),
+                  ),
                 ),
-              ),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
+              ],
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(child: Text('Error: $error')),
+        ),
       ),
     );
   }
