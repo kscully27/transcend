@@ -24,6 +24,7 @@ class SheetController {
   String? customIntention;
   AnimationController? _controller;
   int? selectedIndex;
+  VoidCallback? onDismiss;
 
   AnimationController _getController(BuildContext context) {
     _controller ??= AnimationController(
@@ -45,7 +46,11 @@ class SheetController {
         WoltModalSheetPage(
           hasSabGradient: false,
           isTopBarLayerAlwaysVisible: true,
-          backgroundColor: Colors.transparent,
+          backgroundColor: Colors.white70,
+          // sabGradientColor: Colors.white54,
+          surfaceTintColor: Colors.white,
+          
+          // hasSabGradient: true,
           hasTopBarLayer: false,
           child: Consumer(
             builder: (context, ref, _) {
@@ -64,8 +69,14 @@ class SheetController {
         ),
       ],
       modalTypeBuilder: (context) => const WoltBottomSheetType(),
-      onModalDismissedWithBarrierTap: () => Navigator.of(context).pop(),
-      onModalDismissedWithDrag: () => Navigator.of(context).pop(),
+      onModalDismissedWithBarrierTap: () {
+        Navigator.of(context).pop();
+        onDismiss?.call();
+      },
+      onModalDismissedWithDrag: () {
+        Navigator.of(context).pop();
+        onDismiss?.call();
+      },
       modalBarrierColor: Colors.transparent,
       useSafeArea: true,
       enableDrag: true,
@@ -74,13 +85,13 @@ class SheetController {
       pageContentDecorator: (child) => child,
       modalDecorator: (child) => BackdropFilter(
         filter: ImageFilter.blur(
-          sigmaX: 20.0,
-          sigmaY: 20.0,
+          sigmaX: 2.0,
+          sigmaY: 2.0,
         ),
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white24,
+            color: Colors.transparent,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             border: Border.all(
               color: Colors.white24,
