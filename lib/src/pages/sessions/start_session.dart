@@ -15,6 +15,7 @@ import 'package:trancend/src/pages/sessions/meditation.dart';
 import 'package:trancend/src/pages/sessions/previous_intentions.dart';
 import 'package:trancend/src/pages/sessions/sleep.dart';
 import 'package:trancend/src/pages/sessions/soundscapes.dart';
+import 'package:trancend/src/pages/sessions/modality_select.dart';
 
 /// The provider for the sheet controller
 final sheetControllerProvider = Provider.autoDispose((ref) => SheetController());
@@ -47,10 +48,7 @@ class SheetController {
           hasSabGradient: false,
           isTopBarLayerAlwaysVisible: true,
           backgroundColor: Colors.white70,
-          // sabGradientColor: Colors.white54,
           surfaceTintColor: Colors.white,
-          
-          // hasSabGradient: true,
           hasTopBarLayer: false,
           child: Consumer(
             builder: (context, ref, _) {
@@ -82,7 +80,6 @@ class SheetController {
       enableDrag: true,
       showDragHandle: true,
       barrierDismissible: true,
-      pageContentDecorator: (child) => child,
       modalDecorator: (child) => BackdropFilter(
         filter: ImageFilter.blur(
           sigmaX: 2.0,
@@ -109,73 +106,62 @@ class SheetController {
   }
 
   Future<void> _onIntentionSelected(BuildContext context, WidgetRef ref, String intention) async {
-    if (intention.isEmpty) {
-      final selectedType = ref.read(intentionSelectionProvider).type;
-      if (selectedType == IntentionSelectionType.previous) {
-        _navigateToPage(context, WoltModalSheetPage(
-          hasSabGradient: false,
-          isTopBarLayerAlwaysVisible: true,
-          backgroundColor: Colors.transparent,
-          hasTopBarLayer: true,
-          topBarTitle: const Text('Previous Intentions'),
-          leadingNavBarWidget: IconButton(
-            padding: const EdgeInsets.all(16),
-            icon: const Icon(Icons.arrow_back_ios),
-            onPressed: WoltModalSheet.of(context).showPrevious,
-          ),
-          child: PreviousIntentions(
-            onBack: WoltModalSheet.of(context).showPrevious,
-            onIntentionSelected: (intention) => _onIntentionSelected(context, ref, intention),
-          ),
-        ));
-      } else {
-        _navigateToPage(context, WoltModalSheetPage(
-          hasSabGradient: false,
-          isTopBarLayerAlwaysVisible: true,
-          backgroundColor: Colors.transparent,
-          hasTopBarLayer: true,
-          topBarTitle: const Text('Create Intention'),
-          leadingNavBarWidget: IconButton(
-            padding: const EdgeInsets.all(16),
-            icon: const Icon(Icons.arrow_back_ios),
-            onPressed: WoltModalSheet.of(context).showPrevious,
-          ),
-          child: IntentionContent(
-            tranceMethod: selectedMethod ?? session.TranceMethod.values.first,
-            onBack: WoltModalSheet.of(context).showPrevious,
-            onContinue: (intention) => _onIntentionSelected(context, ref, intention),
-            selectedGoalIds: ref.read(intentionSelectionProvider).selectedGoalIds,
-            onGoalsSelected: (goals) => _onGoalsSelected(context, ref, goals),
-            initialCustomIntention: customIntention,
-            isCustomMode: true,
-          ),
-        ));
-      }
-    } else {
+    if (intention.isNotEmpty) {
       customIntention = intention;
+      _navigateToPage(context, WoltModalSheetPage(
+        hasSabGradient: false,
+        isTopBarLayerAlwaysVisible: true,
+        backgroundColor: Colors.white70,
+        surfaceTintColor: Colors.white,
+        hasTopBarLayer: false,
+        child: ModalitySelect(
+          selectedMethod: selectedIndex == null ? null : selectedMethod,
+          selectedIndex: selectedIndex,
+          onBack: WoltModalSheet.of(context).showPrevious,
+          onSelectMethod: (method, index) => _selectMethod(context, ref, method, index),
+        ),
+      ));
+      return;
+    }
+
+    final selectedType = ref.read(intentionSelectionProvider).type;
+    if (selectedType == IntentionSelectionType.previous) {
       _navigateToPage(context, WoltModalSheetPage(
         hasSabGradient: false,
         isTopBarLayerAlwaysVisible: true,
         backgroundColor: Colors.transparent,
         hasTopBarLayer: true,
-        topBarTitle: const Text('Select Modality'),
+        topBarTitle: const Text('Previous Intentions'),
         leadingNavBarWidget: IconButton(
           padding: const EdgeInsets.all(16),
           icon: const Icon(Icons.arrow_back_ios),
           onPressed: WoltModalSheet.of(context).showPrevious,
         ),
-        child: Inductions(
-          controller: _getController(context),
-          selectedMethod: selectedIndex == null ? null : selectedMethod,
-          selectedIndex: selectedIndex,
-          navigatorKey: GlobalKey<NavigatorState>(),
-          onBack: () {
-            selectedMethod = null;
-            selectedIndex = null;
-            _controller?.reset();
-            WoltModalSheet.of(context).showPrevious();
-          },
-          onSelectMethod: (method, index) => _selectMethod(context, ref, method, index),
+        child: PreviousIntentions(
+          onBack: WoltModalSheet.of(context).showPrevious,
+          onIntentionSelected: (intention) => _onIntentionSelected(context, ref, intention),
+        ),
+      ));
+    } else {
+      _navigateToPage(context, WoltModalSheetPage(
+        hasSabGradient: false,
+        isTopBarLayerAlwaysVisible: true,
+        backgroundColor: Colors.transparent,
+        hasTopBarLayer: true,
+        topBarTitle: const Text('Create Intention'),
+        leadingNavBarWidget: IconButton(
+          padding: const EdgeInsets.all(16),
+          icon: const Icon(Icons.arrow_back_ios),
+          onPressed: WoltModalSheet.of(context).showPrevious,
+        ),
+        child: IntentionContent(
+          tranceMethod: selectedMethod ?? session.TranceMethod.values.first,
+          onBack: WoltModalSheet.of(context).showPrevious,
+          onContinue: (intention) => _onIntentionSelected(context, ref, intention),
+          selectedGoalIds: ref.read(intentionSelectionProvider).selectedGoalIds,
+          onGoalsSelected: (goals) => _onGoalsSelected(context, ref, goals),
+          initialCustomIntention: customIntention,
+          isCustomMode: true,
         ),
       ));
     }
@@ -343,25 +329,13 @@ class SheetController {
       _navigateToPage(context, WoltModalSheetPage(
         hasSabGradient: false,
         isTopBarLayerAlwaysVisible: true,
-        backgroundColor: Colors.transparent,
-        hasTopBarLayer: true,
-        topBarTitle: const Text('Select Modality'),
-        leadingNavBarWidget: IconButton(
-          padding: const EdgeInsets.all(16),
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: WoltModalSheet.of(context).showPrevious,
-        ),
-        child: Inductions(
-          controller: _getController(context),
+        backgroundColor: Colors.white70,
+        surfaceTintColor: Colors.white,
+        hasTopBarLayer: false,
+        child: ModalitySelect(
           selectedMethod: selectedIndex == null ? null : selectedMethod,
           selectedIndex: selectedIndex,
-          navigatorKey: GlobalKey<NavigatorState>(),
-          onBack: () {
-            selectedMethod = null;
-            selectedIndex = null;
-            _controller?.reset();
-            WoltModalSheet.of(context).showPrevious();
-          },
+          onBack: WoltModalSheet.of(context).showPrevious,
           onSelectMethod: (method, index) => _selectMethod(context, ref, method, index),
         ),
       ));
@@ -446,19 +420,10 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
       });
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => Inductions(
-            controller: _controller,
+          builder: (context) => ModalitySelect(
             selectedMethod: selectedIndex == null ? null : selectedMethod,
             selectedIndex: selectedIndex,
-            navigatorKey: GlobalKey<NavigatorState>(),
-            onBack: () {
-              setState(() {
-                selectedMethod = null;
-                selectedIndex = null;
-                _controller.reset();
-              });
-              Navigator.of(context).pop();
-            },
+            onBack: () => Navigator.of(context).pop(),
             onSelectMethod: _selectMethod,
           ),
         ),
@@ -578,19 +543,10 @@ class _SheetState extends ConsumerState<Sheet> with TickerProviderStateMixin {
       ref.read(intentionSelectionProvider.notifier).setSelectedGoals(goals);
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => Inductions(
-            controller: _controller,
+          builder: (context) => ModalitySelect(
             selectedMethod: selectedIndex == null ? null : selectedMethod,
             selectedIndex: selectedIndex,
-            navigatorKey: GlobalKey<NavigatorState>(),
-            onBack: () {
-              setState(() {
-                selectedMethod = null;
-                selectedIndex = null;
-                _controller.reset();
-              });
-              Navigator.of(context).pop();
-            },
+            onBack: () => Navigator.of(context).pop(),
             onSelectMethod: _selectMethod,
           ),
         ),

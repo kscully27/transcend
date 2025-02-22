@@ -124,6 +124,13 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
       return;
     }
 
+    // Handle default intention immediately without animation
+    if (type == IntentionSelectionType.default_intention) {
+      ref.read(intentionSelectionProvider.notifier).setSelection(type);
+      widget.onContinue("I want to feel more relaxed and at peace");
+      return;
+    }
+
     _controller.forward().then((_) {
       switch (type) {
         case IntentionSelectionType.goals:
@@ -133,10 +140,6 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
         case IntentionSelectionType.previous:
           ref.read(intentionSelectionProvider.notifier).setSelection(type);
           widget.onContinue("");
-          break;
-        case IntentionSelectionType.default_intention:
-          ref.read(intentionSelectionProvider.notifier).setSelection(type);
-          widget.onContinue("I want to feel more relaxed and at peace");
           break;
         case IntentionSelectionType.custom:
           ref.read(intentionSelectionProvider.notifier).setSelection(type);
@@ -369,38 +372,39 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.arrow_back_ios,
-                    color: theme.colorScheme.shadow,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _controller.reset();
-                    });
-                    if (widget.onBack != null) {
-                      widget.onBack!();
-                    }
-                  },
-                ),
-                Text(
-                  'Create Your Intention',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.shadow,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 20
-                  ),
-                ),
-                const SizedBox(width: 48), // Balance the back button
-              ],
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //     children: [
+          //       // IconButton(
+          //       //   icon: Icon(
+          //       //     Icons.arrow_back_ios,
+          //       //     color: theme.colorScheme.shadow,
+          //       //     size: 20,
+          //       //   ),
+          //       //   onPressed: () {
+          //       //     setState(() {
+          //       //       _controller.reset();
+          //       //     });
+          //       //     if (widget.onBack != null) {
+          //       //       widget.onBack!();
+          //       //     }
+          //       //   },
+          //       // ),
+          //       // Text(
+          //       //   'Create Your Intention',
+          //       //   style: theme.textTheme.titleMedium?.copyWith(
+          //       //     color: theme.colorScheme.shadow,
+          //       //     fontWeight: FontWeight.w600,
+          //       //     fontSize: 20
+          //       //   ),
+          //       // ),
+          //       // const SizedBox(width: 48), // Balance the back button
+          //     ],
+          //   ),
+          // ),
+          const SizedBox(height: 20),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
