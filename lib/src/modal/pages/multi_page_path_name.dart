@@ -4,6 +4,7 @@ import 'package:trancend/src/modal/pages/sheet_page_with_forced_max_height.dart'
 import 'package:trancend/src/modal/pages/sheet_page_with_hero_image.dart';
 import 'package:trancend/src/modal/pages/sheet_page_with_lazy_list.dart';
 import 'package:trancend/src/modal/pages/sheet_page_with_text_field.dart';
+import 'package:trancend/src/navigation/bottomsheet_declarative_routing.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 enum MultiPagePathName {
@@ -11,7 +12,12 @@ enum MultiPagePathName {
   heroImage(pageCount: 2, queryParamName: "heroImage"),
   lazyLoadingList(pageCount: 2, queryParamName: "lazyList"),
   textField(pageCount: 2, queryParamName: "textField"),
-  allPagesPath(pageCount: 5, queryParamName: "all");
+  allPagesPath(pageCount: 5, queryParamName: "all"),
+  // Bottom sheet flows
+  defaultIntention(pageCount: 1, queryParamName: "defaultIntention"),
+  customIntention(pageCount: 1, queryParamName: "customIntention"),
+  previousIntentions(pageCount: 1, queryParamName: "previousIntentions"),
+  goals(pageCount: 1, queryParamName: "goals");
 
   static const defaultPath = MultiPagePathName.allPagesPath;
 
@@ -89,6 +95,15 @@ enum MultiPagePathName {
               textField(context, isLastPage: false, currentPage: 3),
               forcedMaxHeight(context, isLastPage: true, currentPage: 4),
             ];
+      // Bottom sheet flows
+      case MultiPagePathName.defaultIntention:
+        return (context) => buildFlowPages(context, BottomSheetFlowName.defaultIntentionFlow);
+      case MultiPagePathName.customIntention:
+        return (context) => buildFlowPages(context, BottomSheetFlowName.customIntentionFlow);
+      case MultiPagePathName.previousIntentions:
+        return (context) => buildFlowPages(context, BottomSheetFlowName.previousIntentionsFlow);
+      case MultiPagePathName.goals:
+        return (context) => buildFlowPages(context, BottomSheetFlowName.goalsFlow);
     }
   }
 

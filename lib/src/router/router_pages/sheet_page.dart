@@ -27,6 +27,17 @@ class SheetPage extends Page<void> {
         final container = ProviderScope.containerOf(context);
         container.read(routerProvider.notifier).closeSheet();
       },
+      pageContentDecorator: (child) => child,
+      modalDecorator: (child) => child,
+      
+      // modalTypeBuilder: () => WoltModalType.bottomSheet,
+      transitionAnimationController: AnimationController(
+        vsync: Navigator.of(context),
+        duration: const Duration(milliseconds: 3500),
+      ),
+      enableDrag: true,
+      showDragHandle: true,
+      useSafeArea: true,
       settings: this,
     );
   }
