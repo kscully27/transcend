@@ -99,7 +99,7 @@ class _AllPagesPushWidget extends ConsumerWidget {
           contentPadding: EdgeInsets.zero,
           visualDensity: VisualDensity.compact,
           trailing: const Icon(Icons.arrow_forward_ios),
-          title: const Text('All the pages in one flow'),
+          title: const Text('Alllllll the pages in one flow'),
           subtitle: const Text(
             'Pressing this tile will append the page list and show the next page',
           ),
