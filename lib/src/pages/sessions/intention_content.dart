@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
-import 'package:trancend/src/navigation/declarative_routing.dart';
-import 'package:trancend/src/pages/sessions/previous_intentions.dart';
-import 'package:trancend/src/providers/intention_selection_provider.dart';
-import 'package:trancend/src/topics/bottomsheet_topics_list.dart';
-import 'package:trancend/src/ui/glass/glass_container.dart';
+import 'package:trancend/src/navigation/bottomsheet_declarative_routing.dart';
+import 'package:trancend/src/navigation/bottomsheet_flow_notifier.dart';
 import 'package:trancend/src/navigation/flow_router.dart';
+import 'package:trancend/src/providers/intention_selection_provider.dart';
+import 'package:trancend/src/ui/glass/glass_container.dart';
+import 'package:trancend/src/router/playground_router_delegate.dart';
 
 class IntentionContent extends ConsumerStatefulWidget {
   final session.TranceMethod tranceMethod;
@@ -119,11 +119,10 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
         break;
 
       case IntentionSelectionType.custom:
-        setState(() {
-          isCustomMode = true;
-        });
-        widget.onContinue("");
-        ref.read(flowRouterProvider.notifier).showCustomIntentionFlow();
+        print("custom intention flow");
+        ref.read(routerProvider.notifier).openFlow(
+          BottomSheetFlowName.customIntentionFlow,
+        );
         break;
 
       case IntentionSelectionType.previous:

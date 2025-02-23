@@ -1,6 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:trancend/src/router/playground_router_delegate.dart';
 import 'package:trancend/src/ui/clay/clay_container.dart';
 
 const color1 = Color.fromRGBO(244, 236, 236, 1); // Very light khaki
@@ -39,170 +41,180 @@ class TimelineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Timeline gutter with dot and line
-          SizedBox(
-            width: 50,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  height: 170,
-                  child: Stack(
-                    children: [
-                      // Connecting line
-                      if (isFirst)
-                        Positioned(
-                          top: 50,
-                          left: 24,
-                          child: ClayContainer(
-                            color: backgroundColor,
-                            parentColor: color2,
-                            height: 300,
-                            width: 2,
-                            emboss: true,
-                            spread: 2,
-                            depth: 40,
-                          ),
-                        ),
-                      if (!isLast && !isFirst)
-                        Positioned(
-                          top: 0,
-                          left: 24,
-                          child: ClayContainer(
-                            color: backgroundColor,
-                            parentColor: color2,
-                            height: 300,
-                            width: 2,
-                            emboss: true,
-                            spread: 2,
-                            depth: 40,
-                          ),
-                        ),
-                      if (isLast)
-                        Positioned(
-                          top: 0,
-                          left: 24,
-                          child: ClayContainer(
-                            color: backgroundColor,
-                            parentColor: color2,
-                            height: 50,
-                            width: 2,
-                            emboss: true,
-                            spread: 2,
-                            depth: 40,
-                          ),
-                        ),
-                      // Dot
-                      Positioned(
-                        top: 50,
-                        left: 10,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            ClayContainer(
+    return Consumer(
+      builder: (context, ref, child) {
+        return GestureDetector(
+      onTap: () {
+        print('tapped');
+        ref.read(routerProvider.notifier).onShowModalSheetButtonPressed();
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(left: 16.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Timeline gutter with dot and line
+            SizedBox(
+              width: 50,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 170,
+                    child: Stack(
+                      children: [
+                        // Connecting line
+                        if (isFirst)
+                          Positioned(
+                            top: 50,
+                            left: 24,
+                            child: ClayContainer(
                               color: backgroundColor,
                               parentColor: color2,
-                              height: 30,
-                              width: 30,
-                              borderRadius: 15,
+                              height: 300,
+                              width: 2,
                               emboss: true,
                               spread: 2,
                               depth: 40,
                             ),
-                            if (isFirst)
+                          ),
+                        if (!isLast && !isFirst)
+                          Positioned(
+                            top: 0,
+                            left: 24,
+                            child: ClayContainer(
+                              color: backgroundColor,
+                              parentColor: color2,
+                              height: 300,
+                              width: 2,
+                              emboss: true,
+                              spread: 2,
+                              depth: 40,
+                            ),
+                          ),
+                        if (isLast)
+                          Positioned(
+                            top: 0,
+                            left: 24,
+                            child: ClayContainer(
+                              color: backgroundColor,
+                              parentColor: color2,
+                              height: 50,
+                              width: 2,
+                              emboss: true,
+                              spread: 2,
+                              depth: 40,
+                            ),
+                          ),
+                        // Dot
+                        Positioned(
+                          top: 50,
+                          left: 10,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
                               ClayContainer(
-                                width: 24,
-                                height: 24,
-                                color: color1,
-                                // color: Theme.of(context).colorScheme.primary,
-                                parentColor: backgroundColor,
-                                borderRadius: 12,
-                                depth: 60,
+                                color: backgroundColor,
+                                parentColor: color2,
+                                height: 30,
+                                width: 30,
+                                borderRadius: 15,
+                                emboss: true,
                                 spread: 2,
-                                emboss: false,
+                                depth: 40,
                               ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Card content
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16.0, bottom: 24.0),
-              child: ClayContainer(
-                color: backgroundColor,
-                parentColor: color2,
-                height: 140,
-                borderRadius: 12,
-                depth: 14,
-                spread: 8,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              entry.title,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: textColor,
-                                  ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              entry.description,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: textColor,
-                                  ),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildTimeInfo(context),
-                          ],
-                        ),
-                      ),
-                      if (entry.imageUrl != null) ...[
-                        const SizedBox(width: 16),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.asset(
-                            entry.imageUrl!,
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
+                              if (isFirst)
+                                ClayContainer(
+                                  width: 24,
+                                  height: 24,
+                                  color: color1,
+                                  // color: Theme.of(context).colorScheme.primary,
+                                  parentColor: backgroundColor,
+                                  borderRadius: 12,
+                                  depth: 60,
+                                  spread: 2,
+                                  emboss: false,
+                                ),
+                            ],
                           ),
                         ),
                       ],
-                    ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Card content
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16.0, bottom: 24.0),
+                child: ClayContainer(
+                  color: backgroundColor,
+                  parentColor: color2,
+                  height: 140,
+                  borderRadius: 12,
+                  depth: 14,
+                  spread: 8,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                entry.title,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: textColor,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                entry.description,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: textColor,
+                                    ),
+                              ),
+                              const SizedBox(height: 12),
+                              _buildTimeInfo(context),
+                            ],
+                          ),
+                        ),
+                        if (entry.imageUrl != null) ...[
+                          const SizedBox(width: 16),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.asset(
+                              entry.imageUrl!,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+        );
+      },
     );
   }
 
