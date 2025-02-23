@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/pages/home.dart';
 import 'package:trancend/src/pages/demo.dart';
+import 'package:trancend/src/pages/home_screen.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
 import 'package:trancend/src/theme/app_theme.dart';
 import 'package:trancend/src/ui/clay/theme/clay_text_theme.dart';
@@ -63,7 +64,7 @@ class MyApp extends ConsumerWidget {
                 if (!data.isInitialized) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                return const HomePage();
+                return const HomeScreen();
               },
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(child: Text('Error: $error')),

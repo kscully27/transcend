@@ -30,9 +30,18 @@ class SheetPageWithLazyList {
           child: Text(isLastPage ? "Close" : "Next"),
         ),
       ),
-      heroImage: const Image(
-        image: AssetImage('lib/assets/images/material_colors_hero.png'),
-        fit: BoxFit.cover,
+      heroImage: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        height: 200,
+        color: Theme.of(context).colorScheme.primary,
+        child: Center(
+          child: Icon(
+            Icons.color_lens,
+            size: 64,
+            color: Theme.of(context).colorScheme.onPrimary,
+          ),
+        ),
       ),
       pageTitle: const Padding(
         padding: EdgeInsets.symmetric(horizontal: 16),
@@ -79,41 +88,40 @@ class _HorizontalPrimaryColorList extends StatelessWidget {
 }
 
 class ColorTile extends StatelessWidget {
-  final Color color;
+  const ColorTile({
+    required this.color,
+    super.key,
+  });
 
-  const ColorTile({super.key, required this.color});
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 64,
       color: color,
-      height: 100,
-      child: Center(
-        child: Text(
-          color.toString(),
-          style: TextStyle(
-            color: color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
     );
   }
 }
 
-List<Color> get allMaterialColors {
-  List<Color> allMaterialColorsWithShades = [];
-
-  for (MaterialColor color in Colors.primaries) {
-    allMaterialColorsWithShades.add(color.shade100);
-    allMaterialColorsWithShades.add(color.shade200);
-    allMaterialColorsWithShades.add(color.shade300);
-    allMaterialColorsWithShades.add(color.shade400);
-    allMaterialColorsWithShades.add(color.shade500);
-    allMaterialColorsWithShades.add(color.shade600);
-    allMaterialColorsWithShades.add(color.shade700);
-    allMaterialColorsWithShades.add(color.shade800);
-    allMaterialColorsWithShades.add(color.shade900);
-  }
-  return allMaterialColorsWithShades;
-}
+List<Color> get allMaterialColors => [
+      Colors.red,
+      Colors.pink,
+      Colors.purple,
+      Colors.deepPurple,
+      Colors.indigo,
+      Colors.blue,
+      Colors.lightBlue,
+      Colors.cyan,
+      Colors.teal,
+      Colors.green,
+      Colors.lightGreen,
+      Colors.lime,
+      Colors.yellow,
+      Colors.amber,
+      Colors.orange,
+      Colors.deepOrange,
+      Colors.brown,
+      Colors.grey,
+      Colors.blueGrey,
+    ];

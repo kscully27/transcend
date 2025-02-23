@@ -20,10 +20,19 @@ class SheetPageWithHeroImage {
     final routerNotifier = container.read(routerProvider.notifier);
     
     return WoltModalSheetPage(
-      heroImage: const Image(
-        image: AssetImage('lib/assets/images/hero_image.jpg'),
-        fit: BoxFit.cover,
+      heroImage: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        height: 200,
+        child: Center(
+          child: Icon(
+            Icons.image,
+            size: 64,
+            color: Theme.of(context).colorScheme.onPrimary,
+          ),
+        ),
       ),
+      backgroundColor: Colors.transparent,
       stickyActionBar: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: WoltElevatedButton(

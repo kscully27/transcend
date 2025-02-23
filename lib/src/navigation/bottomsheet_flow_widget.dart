@@ -16,38 +16,78 @@ class BottomSheetFlowWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pageController = usePageController();
     final sheetIsVisible = useState(false);
+    final currentFlow = useState<BottomSheetFlowName?>(null);
+    final pageIndexNotifier = useState(0);
+    final pageListBuilderNotifier = useState<WoltModalSheetPageListBuilder>(
+      (context) => buildFlowPages(context, BottomSheetFlowName.defaultIntentionFlow),
+    );
 
     void showOrUpdateSheet(BottomSheetFlowState state) {
       if (!sheetIsVisible.value) {
         // sheet not currently open -> show it
-        WoltModalSheet.show<void>(
-          context: context,
-          pageListBuilder: (modalContext) => buildFlowPages(
-            modalContext, 
-            state.flow!, 
-            pageIndex: state.pageIndex,
+        pageIndexNotifier.value = state.pageIndex;
+        pageListBuilderNotifier.value = (context) => buildFlowPages(
+          context, 
+          state.flow!, 
+          pageIndex: pageIndexNotifier.value,
+        );
+        
+        Navigator.of(context).push(
+          WoltModalSheetRoute(
+            pageIndexNotifier: ValueNotifier(pageIndexNotifier.value),
+            pageListBuilderNotifier: ValueNotifier(pageListBuilderNotifier.value),
+            modalBarrierColor: Colors.black54,
+            barrierDismissible: true,
+            onModalDismissedWithBarrierTap: () {
+              ref.read(bottomSheetFlowProvider.notifier).closeFlow();
+              sheetIsVisible.value = false;
+              currentFlow.value = null;
+              Navigator.of(context).pop();
+            },
+            onModalDismissedWithDrag: () {
+              ref.read(bottomSheetFlowProvider.notifier).closeFlow();
+              sheetIsVisible.value = false;
+              currentFlow.value = null;
+              Navigator.of(context).pop();
+            },
+            useSafeArea: true,
+            enableDrag: true,
+            modalDecorator: (child) {
+              return TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+                builder: (context, value, child) {
+                  return Transform.translate(
+                    offset: Offset(0, 20.0 * (1 - value)),
+                    child: Opacity(
+                      opacity: value,
+                      child: child,
+                    ),
+                  );
+                },
+                child: child,
+              );
+            },
           ),
-          modalBarrierColor: Colors.black54,
-          barrierDismissible: true,
-          onModalDismissedWithBarrierTap: () {
-            ref.read(bottomSheetFlowProvider.notifier).closeFlow();
-            sheetIsVisible.value = false;
-            Navigator.of(context).pop();
-          },
-          useSafeArea: true,
-          useRootNavigator: true,
         ).then((_) {
-          // user closed the sheet => update provider
+          // Handle cleanup when sheet is closed
           ref.read(bottomSheetFlowProvider.notifier).closeFlow();
           sheetIsVisible.value = false;
+          currentFlow.value = null;
         });
+        
         sheetIsVisible.value = true;
-      } else {
-        // sheet is open => update pages
-        final pages = buildFlowPages(context, state.flow!, pageIndex: state.pageIndex);
-        pageController.jumpToPage(state.pageIndex);
+        currentFlow.value = state.flow;
+      } else if (currentFlow.value != null && currentFlow.value == state.flow) {
+        // Only update if we're in the same flow
+        pageListBuilderNotifier.value = (context) => buildFlowPages(
+          context, 
+          state.flow!, 
+          pageIndex: state.pageIndex,
+        );
+        pageIndexNotifier.value = state.pageIndex;
       }
     }
 
@@ -55,23 +95,17 @@ class BottomSheetFlowWidget extends HookConsumerWidget {
     ref.listen<BottomSheetFlowState>(
       bottomSheetFlowProvider, 
       (prev, next) {
-        // We only do something if `isOpen` changed or flow changed
         if (next.isOpen && next.flow != null) {
           showOrUpdateSheet(next);
         } else {
           // isOpen == false => close
           if (sheetIsVisible.value) {
             Navigator.of(context).pop(); // close the sheet
+            currentFlow.value = null;
           }
         }
       },
     );
-
-    useEffect(() {
-      return () {
-        pageController.dispose();
-      };
-    }, []);
 
     // We just show the "child" in normal circumstances
     return child;

@@ -287,38 +287,67 @@ class Day extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 24.0),
-                      child: ShaderMask(
-                        shaderCallback: (bounds) => LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.white10,
-                            Colors.white70,
-                          ],
-                          stops: [0.0, 0.9], // Fade only happens in top 15%
-                        ).createShader(bounds),
-                        child: Text(
-                          '${_getGreeting()}',
-                          style: GoogleFonts.titilliumWeb(
-                            textStyle: const TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.w800,
-                              color: textColor,
-                            ),
-                          ),
-                        ),
+            Padding(
+              padding: const EdgeInsets.only(left: 24.0),
+              child: Expanded(
+                child: ShaderMask(
+                  shaderCallback: (bounds) => LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white10,
+                      Colors.white70,
+                    ],
+                    stops: [0.0, 0.9], // Fade only happens in top 15%
+                  ).createShader(bounds),
+                  child: Text(
+                    '${_getGreeting()}',
+                    style: GoogleFonts.titilliumWeb(
+                      textStyle: const TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.w800,
+                        color: textColor,
                       ),
                     ),
                   ),
-                ],
+                ),
               ),
             ),
+            // Padding(
+            //   padding: const EdgeInsets.only(left: 24.0),
+            //   child: Expanded(
+            //     child: ShaderMask(
+            //       shaderCallback: (bounds) => LinearGradient(
+            //         begin: Alignment.topCenter,
+            //         end: Alignment.bottomCenter,
+            //         colors: [
+            //           Colors.white24,
+            //           Colors.white60,
+            //         ],
+            //         stops: [0.0, 0.15], // Fade only happens in top 15%
+            //       ).createShader(bounds),
+            //       child: AutoSizeText(
+            //         '${userName} ',
+            //         maxLines: 1,
+            //         style: Theme.of(context).textTheme.displayLarge?.copyWith(
+            //               color: Theme.of(context).colorScheme.onSurface,
+            //               fontWeight: FontWeight.bold,
+            //             ),
+            //       ),
+
+            //       // AutoSizeText(
+            //       //   '${userName} waejklfawl',
+            //       //   style: GoogleFonts.titilliumWeb(
+            //       //     textStyle: const TextStyle(
+            //       //       // fontSize: 80,
+            //       //       fontWeight: FontWeight.w800,
+            //       //       color: Colors.white,
+            //       //     ),
+            //       //   ),
+            //       // ),
+            //     ),
+            //   ),
+            // ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 34.0),
               child: AutoSizeText(

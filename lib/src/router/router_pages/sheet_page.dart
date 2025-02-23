@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/router/playground_router_delegate.dart';
+import 'package:trancend/src/ui/glass/glass_container.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class SheetPage extends Page<void> {
@@ -27,13 +28,28 @@ class SheetPage extends Page<void> {
         final container = ProviderScope.containerOf(context);
         container.read(routerProvider.notifier).closeSheet();
       },
-      pageContentDecorator: (child) => child,
-      modalDecorator: (child) => child,
-      
-      // modalTypeBuilder: () => WoltModalType.bottomSheet,
-      transitionAnimationController: AnimationController(
-        vsync: Navigator.of(context),
-        duration: const Duration(milliseconds: 3500),
+      barrierDismissible: true,
+      pageContentDecorator: (child) => GlassContainer(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: child,
+      ),
+      modalDecorator: (child) => TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        builder: (context, value, child) {
+          return Transform.translate(
+            offset: Offset(0, 20.0 * (1 - value)),
+            child: Opacity(
+              opacity: value,
+              child: child,
+            ),
+          );
+        },
+        child: child,
       ),
       enableDrag: true,
       showDragHandle: true,

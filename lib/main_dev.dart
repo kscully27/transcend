@@ -1,6 +1,8 @@
-import 'package:trancend/firebase_options_dev.dart';
+import 'package:trancend/firebase_options_prod.dart';
 import 'main.dart';
 
 void main() async {
-  runMainApp(DefaultFirebaseOptions.currentPlatform);
+  // final options = DefaultFirebaseOptions.currentPlatform;
+
+main();
 }

@@ -155,13 +155,13 @@ class PlaygroundRouterDelegate
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(routerProvider);
-    List<Page> pages = [MaterialPage(child: const HomePage())];
+    List<Page> pages = [const HomePage()];
     
     if (state.isModalSheetVisible && state.pathName != null) {
       _pageIndexNotifier.value = state.pageIndex;
       _pageListBuilderNotifier.value = state.pathName!.pageListBuilder;
       pages = [
-        MaterialPage(child: const HomePage()),
+        const HomePage(),
         SheetPage(
           pageIndexNotifier: _pageIndexNotifier,
           pageListBuilderNotifier: _pageListBuilderNotifier,

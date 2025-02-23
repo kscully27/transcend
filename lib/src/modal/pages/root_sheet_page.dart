@@ -32,6 +32,7 @@ class RootSheetPage {
           );
         },
       ),
+      backgroundColor: Colors.transparent,
       pageTitle: const ModalSheetTitle(title),
       hasTopBarLayer: false,
       trailingNavBarWidget: WoltModalSheetCloseButton(

@@ -210,7 +210,7 @@ class _BottomSheetTopicsListViewState
                   ),
                 ),
                 Expanded(
-                  child: Container(
+                  child: Padding(
                     padding: EdgeInsets.only(
                       bottom: widget.selectedGoalIds.isNotEmpty ? 120 : 0,
                     ),
