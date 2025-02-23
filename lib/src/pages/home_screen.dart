@@ -116,93 +116,86 @@ class _HomePageState extends ConsumerState<HomeScreen> {
     final theme = Theme.of(context);
     final sheetState = ref.watch(bottomSheetFlowProvider);
 
-    return BottomSheetFlowWidget(
-      child: RawKeyboardListener(
-        focusNode: FocusNode(),
-        autofocus: true,
-        // onKey: _handleKeyPress,
-        child: appState.when(
-          data: (data) {
-            if (!data.isInitialized) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            return Stack(
-              children: [
-                Scaffold(
-                  extendBody: true,
-                  backgroundColor: theme.colorScheme.surface,
-                  body: Container(
-                    decoration: AppColors.enableGradients
-                        ? BoxDecoration(
-                            gradient: AppColors.marsBackgroundGradient(context),
-                          )
-                        : null,
-                    child: _index == 0
-                        ? data.topics.when(
-                            data: (topics) => const Day(),
-                            loading: () => Material(
-                              color: theme.colorScheme.onSurface,
-                              child: const Center(child: CircularProgressIndicator()),
-                            ),
-                            error: (error, stack) =>
-                                Center(child: Text('Error loading topics: $error')),
-                          )
-                        : const SettingsPage(),
+    return appState.when(
+      data: (data) {
+        if (!data.isInitialized) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        return Stack(
+          children: [
+            Scaffold(
+              extendBody: true,
+              backgroundColor: theme.colorScheme.surface,
+              body: Container(
+                decoration: AppColors.enableGradients
+                    ? BoxDecoration(
+                        gradient: AppColors.marsBackgroundGradient(context),
+                      )
+                    : null,
+                child: _index == 0
+                    ? data.topics.when(
+                        data: (topics) => const Day(),
+                        loading: () => Material(
+                          color: theme.colorScheme.onSurface,
+                          child: const Center(child: CircularProgressIndicator()),
+                        ),
+                        error: (error, stack) =>
+                            Center(child: Text('Error loading topics: $error')),
+                      )
+                    : const SettingsPage(),
+              ),
+              bottomNavigationBar: ClayBottomNavNSheet(
+                backgroundColor: theme.colorScheme.surface,
+                emboss: false,
+                parentColor: theme.colorScheme.surface,
+                selectedItemColor: theme.colorScheme.onSurface,
+                unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.6),
+                sheetOpenIconBoxColor: theme.colorScheme.primary,
+                sheetOpenIconColor: theme.colorScheme.onPrimary,
+                sheetCloseIconBoxColor: theme.colorScheme.surface,
+                sheetCloseIconColor: theme.colorScheme.onSurfaceVariant,
+                initialSelectedIndex: _index,
+                onTap: (index) {
+                  setState(() {
+                    _index = index;
+                  });
+                },
+                onSheetToggle: (isOpen) {
+                  if (isOpen) {
+                    ref.read(intentionSelectionProvider.notifier).clearSelection();
+                    ref.read(bottomSheetFlowProvider.notifier).openFlow(
+                      BottomSheetFlowName.defaultIntentionFlow,
+                    );
+                  } else {
+                    ref.read(bottomSheetFlowProvider.notifier).closeFlow();
+                  }
+                },
+                sheet: const SizedBox(),
+                sheetOpenIcon: Remix.play_large_line,
+                sheetCloseIcon: Remix.add_line,
+                items: [
+                  ClayBottomNavItem(
+                    activeIcon: Remix.home_6_fill,
+                    icon: Remix.home_6_line,
                   ),
-                  bottomNavigationBar: ClayBottomNavNSheet(
-                    backgroundColor: theme.colorScheme.surface,
-                    emboss: false,
-                    parentColor: theme.colorScheme.surface,
-                    selectedItemColor: theme.colorScheme.onSurface,
-                    unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.6),
-                    sheetOpenIconBoxColor: theme.colorScheme.primary,
-                    sheetOpenIconColor: theme.colorScheme.onPrimary,
-                    sheetCloseIconBoxColor: theme.colorScheme.surface,
-                    sheetCloseIconColor: theme.colorScheme.onSurfaceVariant,
-                    initialSelectedIndex: _index,
-                    onTap: (index) {
-                      setState(() {
-                        _index = index;
-                      });
-                    },
-                    onSheetToggle: (isOpen) {
-                      if (isOpen) {
-                        ref.read(intentionSelectionProvider.notifier).clearSelection();
-                        ref.read(bottomSheetFlowProvider.notifier).openFlow(
-                          BottomSheetFlowName.defaultIntentionFlow,
-                        );
-                      } else {
-                        ref.read(bottomSheetFlowProvider.notifier).closeFlow();
-                      }
-                    },
-                    sheet: const SizedBox(),
-                    sheetOpenIcon: Remix.play_large_line,
-                    sheetCloseIcon: Remix.add_line,
-                    items: [
-                      ClayBottomNavItem(
-                        activeIcon: Remix.home_6_fill,
-                        icon: Remix.home_6_line,
-                      ),
-                      ClayBottomNavItem(
-                        icon: Remix.user_3_line,
-                        activeIcon: Remix.user_3_fill,
-                      ),
-                    ],
+                  ClayBottomNavItem(
+                    icon: Remix.user_3_line,
+                    activeIcon: Remix.user_3_fill,
                   ),
-                ),
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: BlurBackground(isSheetExpanded: sheetState.isOpen),
-                  ),
-                ),
-              ],
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(child: Text('Error: $error')),
-        ),
-      ),
+                ],
+              ),
+            ),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: BlurBackground(isSheetExpanded: sheetState.isOpen),
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(child: Text('Error: $error')),
     );
   }
 }

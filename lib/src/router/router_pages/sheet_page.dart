@@ -17,7 +17,7 @@ class SheetPage extends Page<void> {
 
   @override
   Route<void> createRoute(BuildContext context) {
-    return WoltModalSheetRoute<void>(
+    return WoltModalSheetRoute(
       pageIndexNotifier: pageIndexNotifier,
       pageListBuilderNotifier: pageListBuilderNotifier,
       onModalDismissedWithDrag: () {
@@ -28,7 +28,11 @@ class SheetPage extends Page<void> {
         final container = ProviderScope.containerOf(context);
         container.read(routerProvider.notifier).closeSheet();
       },
+      modalBarrierColor: Colors.black54,
       barrierDismissible: true,
+      settings: this,
+      enableDrag: true,
+      useSafeArea: true,
       pageContentDecorator: (child) => GlassContainer(
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.1),
@@ -36,25 +40,23 @@ class SheetPage extends Page<void> {
         ),
         child: child,
       ),
-      modalDecorator: (child) => TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.0, end: 1.0),
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-        builder: (context, value, child) {
-          return Transform.translate(
-            offset: Offset(0, 20.0 * (1 - value)),
-            child: Opacity(
-              opacity: value,
-              child: child,
-            ),
-          );
-        },
-        child: child,
-      ),
-      enableDrag: true,
-      showDragHandle: true,
-      useSafeArea: true,
-      settings: this,
+      modalDecorator: (child) {
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          builder: (context, value, child) {
+            return Transform.translate(
+              offset: Offset(0, 20.0 * (1 - value)),
+              child: Opacity(
+                opacity: value,
+                child: child,
+              ),
+            );
+          },
+          child: child,
+        );
+      },
     );
   }
 }
