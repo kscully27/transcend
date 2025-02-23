@@ -1,18 +1,15 @@
-
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/constants/app_colors.dart';
-import 'package:trancend/src/navigation/bottomsheet_declarative_routing.dart';
 import 'package:trancend/src/navigation/bottomsheet_flow_notifier.dart';
-import 'package:trancend/src/navigation/bottomsheet_flow_widget.dart';
 import 'package:trancend/src/pages/day.dart';
 import 'package:trancend/src/pages/settings.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
 import 'package:trancend/src/providers/intention_selection_provider.dart';
+import 'package:trancend/src/router/playground_router_delegate.dart';
 import 'package:trancend/src/ui/clay_bottom_nav/clay_bottom_nav.dart';
 
 class BlurBackground extends StatefulWidget {
@@ -27,7 +24,8 @@ class BlurBackground extends StatefulWidget {
   State<BlurBackground> createState() => _BlurBackgroundState();
 }
 
-class _BlurBackgroundState extends State<BlurBackground> with SingleTickerProviderStateMixin {
+class _BlurBackgroundState extends State<BlurBackground>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -121,7 +119,7 @@ class _HomePageState extends ConsumerState<HomeScreen> {
         if (!data.isInitialized) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         return Stack(
           children: [
             Scaffold(
@@ -138,7 +136,8 @@ class _HomePageState extends ConsumerState<HomeScreen> {
                         data: (topics) => const Day(),
                         loading: () => Material(
                           color: theme.colorScheme.onSurface,
-                          child: const Center(child: CircularProgressIndicator()),
+                          child:
+                              const Center(child: CircularProgressIndicator()),
                         ),
                         error: (error, stack) =>
                             Center(child: Text('Error loading topics: $error')),
@@ -150,7 +149,8 @@ class _HomePageState extends ConsumerState<HomeScreen> {
                 emboss: false,
                 parentColor: theme.colorScheme.surface,
                 selectedItemColor: theme.colorScheme.onSurface,
-                unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.6),
+                unselectedItemColor:
+                    theme.colorScheme.onSurface.withOpacity(0.6),
                 sheetOpenIconBoxColor: theme.colorScheme.primary,
                 sheetOpenIconColor: theme.colorScheme.onPrimary,
                 sheetCloseIconBoxColor: theme.colorScheme.surface,
@@ -162,14 +162,17 @@ class _HomePageState extends ConsumerState<HomeScreen> {
                   });
                 },
                 onSheetToggle: (isOpen) {
-                  if (isOpen) {
-                    ref.read(intentionSelectionProvider.notifier).clearSelection();
-                    ref.read(bottomSheetFlowProvider.notifier).openFlow(
-                      BottomSheetFlowName.defaultIntentionFlow,
-                    );
-                  } else {
-                    ref.read(bottomSheetFlowProvider.notifier).closeFlow();
-                  }
+                  ref
+                      .read(routerProvider.notifier)
+                      .onShowModalSheetButtonPressed();
+                  // if (isOpen) {
+                  //   ref.read(intentionSelectionProvider.notifier).clearSelection();
+                  //   ref.read(bottomSheetFlowProvider.notifier).openFlow(
+                  //     BottomSheetFlowName.defaultIntentionFlow,
+                  //   );
+                  // } else {
+                  //   ref.read(bottomSheetFlowProvider.notifier).closeFlow();
+                  // }
                 },
                 sheet: const SizedBox(),
                 sheetOpenIcon: Remix.play_large_line,
