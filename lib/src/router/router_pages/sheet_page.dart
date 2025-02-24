@@ -91,7 +91,7 @@ class SheetPage extends Page<void> {
       modalDecorator: (child) {
         return Stack(
           children: [
-            const _AnimatedBackground(),
+            const SheetBackground(),
             TweenAnimationBuilder<double>(
               tween: Tween(begin: 0.0, end: 1.0),
               duration: const Duration(milliseconds: 300),
@@ -114,14 +114,14 @@ class SheetPage extends Page<void> {
   }
 }
 
-class _AnimatedBackground extends StatefulWidget {
-  const _AnimatedBackground();
+class SheetBackground extends StatefulWidget {
+  const SheetBackground();
 
   @override
-  State<_AnimatedBackground> createState() => _AnimatedBackgroundState();
+  State<SheetBackground> createState() => _AnimatedBackgroundState();
 }
 
-class _AnimatedBackgroundState extends State<_AnimatedBackground> with SingleTickerProviderStateMixin {
+class _AnimatedBackgroundState extends State<SheetBackground> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _animation;
 

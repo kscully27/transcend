@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
 import 'package:trancend/src/navigation/bottomsheet_declarative_routing.dart';
-import 'package:trancend/src/navigation/bottomsheet_flow_notifier.dart';
 import 'package:trancend/src/navigation/flow_router.dart';
 import 'package:trancend/src/providers/intention_selection_provider.dart';
-import 'package:trancend/src/ui/glass/glass_container.dart';
 import 'package:trancend/src/router/playground_router_delegate.dart';
+import 'package:trancend/src/ui/glass/glass_container.dart';
 
 class IntentionContent extends ConsumerStatefulWidget {
   final session.TranceMethod tranceMethod;

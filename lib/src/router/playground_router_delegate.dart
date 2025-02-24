@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/modal/pages/multi_page_path_name.dart';
 import 'package:trancend/src/navigation/bottomsheet_declarative_routing.dart';
 import 'package:trancend/src/navigation/bottomsheet_flow_notifier.dart';
-import 'package:trancend/src/pages/home.dart';
+import 'package:trancend/src/pages/home_screen.dart';
 import 'package:trancend/src/router/playground_router_configuration.dart';
 import 'package:trancend/src/router/router_pages/sheet_page.dart';
 import 'package:trancend/src/unknown/unknown_screen.dart';
@@ -18,6 +18,7 @@ class RouterState {
   final MultiPagePathName? pathName;
   final int pageIndex;
   final BottomSheetFlowName? flowName;
+  final ValueKey<String> homePageKey;
 
   const RouterState({
     this.isUnknown = false,
@@ -25,6 +26,7 @@ class RouterState {
     this.pathName,
     this.pageIndex = 0,
     this.flowName,
+    this.homePageKey = const ValueKey('home'),
   });
 
   RouterState copyWith({
@@ -40,6 +42,7 @@ class RouterState {
       pathName: pathName ?? this.pathName,
       pageIndex: pageIndex ?? this.pageIndex,
       flowName: flowName ?? this.flowName,
+      homePageKey: homePageKey,
     );
   }
 }
@@ -49,6 +52,7 @@ class RouterNotifier extends StateNotifier<RouterState> {
   RouterNotifier(this.ref) : super(const RouterState()) {
     // Listen to bottom sheet flow changes
     _subscription = ref.listen(bottomSheetFlowProvider, (previous, next) {
+      if (!mounted) return;  // Check if still mounted before using state
       if (next.isOpen != state.isModalSheetVisible) {
         state = state.copyWith(
           isModalSheetVisible: next.isOpen,
@@ -69,30 +73,43 @@ class RouterNotifier extends StateNotifier<RouterState> {
   }
 
   void showOnUnknownScreen() {
+    if (!mounted) return;
     state = const RouterState(isUnknown: true);
   }
 
   void closeSheet() {
-    state = const RouterState();
-    ref.read(bottomSheetFlowProvider.notifier).closeFlow();
+    if (!mounted) return;
+    final currentState = state;  // Capture current state
+    state = currentState.copyWith(
+      isModalSheetVisible: false,
+      pathName: null,
+      flowName: null,
+      pageIndex: 0
+    );
+    if (mounted) {
+      ref.read(bottomSheetFlowProvider.notifier).closeFlow();
+    }
   }
 
   void goToPage(int pageIndex) {
+    if (!mounted) return;
     if (state.isModalSheetVisible) {
       state = state.copyWith(pageIndex: pageIndex);
-      if (state.flowName != null) {
+      if (state.flowName != null && mounted) {
         ref.read(bottomSheetFlowProvider.notifier).goToPage(pageIndex);
       }
     }
   }
 
   void onPathUpdated(MultiPagePathName pathName) {
+    if (!mounted) return;
     if (state.isModalSheetVisible) {
       state = state.copyWith(pathName: pathName);
     }
   }
 
   void onPathAndPageIndexUpdated(MultiPagePathName pathName, int pageIndex) {
+    if (!mounted) return;
     state = RouterState(
       isModalSheetVisible: true,
       pathName: pathName,
@@ -101,8 +118,10 @@ class RouterNotifier extends StateNotifier<RouterState> {
   }
 
   void onShowModalSheetButtonPressed() {
+    if (!mounted) return;
     if (!state.isModalSheetVisible && !state.isUnknown) {
-      state = RouterState(
+      final currentState = state;  // Capture current state
+      state = currentState.copyWith(
         isModalSheetVisible: true,
         pathName: MultiPagePathName.defaultPath,
       );
@@ -110,12 +129,15 @@ class RouterNotifier extends StateNotifier<RouterState> {
   }
 
   void openFlow(BottomSheetFlowName flowName, {int pageIndex = 0}) {
+    if (!mounted) return;
     state = RouterState(
       isModalSheetVisible: true,
       flowName: flowName,
       pageIndex: pageIndex,
     );
-    ref.read(bottomSheetFlowProvider.notifier).openFlow(flowName, pageIndex: pageIndex);
+    if (mounted) {
+      ref.read(bottomSheetFlowProvider.notifier).openFlow(flowName, pageIndex: pageIndex);
+    }
   }
 }
 
@@ -139,7 +161,11 @@ class PlaygroundRouterDelegate
     // Listen to router state changes
     _subscription = ref.listenManual(
       routerProvider,
-      (_, __) => notifyListeners(),
+      (previous, next) {
+        if (!_isDisposed) {
+          notifyListeners();
+        }
+      },
     );
   }
 
@@ -148,6 +174,7 @@ class PlaygroundRouterDelegate
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey();
   final ValueNotifier<int> _pageIndexNotifier;
   final ValueNotifier<WoltModalSheetPageListBuilder> _pageListBuilderNotifier;
+  bool _isDisposed = false;
 
   @override
   GlobalKey<NavigatorState> get navigatorKey => _navigatorKey;
@@ -155,20 +182,33 @@ class PlaygroundRouterDelegate
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(routerProvider);
-    List<Page> pages = [const HomePage()];
+    final List<Page> pages = [
+      MaterialPage(
+        key: const ValueKey('home'),
+        child: RepaintBoundary(
+          child: const HomeScreen(),
+        ),
+      ),
+    ];
     
     if (state.isModalSheetVisible && state.pathName != null) {
       _pageIndexNotifier.value = state.pageIndex;
       _pageListBuilderNotifier.value = state.pathName!.pageListBuilder;
-      pages = [
-        const HomePage(),
+      pages.add(
         SheetPage(
           pageIndexNotifier: _pageIndexNotifier,
           pageListBuilderNotifier: _pageListBuilderNotifier,
         ),
-      ];
+      );
     } else if (state.isUnknown) {
-      pages = [MaterialPage(child: const UnknownScreen())];
+      return Navigator(
+        key: navigatorKey,
+        pages: [MaterialPage(child: const UnknownScreen())],
+        onPopPage: (route, result) {
+          if (!route.didPop(result)) return false;
+          return true;
+        },
+      );
     }
     
     return Navigator(
@@ -226,6 +266,7 @@ class PlaygroundRouterDelegate
 
   @override
   void dispose() {
+    _isDisposed = true;
     _subscription.close();
     _pageIndexNotifier.dispose();
     _pageListBuilderNotifier.dispose();

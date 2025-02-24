@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:trancend/src/pages/home.dart';
+import 'package:get/get.dart';
+import 'package:trancend/src/locator.dart';
 import 'package:trancend/src/pages/demo.dart';
 import 'package:trancend/src/pages/home_screen.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
+import 'package:trancend/src/services/navigation.service.dart';
 import 'package:trancend/src/theme/app_theme.dart';
 import 'package:trancend/src/ui/clay/theme/clay_text_theme.dart';
 import 'package:trancend/src/ui/clay/theme/clay_theme.dart';
 import 'package:trancend/src/ui/clay/theme/clay_theme_data.dart';
-import 'package:get/get.dart';
-import 'package:trancend/src/locator.dart';
-import 'package:trancend/src/services/navigation.service.dart';
 
 import 'settings/settings_controller.dart';
 
