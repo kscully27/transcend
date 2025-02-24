@@ -2,7 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:trancend/src/router/playground_router_delegate.dart';
+import 'package:trancend/src/modal/modal_sheet_helper.dart';
 import 'package:trancend/src/ui/clay/clay_container.dart';
 
 const color1 = Color.fromRGBO(244, 236, 236, 1); // Very light khaki
@@ -46,7 +46,8 @@ class TimelineCard extends StatelessWidget {
         return GestureDetector(
       onTap: () {
         print('tapped');
-        ref.read(routerProvider.notifier).onShowModalSheetButtonPressed();
+        // Go directly to the modality page (index 3)
+        ModalSheetHelper.showModalSheet(context, initialPage: 3);
       },
       child: Padding(
         padding: const EdgeInsets.only(left: 16.0),

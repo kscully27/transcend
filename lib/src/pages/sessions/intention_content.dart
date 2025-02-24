@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/models/session.model.dart' as session;
-import 'package:trancend/src/navigation/bottomsheet_declarative_routing.dart';
-import 'package:trancend/src/navigation/flow_router.dart';
+import 'package:trancend/src/modal/pages/root_sheet_page.dart';
 import 'package:trancend/src/providers/intention_selection_provider.dart';
-import 'package:trancend/src/router/playground_router_delegate.dart';
+import 'package:trancend/src/providers/modal_sheet_provider.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
+import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class IntentionContent extends ConsumerStatefulWidget {
   final session.TranceMethod tranceMethod;
@@ -51,6 +51,7 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
 
   late AnimationController _placeholderController;
   late Animation<double> _placeholderOpacity;
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -88,12 +89,22 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
     );
 
     _placeholderController.forward();
+    
+    // Auto-focus the text field when in custom mode
+    if (isCustomMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          FocusScope.of(context).requestFocus(_focusNode);
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
     _intentionController.dispose();
     _placeholderController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -114,22 +125,22 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
     switch (type) {
       case IntentionSelectionType.default_intention:
         widget.onContinue("I want to feel more relaxed and at peace");
-        ref.read(flowRouterProvider.notifier).showDefaultIntentionFlow();
         break;
 
       case IntentionSelectionType.custom:
-        print("custom intention flow");
-        ref.read(routerProvider.notifier).openFlow(
-          BottomSheetFlowName.customIntentionFlow,
-        );
+        final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+        pageIndexNotifier.value = 1; // Index of CustomIntentionPage
         break;
 
       case IntentionSelectionType.previous:
-        ref.read(flowRouterProvider.notifier).showPreviousIntentionsFlow();
+        final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+        pageIndexNotifier.value = 2; // Index of PreviousIntentionsPage
         break;
 
       case IntentionSelectionType.goals:
-        ref.read(flowRouterProvider.notifier).showGoalsFlow();
+        // For now, we'll just go to the modality page directly
+        // In a real implementation, we would show a goals selection UI first
+        widget.onGoalsSelected(_selectedGoalIds);
         break;
 
       case IntentionSelectionType.none:
@@ -202,8 +213,9 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
     if (widget.isCustomMode) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
@@ -224,7 +236,9 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
                   opacity: _placeholderOpacity,
                   child: TextField(
                     controller: _intentionController,
-                    maxLines: 5,
+                    focusNode: _focusNode,
+                    autofocus: true,
+                    maxLines: 3,
                     style: const TextStyle(
                       color: Colors.black87,
                       fontSize: 16,
@@ -240,7 +254,7 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
-                        vertical: 24,
+                        vertical: 16,
                       ),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
@@ -266,8 +280,8 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
             padding: EdgeInsets.only(
               left: 20.0,
               right: 20.0,
-              top: _errorMessage != null ? 4.0 : 20.0,
-              bottom: 160.0,
+              top: _errorMessage != null ? 4.0 : 10.0,
+              bottom: 20.0,
             ),
             child: GlassContainer(
               borderRadius: BorderRadius.circular(12),

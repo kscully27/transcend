@@ -24,74 +24,42 @@ class PreviousIntentions extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Stack(
-          children: [
-            Positioned(
-              left: 4,
-              top: 8,
-              bottom: 8,
-              child: IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios,
-                  color: theme.colorScheme.shadow.withOpacity(0.7),
-                  size: 20,
-                ),
-                onPressed: onBack,
+        ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: placeholders.length,
+          itemBuilder: (context, index) {
+            final intention = placeholders[index];
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: index == placeholders.length - 1 ? 48 : 12,
               ),
-            ),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 48.0,
-                  vertical: 16.0,
-                ),
-                child: Text(
-                  'Previous Intentions',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.shadow,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 20
+              child: GlassContainer(
+                borderRadius: BorderRadius.circular(12),
+                backgroundColor: Colors.white12,
+                child: ListTile(
+                  title: Text(
+                    intention,
+                    style: TextStyle(
+                      color: theme.colorScheme.shadow,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                  trailing: Icon(
+                    Icons.arrow_forward_ios,
+                    color: theme.colorScheme.shadow.withOpacity(0.7),
+                    size: 20,
+                  ),
+                  onTap: () => onIntentionSelected(intention),
                 ),
               ),
-            ),
-          ],
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            itemCount: placeholders.length,
-            itemBuilder: (context, index) {
-              final intention = placeholders[index];
-              return Padding(
-                padding: EdgeInsets.only(
-                  bottom: index == placeholders.length - 1 ? 48 : 12,
-                ),
-                child: GlassContainer(
-                  borderRadius: BorderRadius.circular(12),
-                  backgroundColor: Colors.white12,
-                  child: ListTile(
-                    title: Text(
-                      intention,
-                      style: TextStyle(
-                        color: theme.colorScheme.shadow,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: Icon(
-                      Icons.arrow_forward_ios,
-                      color: theme.colorScheme.shadow.withOpacity(0.7),
-                      size: 20,
-                    ),
-                    onTap: () => onIntentionSelected(intention),
-                  ),
-                ),
-              );
-            },
-          ),
+            );
+          },
         ),
       ],
     );
