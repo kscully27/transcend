@@ -40,15 +40,15 @@ class _BreakDurationSelectorState extends ConsumerState<BreakDurationSelector> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    // Compact layout with minimal extra space
+    // Ensure enough space for all elements including the Apply button
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.only(bottom: 16.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Title
           Padding(
-            padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+            padding: const EdgeInsets.only(top: 12.0, bottom: 8.0),
             child: Text(
               widget.title,
               style: TextStyle(
@@ -61,21 +61,21 @@ class _BreakDurationSelectorState extends ConsumerState<BreakDurationSelector> {
           ),
           
           // Description
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 4.0),
-            child: Text(
-              'Select how much time to pause between sentences',
-              style: TextStyle(
-                fontSize: 14,
-                color: theme.colorScheme.shadow.withOpacity(0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 8.0),
+          //   child: Text(
+          //     'Select how much time to pause between sentences',
+          //     style: TextStyle(
+          //       fontSize: 14,
+          //       color: theme.colorScheme.shadow.withOpacity(0.7),
+          //     ),
+          //     textAlign: TextAlign.center,
+          //   ),
+          // ),
           
           // Value selector - maintain 120px height as requested
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12.0),
             child: ValueSelector(
               values: _durationOptions,
               unit: 'seconds',
@@ -91,9 +91,9 @@ class _BreakDurationSelectorState extends ConsumerState<BreakDurationSelector> {
             ),
           ),
           
-          // Apply button positioned higher with less vertical space
+          // Apply button with more space
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+            padding: const EdgeInsets.fromLTRB(12, 16, 12, 20),
             child: ClayButton(
               color: Theme.of(context).colorScheme.primary,
               parentColor: Colors.white,

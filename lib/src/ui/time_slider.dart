@@ -33,7 +33,7 @@ class _TimeSliderState extends State<TimeSlider> {
     _selectedValue = widget.values[initialPage];
     _pageController = PageController(
       initialPage: initialPage,
-      viewportFraction: 1/6,
+      viewportFraction: 1 / 6,
     );
   }
 
@@ -132,4 +132,4 @@ class _TimeSliderState extends State<TimeSlider> {
     _pageController.dispose();
     super.dispose();
   }
-} 
+}

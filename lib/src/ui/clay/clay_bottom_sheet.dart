@@ -22,11 +22,12 @@ class ClayBottomSheet extends StatelessWidget {
     bool hasCloseButton = true,
     double heightPercent = 0.4,
     EdgeInsets contentPadding = const EdgeInsets.only(bottom: 20),
+    Color? barrierColor,
   }) {
     return showModalBottomSheet<T>(
       context: context,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.transparent,
+      barrierColor: barrierColor ?? Colors.transparent,
       isDismissible: true,
       isScrollControlled: true,
       builder: (builderContext) {

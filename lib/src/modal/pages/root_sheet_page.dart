@@ -871,8 +871,6 @@ class TranceSettingsModalPage {
   // Show advanced settings in a clay bottom sheet
   static void _showAdvancedSettingsModal(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final tranceSettingsNotifier = ref.read(tranceSettingsProvider.notifier);
-    final tranceSettings = ref.read(tranceSettingsProvider);
     
     // Get the selected modality for the title
     final selectedModality = ref.read(selectedModalityProvider) ?? TranceMethod.Hypnosis;
@@ -881,9 +879,13 @@ class TranceSettingsModalPage {
     ClayBottomSheet.show(
       context: context,
       heightPercent: 0.6,
-      content: StatefulBuilder(
-        builder: (context, setState) {
-    return Column(
+      barrierColor: Colors.black.withOpacity(0.1),
+      content: Consumer(
+        builder: (context, ref, _) {
+          final tranceSettings = ref.watch(tranceSettingsProvider);
+          final tranceSettingsNotifier = ref.read(tranceSettingsProvider.notifier);
+          
+          return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -904,10 +906,8 @@ class TranceSettingsModalPage {
               // Break between sentences option
               GestureDetector(
                 onTap: () {
-                  // Close the current bottom sheet immediately
-                  Navigator.pop(context);
-                  
-                  // Show the break between sentences modal directly
+                  // Don't close the current bottom sheet
+                  // Instead, show the break between sentences modal on top
                   _showBreakBetweenSentencesModal(context, ref);
                 },
                 child: Padding(
@@ -963,9 +963,7 @@ class TranceSettingsModalPage {
                     Slider(
                       value: tranceSettings.backgroundVolume,
                       onChanged: (value) {
-                        setState(() {
-                          tranceSettingsNotifier.setBackgroundVolume(value);
-                        });
+                        tranceSettingsNotifier.setBackgroundVolume(value);
                       },
                       min: 0.0,
                       max: 1.0,
@@ -981,7 +979,7 @@ class TranceSettingsModalPage {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+                  children: [
                     Text(
                       'Voice Volume',
                       style: TextStyle(
@@ -993,9 +991,7 @@ class TranceSettingsModalPage {
                     Slider(
                       value: tranceSettings.voiceVolume,
                       onChanged: (value) {
-                        setState(() {
-                          tranceSettingsNotifier.setVoiceVolume(value);
-                        });
+                        tranceSettingsNotifier.setVoiceVolume(value);
                       },
                       min: 0.0,
                       max: 1.0,
@@ -1025,20 +1021,18 @@ class TranceSettingsModalPage {
     
     ClayBottomSheet.show(
       context: context,
-      heightPercent: 0.32, // Reduced to fit content exactly without extra space
+      heightPercent: 0.42, // Increased height to ensure Apply button is fully visible (added 80px equivalent)
+      barrierColor: Colors.black.withOpacity(0.3),
       content: BreakDurationSelector(
         title: 'Break Between Sentences',
         initialDuration: tranceSettings.breakBetweenSentences,
         // Remove the onClose callback that tries to show the advanced settings modal
         // This was causing the issue when the context is deactivated
       ),
-    ).then((_) {
-      // After the modal is closed, safely reopen the advanced settings
-      // This ensures we're using a valid context
-      if (context.mounted) {
-        _showAdvancedSettingsModal(context, ref);
-      }
-    });
+    );
+    // The advanced settings modal will stay open in the background
+    // And will automatically update when the break between sentences value changes
+    // because we're using a Consumer widget to watch for changes in the tranceSettings state
   }
 
   static String _getMethodTitle(TranceMethod method) {
