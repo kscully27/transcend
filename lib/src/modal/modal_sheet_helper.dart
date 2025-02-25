@@ -79,6 +79,7 @@ class ModalSheetHelper {
         SoundscapesPage.build(context),
         BreathingMethodsPage.build(context),
         MeditationMethodsPage.build(context),
+        RootSheetPage.buildActiveSoundscapesPage(context),
       ]
     );
 
@@ -114,19 +115,37 @@ class ModalSheetHelper {
     return showModalSheet(context, initialPage: initialPage);
   }
 
-  static Widget pageContentDecorator(Widget child) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: GlassContainer(
-        borderRadius: BorderRadius.circular(20),
-        backgroundColor: Colors.white.withOpacity(0.1),
-        blur: 10,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: child,
+  static Widget pageContentDecorator(Widget? child) {
+    // Ensure we have a non-null child
+    final safeChild = child ?? Container();
+    
+    // Use a try-catch block to catch any exceptions
+    try {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: GlassContainer(
+          borderRadius: BorderRadius.circular(20),
+          backgroundColor: Colors.white.withOpacity(0.1),
+          blur: 10,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: safeChild,
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      // Log the error and return a fallback widget
+      debugPrint("Error in pageContentDecorator: $e");
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16.0),
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: safeChild,
+      );
+    }
   }
 }
 

@@ -49,76 +49,81 @@ class _TimeSliderState extends State<TimeSlider> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: widget.height,
-      child: Stack(
-        children: [
-          // Selected time display
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Text(
-                '$_selectedValue ${widget.delimiter}',
-                style: TextStyle(
-                  color: widget.color,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SizedBox(
+          height: widget.height,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Selected time display
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Text(
+                    '$_selectedValue ${widget.delimiter}',
+                    style: TextStyle(
+                      color: widget.color,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          // Center indicator line
-          Positioned(
-            top: widget.height * 0.5,
-            bottom: widget.height * 0.03,
-            left: MediaQuery.of(context).size.width / 2 - 8,
-            child: Container(
-              width: 4,
-              color: widget.color,
-            ),
-          ),
-          // Scrollable ticks
-          Positioned(
-            top: widget.height * 0.5 - 2,
-            bottom: 0,
-            left: 4,
-            right: 0,
-            child: ShaderMask(
-              shaderCallback: (Rect bounds) {
-                return LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    Colors.transparent,
-                    widget.color,
-                    widget.color,
-                    Colors.transparent,
-                  ],
-                  stops: const [0.0, 0.15, 0.85, 1.0],
-                ).createShader(bounds);
-              },
-              blendMode: BlendMode.dstIn,
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: _handlePageChanged,
-                physics: const BouncingScrollPhysics(),
-                itemCount: widget.values.length,
-                itemBuilder: (context, index) {
-                  return Center(
-                    child: Container(
-                      width: 2,
-                      height: 20,
-                      color: widget.color,
-                    ),
-                  );
-                },
+              // Center indicator line
+              Align(
+                alignment: Alignment.center,
+                child: Container(
+                  width: 4,
+                  height: widget.height * 0.4,
+                  color: widget.color,
+                  margin: const EdgeInsets.only(top: 50),
+                ),
               ),
-            ),
+              // Scrollable ticks
+              Positioned(
+                top: widget.height * 0.5 - 10,
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        Colors.transparent,
+                        widget.color,
+                        widget.color,
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.15, 0.85, 1.0],
+                    ).createShader(bounds);
+                  },
+                  blendMode: BlendMode.dstIn,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: _handlePageChanged,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: widget.values.length,
+                    itemBuilder: (context, index) {
+                      return Center(
+                        child: Container(
+                          width: 2,
+                          height: 20,
+                          color: widget.color,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

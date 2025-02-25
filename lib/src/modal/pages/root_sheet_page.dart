@@ -12,12 +12,10 @@ import 'package:trancend/src/providers/selected_modality_provider.dart';
 import 'package:trancend/src/providers/trance_settings_provider.dart';
 import 'package:trancend/src/ui/break_duration_selector.dart';
 import 'package:trancend/src/ui/clay/clay_bottom_sheet.dart';
-import 'package:trancend/src/ui/clay/clay_container.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 import 'package:trancend/src/ui/helpers/modal_navigation_helper.dart';
 import 'package:trancend/src/ui/time_slider.dart';
-import 'package:trancend/src/ui/value_selector.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 // Provider to hold the page index notifier
@@ -80,6 +78,65 @@ class RootSheetPage {
             onBack: null,
             selectedGoalIds: intentionState.selectedGoalIds,
             isCustomMode: false,
+          );
+        },
+      ),
+    );
+  }
+
+  // Class to create the ActiveSoundscapesPage
+  static WoltModalSheetPage buildActiveSoundscapesPage(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return WoltModalSheetPage(
+      backgroundColor: Colors.transparent,
+      hasTopBarLayer: true,
+      leadingNavBarWidget: Consumer(
+        builder: (context, ref, _) {
+          return IconButton(
+            icon: Icon(Remix.arrow_left_s_line, size: 20, color: theme.colorScheme.shadow),
+            onPressed: () {
+              // Navigate back to previous page
+              ModalNavigationHelper.safeExecution(() {
+                final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                final previousPage = ref.read(previousPageIndexProvider);
+                pageIndexNotifier.value = previousPage;
+              }, 'Error navigating back');
+            },
+          );
+        },
+      ),
+      pageTitle: Center(
+        child: Text(
+          'Background Music',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+            color: theme.colorScheme.shadow,
+          ),
+        ),
+      ),
+      child: Consumer(
+        builder: (context, ref, child) {
+          // Pass the ref to ActiveSoundscapes to ensure it has access to state
+          return active_sounds.ActiveSoundscapes(
+            onPlayStateChanged: (isPlaying) {
+              // Handle play state changes if needed
+            },
+            onBack: () {
+              // Go back to the previous page using the modal navigation pattern
+              ModalNavigationHelper.safeExecution(() {
+                try {
+                  final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                  final previousPage = ref.read(previousPageIndexProvider);
+                  pageIndexNotifier.value = previousPage;
+                } catch (e) {
+                  debugPrint('Error navigating back from ActiveSoundscapes: $e');
+                  // Fallback to simple pop if provider access fails
+                  Navigator.of(context).pop();
+                }
+              }, 'Error navigating back from ActiveSoundscapes');
+            },
           );
         },
       ),
@@ -774,12 +831,14 @@ class TranceSettingsModalPage {
             // Active soundscape selection
             GestureDetector(
               onTap: () {
+                print("Active soundscape GestureDetector tapped");
                 // Navigate to active soundscapes using the proper modal navigation pattern
                 ref.read(previousPageIndexProvider.notifier).state = 4; // Track current page (trance settings)
                 
-                // We need to add an ActiveSoundscapesPage to the page list builder
-                // For now, reuse the SoundscapesPage (index 6) with a parameter
-                ref.read(pageIndexNotifierProvider).value = 6; // Go to soundscapes page
+                // Navigate to the ActiveSoundscapesPage (index 9)
+                final activeSoundscapesPageIndex = 9;
+                print("Navigating to ActiveSoundscapesPage at index $activeSoundscapesPageIndex");
+                ref.read(pageIndexNotifierProvider).value = activeSoundscapesPageIndex; // Go to active soundscapes page
               },
               child: Padding(
                 padding: const EdgeInsets.all(8.0),

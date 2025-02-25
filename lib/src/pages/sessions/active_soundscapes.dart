@@ -113,132 +113,104 @@ class _ActiveSoundscapesState extends ConsumerState<ActiveSoundscapes> {
     
     return userAsync.when(
       data: (user) {
-        if (user == null) return const SizedBox();
-
+        // Store user?.activeBackgroundSound in a variable first to avoid null check issues
+        final activeBackgroundSound = user?.activeBackgroundSound;
+        
         // Convert from user model enum to local enum
-        final userSound = user.activeBackgroundSound != null 
+        final userSound = activeBackgroundSound != null 
             ? ActiveBackgroundSound.values.firstWhere(
-                (s) => s.toString().split('.').last == user.activeBackgroundSound.toString().split('.').last,
+                (s) => s.toString().split('.').last == activeBackgroundSound.toString().split('.').last,
                 orElse: () => ActiveBackgroundSound.None)
             : ActiveBackgroundSound.None;
             
         final currentSound = ref.watch(activeSoundscapeProvider) ?? userSound;
-
-        return Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                "Active Soundscapes",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.shadow,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: ActiveBackgroundSound.values.length,
-                  itemBuilder: (context, index) {
-                    final sound = ActiveBackgroundSound.values[index];
-                    if (sound == ActiveBackgroundSound.None) return const SizedBox.shrink();
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: GlassRadioButton<ActiveBackgroundSound>(
-                        value: sound,
-                        groupValue: currentSound,
-                        onChanged: (value) {
-                          if (value == null) return;
-
-                          // Schedule state updates to happen after the build phase is complete
-                          Future.microtask(() async {
-                            try {
-                              // Make sure we're still mounted before proceeding
-                              if (!mounted) return;
-                              
-                              // Stop current audio before playing new one
-                              await _stopAudio();
-                              
-                              // Update local state outside of build phase
-                              if (mounted) {
-                                ref.read(activeSoundscapeProvider.notifier).state = value;
-                              }
-
-                              // Play the new sound
-                              final result = await _cloudStorageService.getFile(
-                                bucket: "background_loops",
-                                fileName: value.path,
-                              );
-
-                              if (mounted) {
-                                await _backgroundAudioService.play(result.url);
-                                widget.onPlayStateChanged(true);
-                                setState(() => _isPlaying = true);
-                                
-                                // Then update Firestore - only if still mounted
-                                try {
-                                  // Convert to user model enum for storage
-                                  final userModelSound = user_model.ActiveBackgroundSound.values.firstWhere(
-                                    (s) => s.toString().split('.').last == value.toString().split('.').last,
-                                    orElse: () => user_model.ActiveBackgroundSound.None
-                                  );
-                                  
-                                  await ref
-                                      .read(userProvider.notifier)
-                                      .updateActiveBackgroundSound(userModelSound);
-                                } catch (e) {
-                                  print("Error updating user preference: $e");
-                                  // Continue even if Firestore update fails - it's not critical
-                                }
-                              }
-                            } catch (e) {
-                              print("Error handling soundscape selection: $e");
-                              // Make sure error doesn't break the UI
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text("Could not play soundscape: $e")),
-                                );
-                              }
-                            }
-                          });
-                        },
-                        icon: sound.icon,
-                        title: sound.string,
-                        titleStyle: TextStyle(
-                          color: theme.colorScheme.shadow,
-                          fontSize: 16,
+        
+        // Use a Material widget to ensure proper rendering in modal context
+        return Material(
+          color: Colors.transparent,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.7,
+            ),
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              children: [
+                // Sound options
+                ...ActiveBackgroundSound.values
+                    .where((sound) => sound != ActiveBackgroundSound.None)
+                    .map((sound) {
+                      final isSelected = sound == currentSound;
+                      
+                      return ListTile(
+                        title: Text(
+                          sound.string,
+                          style: TextStyle(
+                            color: theme.colorScheme.shadow,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                        leading: Icon(sound.icon, color: theme.colorScheme.shadow),
+                        trailing: isSelected ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                        onTap: () async {
+                          try {
+                            // Stop current audio
+                            await _stopAudio();
+                            
+                            // Update state
+                            ref.read(activeSoundscapeProvider.notifier).state = sound;
+                            
+                            // Play new sound
+                            final result = await _cloudStorageService.getFile(
+                              bucket: "background_loops",
+                              fileName: sound.path,
+                            );
+                            
+                            await _backgroundAudioService.play(result.url);
+                            widget.onPlayStateChanged(true);
+                            setState(() => _isPlaying = true);
+                            
+                            // Update user preference if user exists
+                            if (user != null) {
+                              final userModelSound = user_model.ActiveBackgroundSound.values.firstWhere(
+                                (s) => s.toString().split('.').last == sound.toString().split('.').last,
+                                orElse: () => user_model.ActiveBackgroundSound.None
+                              );
+                              
+                              await ref.read(userProvider.notifier).updateActiveBackgroundSound(userModelSound);
+                            }
+                          } catch (e) {
+                            // Show error to user via SnackBar instead of printing to console
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Could not play sound: $e")),
+                            );
+                          }
+                        },
+                      );
+                    }).toList(),
+                
+                // Done button
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _stopAudio();
+                      widget.onBack();
+                    },
+                    child: const Text("Done"),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: theme.colorScheme.shadow,
+                      backgroundColor: Colors.white.withOpacity(0.2),
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                  ),
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.only(top: 16),
-                child: GlassButton(
-                  onPressed: () {
-                    _stopAudio();
-                    widget.onBack();
-                  },
-                  text: "Done",
-                  textColor: theme.colorScheme.shadow,
-                  glassColor: Colors.white10,
-                  borderWidth: 0,
-                  opacity: .4,
-                  height: 60,
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
+              ],
+            ),
           ),
         );
       },
-      error: (e, _) => Text('Error: $e'),
-      loading: () => const CircularProgressIndicator(),
+      error: (e, _) => Center(child: Text('Error: $e')),
+      loading: () => const Center(child: CircularProgressIndicator()),
     );
   }
 } 
