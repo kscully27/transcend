@@ -115,10 +115,10 @@ class _BottomSheetTopicsListViewState
                     final newIsSelected = !widget.selectedGoalIds.contains(topic.id);
                     widget.onSelectionChanged(topic.id, newIsSelected);
                     
-                    // If selected, close the bottom sheet and navigate to modality page
+                    // If selected, close the bottom sheet and return the topic ID
                     if (newIsSelected) {
-                      widget.onGoalsSelected({topic.id});
-                      Navigator.of(context).pop();
+                      // Return the topic ID instead of calling onGoalsSelected directly
+                      Navigator.of(context).pop(topic.id);
                     }
                   },
                   onTap: () {
@@ -126,10 +126,10 @@ class _BottomSheetTopicsListViewState
                     final newIsSelected = !widget.selectedGoalIds.contains(topic.id);
                     widget.onSelectionChanged(topic.id, newIsSelected);
                     
-                    // If selected, close the bottom sheet and navigate to modality page
+                    // If selected, close the bottom sheet and return the topic ID
                     if (newIsSelected) {
-                      widget.onGoalsSelected({topic.id});
-                      Navigator.of(context).pop();
+                      // Return the topic ID instead of calling onGoalsSelected directly
+                      Navigator.of(context).pop(topic.id);
                     }
                   },
                 );

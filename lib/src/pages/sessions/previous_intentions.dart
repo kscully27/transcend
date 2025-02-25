@@ -67,11 +67,21 @@ class PreviousIntentions extends ConsumerWidget {
                         color: theme.colorScheme.shadow.withOpacity(0.7),
                         size: 20,
                       ),
-                  onTap: () {
+                  onTap: () async {
                     // Update the provider
                     ref.read(intentionSelectionProvider.notifier).setCustomIntention(intention);
                     ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.previous);
-                    onIntentionSelected(intention);
+                    
+                    // Close the modal
+                    Navigator.of(context).pop();
+                    
+                    // Add a 300ms delay to wait for the animation to complete
+                    await Future.delayed(const Duration(milliseconds: 300));
+                    
+                    // Then navigate to the next screen
+                    if (context.mounted) { // Check if still mounted after the delay
+                      onIntentionSelected(intention);
+                    }
                   },
                 ),
               ),

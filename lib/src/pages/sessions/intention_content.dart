@@ -160,8 +160,9 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
     }
   }
 
-  void _showTopicsBottomSheet(BuildContext context) {
-    showModalBottomSheet(
+  void _showTopicsBottomSheet(BuildContext context) async {
+    // Show modal and await the result (selected topic ID)
+    final selectedTopicId = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -184,7 +185,7 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
             },
             onGoalsSelected: (goals) {
               // This is called when the user clicks "Next" in the bottom sheet
-              // Update the selected goals and navigate to modality page
+              // Update the selected goals
               setState(() {
                 _selectedGoalIds = goals;
               });
@@ -193,13 +194,25 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
               ref.read(intentionSelectionProvider.notifier).setSelectedGoals(goals);
               ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.goals);
               
-              // Navigate to modality page
-              widget.onGoalsSelected(goals);
+              // Close the bottom sheet and return null (since we're using the "Next" button)
+              Navigator.of(context).pop(null);
             },
           ),
         );
       },
     );
+    
+    // If a topic was selected (we got an ID back)
+    if (selectedTopicId != null) {
+      // Wait for the modal to completely close + 300ms additional delay
+      await Future.delayed(const Duration(milliseconds: 300));
+      
+      // Now navigate to the next screen with the selected goal
+      if (mounted) {  // Safety check to make sure widget is still mounted
+        Set<String> selectedGoals = {selectedTopicId};
+        widget.onGoalsSelected(selectedGoals);
+      }
+    }
   }
 
   Widget _buildIntentionButton({

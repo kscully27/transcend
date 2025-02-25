@@ -121,9 +121,14 @@ class RootSheetPage {
             },
             onGoalsSelected: (goals) {
               // When goals are selected, go to modality page
-              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              ref.read(previousPageIndexProvider.notifier).state = 0; // Track that we came from root page
-              pageIndexNotifier.value = 3; // Index of ModalitySelectPage
+              // (Note: A 300ms delay is already added in intention_content.dart before this is called)
+              try {
+                final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                ref.read(previousPageIndexProvider.notifier).state = 0; // Track that we came from root page
+                pageIndexNotifier.value = 3; // Index of ModalitySelectPage
+              } catch (e) {
+                print('Error navigating after goal selection: $e');
+              }
             },
             initialCustomIntention: intentionState.customIntention,
             onBack: null,
@@ -175,8 +180,12 @@ class CustomIntentionPage {
             tranceMethod: TranceMethod.values.first,
             onContinue: (intention) {
               // When custom intention is submitted, go to modality page
-              ref.read(previousPageIndexProvider.notifier).state = 1; // Track that we came from custom page
-              pageIndexNotifier.value = 3; // Index of ModalitySelectPage
+              try {
+                ref.read(previousPageIndexProvider.notifier).state = 1; // Track that we came from custom page
+                pageIndexNotifier.value = 3; // Index of ModalitySelectPage
+              } catch (e) {
+                print('Error navigating after custom intention submission: $e');
+              }
             },
             onGoalsSelected: (goals) {
               // Handle goals selection
@@ -239,8 +248,12 @@ class PreviousIntentionsPage {
               },
               onIntentionSelected: (intention) {
                 // When previous intention is selected, go to modality page
-                ref.read(previousPageIndexProvider.notifier).state = 2; // Track that we came from previous page
-                pageIndexNotifier.value = 3; // Index of ModalitySelectPage
+                try {
+                  ref.read(previousPageIndexProvider.notifier).state = 2; // Track that we came from previous page
+                  pageIndexNotifier.value = 3; // Index of ModalitySelectPage
+                } catch (e) {
+                  print('Error navigating after previous intention selection: $e');
+                }
               },
             ),
           );
