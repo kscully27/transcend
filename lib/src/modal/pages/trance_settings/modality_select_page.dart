@@ -32,7 +32,8 @@ class ModalitySelectPage {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
-              Expanded(
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   itemCount: TranceMethod.values.length,

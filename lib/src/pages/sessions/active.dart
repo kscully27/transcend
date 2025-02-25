@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/locator.dart';
-import 'package:trancend/src/models/user.model.dart' as user_model;
+import 'package:trancend/src/pages/sessions/active_soundscapes.dart';
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/services/background_audio.service.dart';
 import 'package:trancend/src/services/storage_service.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 import 'package:trancend/src/ui/time_slider.dart';
-import 'package:trancend/src/pages/sessions/active_soundscapes.dart';
 
 class Active extends ConsumerStatefulWidget {
   final VoidCallback onBack;

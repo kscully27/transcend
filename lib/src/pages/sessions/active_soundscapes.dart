@@ -5,8 +5,6 @@ import 'package:trancend/src/models/user.model.dart' as user_model;
 import 'package:trancend/src/providers/auth_provider.dart';
 import 'package:trancend/src/services/background_audio.service.dart';
 import 'package:trancend/src/services/storage_service.dart';
-import 'package:trancend/src/ui/glass/glass_button.dart';
-import 'package:trancend/src/ui/glass/glass_radio_button.dart';
 import 'package:trancend/src/shared/icons.dart';
 
 enum ActiveBackgroundSound {

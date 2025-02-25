@@ -1,12 +1,8 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/modal/modal_sheet_helper.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
-import 'package:trancend/src/ui/glass/glass_container.dart';
-import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class StartSession extends ConsumerStatefulWidget {
   const StartSession({super.key});

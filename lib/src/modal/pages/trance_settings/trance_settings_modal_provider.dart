@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:trancend/src/modal/pages/trance_settings/modal_page_definitions.dart';
 import 'package:trancend/src/modal/pages/trance_settings/trance_settings_modal.dart';
 import 'package:trancend/src/models/session.model.dart';
 
@@ -8,7 +9,7 @@ class TranceSettingsModalProvider {
   const TranceSettingsModalProvider._();
 
   /// Show the trance settings modal with a provider scope
-  static Future<void> show(BuildContext context) async {
+  static Future<void> show(BuildContext context, {int initialPage = PageIndices.rootPage}) async {
     // Use a ProviderScope to isolate the modal's state
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -22,7 +23,7 @@ class TranceSettingsModalProvider {
                   child: FutureBuilder(
                     future: Future.microtask(() {
                       // Use a microtask to ensure the widget tree is built
-                      return TranceSettingsModal.show(context);
+                      return TranceSettingsModal.show(context, initialPage: initialPage);
                     }),
                     builder: (context, snapshot) {
                       // Return an empty container that will be replaced by the modal

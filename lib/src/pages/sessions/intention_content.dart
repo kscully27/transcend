@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:trancend/src/models/session.model.dart' as session;
 import 'package:trancend/src/modal/pages/root_sheet_page.dart';
+import 'package:trancend/src/models/session.model.dart' as session;
 import 'package:trancend/src/providers/intention_selection_provider.dart';
-import 'package:trancend/src/providers/modal_sheet_provider.dart';
 import 'package:trancend/src/topics/bottomsheet_topics_list.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
-import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class IntentionContent extends ConsumerStatefulWidget {
   final session.TranceMethod tranceMethod;

@@ -12,9 +12,12 @@ class TranceSettingsModal {
   const TranceSettingsModal._();
 
   /// Show the trance settings modal
-  static Future<void> show(BuildContext context) async {
+  static Future<void> show(BuildContext context, {int initialPage = PageIndices.rootPage}) async {
     // Create a provider scope to isolate the modal's state
-    final pageIndexNotifier = ValueNotifier<int>(PageIndices.rootPage);
+    final pageIndexNotifier = ValueNotifier<int>(initialPage);
+    
+    // Log the initial page for debugging
+    debugPrint('Showing trance settings modal with initial page: $initialPage');
     
     final pageListBuilderNotifier = ValueNotifier<WoltModalSheetPageListBuilder>(
       (context) => [

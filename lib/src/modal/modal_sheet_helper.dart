@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/modal/pages/root_sheet_page.dart';
-import 'package:trancend/src/providers/intention_selection_provider.dart';
 import 'package:trancend/src/providers/selected_modality_provider.dart' as modality_provider;
 import 'package:trancend/src/providers/trance_settings_provider.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
@@ -16,6 +15,10 @@ class ModalSheetHelper {
 
   /// Shows a modal sheet with the intention selection flow
   /// This is the main method to use for showing the modal sheet
+  /// 
+  /// Note: For trance settings specifically, consider using 
+  /// [LegacyTranceSettingsWrapper.showTranceSettingsModal] instead
+  /// which uses the new refactored implementation.
   static Future<void> showModalSheet(
     BuildContext context, {
     int initialPage = 0,
@@ -38,21 +41,6 @@ class ModalSheetHelper {
         final tranceSettingsNotifier = container.read(tranceSettingsProvider.notifier);
         if (tranceSettingsNotifier.mounted) {
           tranceSettingsNotifier.clearTranceMethod();
-        }
-        
-        // If we're navigating directly to the modality page (index 3), ensure intention selection is initialized
-        if (initialPage == 3) {
-          // Initialize intention selection provider with default values if needed
-          final intentionNotifier = container.read(intentionSelectionProvider.notifier);
-          if (intentionNotifier.mounted) {
-            // Ensure there's at least a default selection type so the flow works correctly
-            if (container.read(intentionSelectionProvider).type == IntentionSelectionType.none) {
-              intentionNotifier.setSelection(IntentionSelectionType.default_intention);
-            }
-          }
-          
-          // Set the previous page to 0 (root page)
-          container.read(previousPageIndexProvider.notifier).state = 0;
         }
       }, 'Error initializing providers in showModalSheet');
     });

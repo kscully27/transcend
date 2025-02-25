@@ -13,6 +13,9 @@ This directory contains the refactored code for the trance settings modal flow. 
 - `trance_settings_modal.dart`: Contains the main implementation of the trance settings modal.
 - `trance_settings_modal_provider.dart`: Contains a provider wrapper for the trance settings modal.
 - `example_usage.dart`: Contains an example of how to use the trance settings modal.
+- `legacy_wrapper.dart`: Contains a wrapper class to help transition from the old implementation to the new one.
+- `implementation_guide.md`: Contains detailed instructions on how to implement and use the trance settings modal.
+- `migration_plan.md`: Contains a plan for migrating from the old implementation to the new one.
 
 ## Usage
 
@@ -23,6 +26,15 @@ TranceSettingsModalProvider.show(context);
 ```
 
 This will open the modal with a provider scope to isolate the modal's state from the rest of the app.
+
+## Migration Status
+
+We are currently in the process of migrating from the old implementation to the new one. The migration plan is as follows:
+
+1. **Create a wrapper class**: We've created a wrapper class (`LegacyTranceSettingsWrapper`) that uses our new implementation but maintains the same API as the old one to minimize disruption.
+2. **Update entry points**: We've updated the `ModalSheetHelper` class to use our new implementation when showing the trance settings modal.
+3. **Deprecate old implementation**: We've marked the old implementation as deprecated and added comments directing users to the new implementation.
+4. **Remove old implementation**: Once we're confident that the new implementation is working correctly and all references have been updated, we'll remove the old implementation.
 
 ## Benefits of Refactoring
 
@@ -70,4 +82,5 @@ The modal uses the following UI components:
 - Add more comprehensive error handling.
 - Add more unit tests for each component.
 - Add more documentation for each component.
-- Add more customization options for the modal. 
+- Add more customization options for the modal.
+- Complete the migration from the old implementation to the new one. 
