@@ -7,11 +7,16 @@ import 'package:trancend/src/pages/sessions/intention_content.dart';
 import 'package:trancend/src/pages/sessions/modality_select.dart';
 import 'package:trancend/src/pages/sessions/previous_intentions.dart';
 import 'package:trancend/src/providers/intention_selection_provider.dart';
+import 'package:trancend/src/providers/selected_modality_provider.dart';
 import 'package:trancend/src/providers/trance_settings_provider.dart';
+import 'package:trancend/src/ui/break_duration_selector.dart';
+import 'package:trancend/src/ui/clay/clay_bottom_sheet.dart';
 import 'package:trancend/src/ui/clay/clay_container.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
+import 'package:trancend/src/ui/helpers/modal_navigation_helper.dart';
 import 'package:trancend/src/ui/time_slider.dart';
+import 'package:trancend/src/ui/value_selector.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 // Provider to hold the page index notifier
@@ -21,59 +26,6 @@ final pageIndexNotifierProvider = Provider<ValueNotifier<int>>((ref) {
 
 // Provider to track the previous page index
 final previousPageIndexProvider = StateProvider<int>((ref) => 0);
-
-// Create a safer StateNotifier for selectedModality
-class SelectedModalityNotifier extends StateNotifier<TranceMethod?> {
-  SelectedModalityNotifier(this.ref) : super(null) {
-    _initializeState();
-  }
-  
-  final Ref ref;
-  bool _isSafeToUse = true;
-  
-  void _initializeState() {
-    try {
-      // When this provider is first accessed, defer the trance settings reset
-      // to prevent build-time modifications of another provider
-      Future.microtask(() {
-        try {
-          if (!mounted || !_isSafeToUse) return;
-          final tranceSettingsNotifier = ref.read(tranceSettingsProvider.notifier);
-          if (tranceSettingsNotifier.mounted) {
-            tranceSettingsNotifier.clearTranceMethod();
-          }
-        } catch (e) {
-          print('Error resetting trance method in deferred initialization: $e');
-        }
-      });
-    } catch (e) {
-      print('Error initializing selectedModalityProvider: $e');
-    }
-  }
-  
-  @override
-  void dispose() {
-    _isSafeToUse = false;
-    super.dispose();
-  }
-  
-  // Safe state update method
-  void setModality(TranceMethod? method) {
-    if (!mounted || !_isSafeToUse) return;
-    state = method;
-  }
-  
-  // Method to reset the state to null
-  void reset() {
-    if (!mounted || !_isSafeToUse) return;
-    state = null;
-  }
-}
-
-// Provider to track the selected modality - initialized as null to ensure no selection initially
-final selectedModalityProvider = StateNotifierProvider<SelectedModalityNotifier, TranceMethod?>((ref) {
-  return SelectedModalityNotifier(ref);
-});
 
 class RootSheetPage {
   const RootSheetPage._();
@@ -88,47 +40,40 @@ class RootSheetPage {
           
           // Reset the selected modality to null when the root page is built
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            try {
-              // Use a microtask to avoid potential build phase issues,
-              // as this callback could still be within a build phase
-              Future.microtask(() {
-                try {
-                  final notifier = ref.read(selectedModalityProvider.notifier);
-                  if (notifier.mounted) {
-                    notifier.reset();
-                  }
-                  
-                  final tranceNotifier = ref.read(tranceSettingsProvider.notifier);
-                  if (tranceNotifier.mounted) {
-                    tranceNotifier.clearTranceMethod();
-                  }
-                } catch (e) {
-                  print('Error resetting providers in RootSheetPage microtask: $e');
+            // Use a microtask to avoid potential build phase issues
+            Future.microtask(() {
+              ModalNavigationHelper.safeExecution(() {
+                final notifier = ref.read(selectedModalityProvider.notifier);
+                if (notifier.mounted) {
+                  notifier.reset();
                 }
-              });
-            } catch (e) {
-              print('Error setting up provider reset in RootSheetPage: $e');
-            }
+                
+                final tranceNotifier = ref.read(tranceSettingsProvider.notifier);
+                if (tranceNotifier.mounted) {
+                  tranceNotifier.clearTranceMethod();
+                }
+              }, 'Error resetting providers in RootSheetPage');
+            });
           });
           
           return IntentionContent(
             tranceMethod: TranceMethod.values.first,
             onContinue: (intention) {
               // When default intention is selected, go to modality page
-              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              ref.read(previousPageIndexProvider.notifier).state = 0; // Track that we came from root page
-              pageIndexNotifier.value = 3; // Index of ModalitySelectPage
+              ModalNavigationHelper.safeExecution(() {
+                final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                ref.read(previousPageIndexProvider.notifier).state = 0; // Track that we came from root page
+                pageIndexNotifier.value = 3; // Index of ModalitySelectPage
+              }, 'Error navigating to modality page');
             },
             onGoalsSelected: (goals) {
               // When goals are selected, go to modality page
               // (Note: A 300ms delay is already added in intention_content.dart before this is called)
-              try {
+              ModalNavigationHelper.safeExecution(() {
                 final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
                 ref.read(previousPageIndexProvider.notifier).state = 0; // Track that we came from root page
                 pageIndexNotifier.value = 3; // Index of ModalitySelectPage
-              } catch (e) {
-                print('Error navigating after goal selection: $e');
-              }
+              }, 'Error navigating after goal selection');
             },
             initialCustomIntention: intentionState.customIntention,
             onBack: null,
@@ -165,8 +110,10 @@ class CustomIntentionPage {
           return IconButton(
             icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
             onPressed: () {
-              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              pageIndexNotifier.value = 0;
+              ModalNavigationHelper.safeExecution(() {
+                final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                pageIndexNotifier.value = 0;
+              }, 'Error navigating back from CustomIntentionPage');
             },
           );
         },
@@ -180,12 +127,10 @@ class CustomIntentionPage {
             tranceMethod: TranceMethod.values.first,
             onContinue: (intention) {
               // When custom intention is submitted, go to modality page
-              try {
+              ModalNavigationHelper.safeExecution(() {
                 ref.read(previousPageIndexProvider.notifier).state = 1; // Track that we came from custom page
                 pageIndexNotifier.value = 3; // Index of ModalitySelectPage
-              } catch (e) {
-                print('Error navigating after custom intention submission: $e');
-              }
+              }, 'Error navigating after custom intention submission');
             },
             onGoalsSelected: (goals) {
               // Handle goals selection
@@ -195,7 +140,9 @@ class CustomIntentionPage {
                 ? intentionState.customIntention 
                 : '',
             onBack: () {
-              pageIndexNotifier.value = 0;
+              ModalNavigationHelper.safeExecution(() {
+                pageIndexNotifier.value = 0;
+              }, 'Error navigating back to root page');
             },
             selectedGoalIds: intentionState.selectedGoalIds,
             isCustomMode: true,
@@ -230,8 +177,10 @@ class PreviousIntentionsPage {
           return IconButton(
             icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
             onPressed: () {
-              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              pageIndexNotifier.value = 0;
+              ModalNavigationHelper.safeExecution(() {
+                final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                pageIndexNotifier.value = 0;
+              }, 'Error navigating back from PreviousIntentionsPage');
             },
           );
         },
@@ -244,16 +193,16 @@ class PreviousIntentionsPage {
             padding: const EdgeInsets.only(top: 16.0),
             child: PreviousIntentions(
               onBack: () {
-                pageIndexNotifier.value = 0;
+                ModalNavigationHelper.safeExecution(() {
+                  pageIndexNotifier.value = 0;
+                }, 'Error navigating back to root page');
               },
               onIntentionSelected: (intention) {
                 // When previous intention is selected, go to modality page
-                try {
+                ModalNavigationHelper.safeExecution(() {
                   ref.read(previousPageIndexProvider.notifier).state = 2; // Track that we came from previous page
                   pageIndexNotifier.value = 3; // Index of ModalitySelectPage
-                } catch (e) {
-                  print('Error navigating after previous intention selection: $e');
-                }
+                }, 'Error navigating after previous intention selection');
               },
             ),
           );
@@ -287,22 +236,12 @@ class ModalitySelectPage {
           return IconButton(
             icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
             onPressed: () {
-              try {
+              ModalNavigationHelper.safeExecution(() {
                 final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
                 // Go back to the page we came from
                 final previousPage = ref.read(previousPageIndexProvider);
                 pageIndexNotifier.value = previousPage;
-              } catch (e) {
-                print('Error navigating back from ModalitySelectPage: $e');
-                // Fallback to going to the root page (0) if there's an error
-                try {
-                  final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-                  pageIndexNotifier.value = 0;
-                } catch (e) {
-                  print('Failed to navigate even to root page: $e');
-                  // At this point, we can't do much more except let the user close the modal
-                }
-              }
+              }, 'Error navigating back from ModalitySelectPage');
             },
           );
         },
@@ -312,24 +251,17 @@ class ModalitySelectPage {
           // Initialize the intention selection if it hasn't been set
           // This ensures we have a valid state when this page is opened directly
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            try {
-              // Use a microtask to safely modify providers outside of build phase
-              Future.microtask(() {
-                try {
-                  final intentionState = ref.read(intentionSelectionProvider);
-                  if (intentionState.type == IntentionSelectionType.none) {
-                    final intentionNotifier = ref.read(intentionSelectionProvider.notifier);
-                    if (intentionNotifier.mounted) {
-                      intentionNotifier.setSelection(IntentionSelectionType.default_intention);
-                    }
+            Future.microtask(() {
+              ModalNavigationHelper.safeExecution(() {
+                final intentionState = ref.read(intentionSelectionProvider);
+                if (intentionState.type == IntentionSelectionType.none) {
+                  final intentionNotifier = ref.read(intentionSelectionProvider.notifier);
+                  if (intentionNotifier.mounted) {
+                    intentionNotifier.setSelection(IntentionSelectionType.default_intention);
                   }
-                } catch (e) {
-                  print('Error initializing intention in ModalitySelectPage microtask: $e');
                 }
-              });
-            } catch (e) {
-              print('Error setting up intention initialization in ModalitySelectPage: $e');
-            }
+              }, 'Error initializing intention in ModalitySelectPage');
+            });
           });
           
           // Now safely access providers with error handling
@@ -337,7 +269,7 @@ class ModalitySelectPage {
           try {
             selectedModality = ref.watch(selectedModalityProvider);
           } catch (e) {
-            print('Error accessing selectedModalityProvider: $e');
+            debugPrint('Error accessing selectedModalityProvider: $e');
             // Leave as null if there's an error
           }
           
@@ -346,65 +278,38 @@ class ModalitySelectPage {
             child: ModalitySelect(
               onBack: () {
                 // Go back to the page we came from
-                try {
+                ModalNavigationHelper.safeExecution(() {
                   final previousPage = ref.read(previousPageIndexProvider);
                   final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
                   pageIndexNotifier.value = previousPage;
-                } catch (e) {
-                  print('Error navigating back using onBack: $e');
-                  // Try to go to the root page as fallback
-                  try {
-                    final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-                    pageIndexNotifier.value = 0;
-                  } catch (e) {
-                    print('Failed to navigate even to root page: $e');
-                  }
-                }
+                }, 'Error navigating back from ModalitySelect onBack');
               },
               onSelectMethod: (method, index) {
-                try {
-                  // Store the selected modality using the safer method
-                  final modalityNotifier = ref.read(selectedModalityProvider.notifier);
-                  if (modalityNotifier.mounted) {
-                    modalityNotifier.setModality(method);
-                  }
-                  
-                  // IMPORTANT: Defer the update of tranceSettings to avoid build-time modification
-                  // Schedule this update to occur after the current build phase is complete
-                  Future.microtask(() {
-                    try {
-                      final tranceNotifier = ref.read(tranceSettingsProvider.notifier);
-                      if (tranceNotifier.mounted) {
-                        tranceNotifier.setTranceMethod(method);
-                      }
-                    } catch (e) {
-                      print('Error updating trance settings after modality selection: $e');
+                // Store the selected modality using the safer method
+                final modalityNotifier = ref.read(selectedModalityProvider.notifier);
+                if (modalityNotifier.mounted) {
+                  modalityNotifier.setModality(method);
+                }
+                
+                // IMPORTANT: Defer the update of tranceSettings to avoid build-time modification
+                // Schedule this update to occur after the current build phase is complete
+                Future.microtask(() {
+                  ModalNavigationHelper.safeExecution(() {
+                    final tranceNotifier = ref.read(tranceSettingsProvider.notifier);
+                    if (tranceNotifier.mounted) {
+                      tranceNotifier.setTranceMethod(method);
                     }
-                  });
-                  
-                  // Navigate to the trance settings page within the modal
-                  ref.read(previousPageIndexProvider.notifier).state = 3; // Track that we came from modality page
-                  
-                  // Safely access pageIndexNotifier
-                  try {
+                    
+                    // Navigate to the trance settings page within the modal
+                    ref.read(previousPageIndexProvider.notifier).state = 3; // Track that we came from modality page
+                    
+                    // Safely access pageIndexNotifier
                     final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
                     pageIndexNotifier.value = 4; // Index of TranceSettingsPage
-                  } catch (e) {
-                    print('Error accessing pageIndexNotifier: $e');
-                  }
-                } catch (e) {
-                  print('Error in onSelectMethod: $e');
-                  // Still try to navigate even if there's an error
-                  try {
-                    ref.read(previousPageIndexProvider.notifier).state = 3;
-                    final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-                    pageIndexNotifier.value = 4;
-                  } catch (e) {
-                    print('Failed to navigate after error: $e');
-                  }
-                }
+                  }, 'Error updating settings and navigating after modality selection');
+                });
               },
-              selectedMethod: selectedModality, // No fallback, just use the value or null
+              selectedMethod: selectedModality,
               selectedIndex: null,
             ),
           );
@@ -429,20 +334,22 @@ class TranceSettingsModalPage {
           return IconButton(
             icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
             onPressed: () {
-              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              final previousPage = ref.read(previousPageIndexProvider);
-              
-              // Always go back to modality selection page
-              pageIndexNotifier.value = 3; // ModifySelectPage is at index 3
-              
-              // Make sure to preserve the original page we came from before the modality page
-              if (previousPage < 3) {
-                // If we have a valid page index before modality page, preserve it
-                ref.read(previousPageIndexProvider.notifier).state = previousPage;
-              } else {
-                // If something went wrong, default to root page
-                ref.read(previousPageIndexProvider.notifier).state = 0;
-              }
+              ModalNavigationHelper.safeExecution(() {
+                final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                final previousPage = ref.read(previousPageIndexProvider);
+                
+                // Always go back to modality selection page
+                pageIndexNotifier.value = 3; // ModifySelectPage is at index 3
+                
+                // Make sure to preserve the original page we came from before the modality page
+                if (previousPage < 3) {
+                  // If we have a valid page index before modality page, preserve it
+                  ref.read(previousPageIndexProvider.notifier).state = previousPage;
+                } else {
+                  // If something went wrong, default to root page
+                  ref.read(previousPageIndexProvider.notifier).state = 0;
+                }
+              }, 'Error navigating back from TranceSettingsModalPage');
             },
           );
         },
@@ -459,7 +366,14 @@ class TranceSettingsModalPage {
       ),
       pageTitle: Consumer(
         builder: (context, ref, _) {
-          final selectedModality = ref.watch(selectedModalityProvider);
+          TranceMethod? selectedModality;
+          try {
+            selectedModality = ref.watch(selectedModalityProvider);
+          } catch (e) {
+            debugPrint('Error accessing selectedModalityProvider in TranceSettingsModalPage: $e');
+            // Default to Hypnosis if there's an error
+            selectedModality = TranceMethod.Hypnosis;
+          }
           
           return Center(
             child: Text(
@@ -475,9 +389,14 @@ class TranceSettingsModalPage {
       ),
       child: Consumer(
         builder: (context, ref, _) {
-          final selectedModality = ref.watch(selectedModalityProvider);
+          TranceMethod? selectedModality;
+          try {
+            selectedModality = ref.watch(selectedModalityProvider);
+          } catch (e) {
+            debugPrint('Error accessing selectedModalityProvider in TranceSettingsModalPage child: $e');
+          }
+          
           final tranceSettings = ref.watch(tranceSettingsProvider);
-          final tranceSettingsNotifier = ref.watch(tranceSettingsProvider.notifier);
           
           // Default to Hypnosis if not set
           final tranceMethod = selectedModality ?? TranceMethod.Hypnosis;
@@ -509,7 +428,7 @@ class TranceSettingsModalPage {
                       textColor: theme.colorScheme.shadow,
                       glassColor: Colors.white24,
                       onPressed: () {
-                        // TODO: Start the session
+                        // Close the modal
                         Navigator.of(context).pop();
                       },
                     ),
@@ -835,107 +754,171 @@ class TranceSettingsModalPage {
     );
   }
 
+  // Show advanced settings in a clay bottom sheet
   static void _showAdvancedSettingsModal(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final tranceSettings = ref.watch(tranceSettingsProvider);
-    final tranceSettingsNotifier = ref.watch(tranceSettingsProvider.notifier);
+    final tranceSettingsNotifier = ref.read(tranceSettingsProvider.notifier);
+    final tranceSettings = ref.read(tranceSettingsProvider);
     
-    showDialog(
+    // Get the selected modality for the title
+    final selectedModality = ref.read(selectedModalityProvider) ?? TranceMethod.Hypnosis;
+    final modalityTitle = _getModalityTitle(selectedModality);
+
+    ClayBottomSheet.show(
       context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.all(16),
-          child: ClayContainer(
-            height: 300,
-            color: Colors.white.withOpacity(0.9),
-            borderRadius: 16,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+      heightPercent: 0.6,
+      content: StatefulBuilder(
+        builder: (context, setState) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(
+                  modalityTitle,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.shadow,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const Divider(height: 1),
+              
+              // Break between sentences option
+              GestureDetector(
+                onTap: () {
+                  // Close the current bottom sheet
+                  Navigator.pop(context);
+                  
+                  // Show the break between sentences modal after a short delay
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    _showBreakBetweenSentencesModal(context, ref);
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Advanced Settings',
+                        'Break Between Sentences',
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.shadow,
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.close, color: theme.colorScheme.shadow),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Background Volume
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.volume_up,
-                        color: theme.colorScheme.shadow,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Background Volume',
-                        style: TextStyle(
-                          color: theme.colorScheme.shadow,
                           fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Slider(
-                    value: tranceSettings.backgroundVolume,
-                    onChanged: (value) {
-                      tranceSettingsNotifier.setBackgroundVolume(value);
-                    },
-                    activeColor: theme.colorScheme.primary,
-                    inactiveColor: theme.colorScheme.shadow.withOpacity(0.2),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Voice Volume
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.mic,
-                        color: theme.colorScheme.shadow,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Voice Volume',
-                        style: TextStyle(
                           color: theme.colorScheme.shadow,
-                          fontSize: 16,
                         ),
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            '${tranceSettings.breakBetweenSentences} seconds',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: theme.colorScheme.shadow.withOpacity(0.6),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 14,
+                            color: theme.colorScheme.shadow.withOpacity(0.6),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Slider(
-                    value: tranceSettings.voiceVolume,
-                    onChanged: (value) {
-                      tranceSettingsNotifier.setVoiceVolume(value);
-                    },
-                    activeColor: theme.colorScheme.primary,
-                    inactiveColor: theme.colorScheme.shadow.withOpacity(0.2),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-        );
-      },
+              
+              const Divider(height: 1),
+
+              // Background volume slider
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Background Volume',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: theme.colorScheme.shadow,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Slider(
+                      value: tranceSettings.backgroundVolume,
+                      onChanged: (value) {
+                        setState(() {
+                          tranceSettingsNotifier.setBackgroundVolume(value);
+                        });
+                      },
+                      min: 0.0,
+                      max: 1.0,
+                      activeColor: theme.colorScheme.primary,
+                      inactiveColor: theme.colorScheme.shadow.withOpacity(0.2),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Voice volume slider
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Voice Volume',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: theme.colorScheme.shadow,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Slider(
+                      value: tranceSettings.voiceVolume,
+                      onChanged: (value) {
+                        setState(() {
+                          tranceSettingsNotifier.setVoiceVolume(value);
+                        });
+                      },
+                      min: 0.0,
+                      max: 1.0,
+                      activeColor: theme.colorScheme.primary,
+                      inactiveColor: theme.colorScheme.shadow.withOpacity(0.2),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  // Show break between sentences selector in a clay bottom sheet
+  static void _showBreakBetweenSentencesModal(BuildContext context, WidgetRef ref) {
+    final tranceSettings = ref.read(tranceSettingsProvider);
+    
+    // Get the selected modality for the title
+    final selectedModality = ref.read(selectedModalityProvider) ?? TranceMethod.Hypnosis;
+    final modalityTitle = _getModalityTitle(selectedModality);
+    
+    ClayBottomSheet.show(
+      context: context,
+      heightPercent: 0.5,
+      content: BreakDurationSelector(
+        title: 'Break Between Sentences',
+        initialDuration: tranceSettings.breakBetweenSentences,
+        onClose: () {
+          // Show the advanced settings modal again
+          _showAdvancedSettingsModal(context, ref);
+        },
+      ),
     );
   }
 
@@ -974,6 +957,24 @@ class TranceSettingsModalPage {
       color: theme.colorScheme.shadow,
     );
   }
+
+  // Helper method to get the title based on modality
+  static String _getModalityTitle(TranceMethod method) {
+    switch (method) {
+      case TranceMethod.Hypnosis:
+        return 'Hypnotherapy Settings';
+      case TranceMethod.Meditation:
+        return 'Meditation Settings';
+      case TranceMethod.Breathe:
+        return 'Breathing Settings';
+      case TranceMethod.Active:
+        return 'Active Settings';
+      case TranceMethod.Sleep:
+        return 'Sleep Settings';
+      default:
+        return 'Trance Settings';
+    }
+  }
 }
 
 // Add pages for HypnotherapyMethods and Soundscapes
@@ -991,18 +992,20 @@ class HypnotherapyMethodsPage {
           return IconButton(
             icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
             onPressed: () {
-              // Fix back button navigation
-              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              final previousPage = ref.read(previousPageIndexProvider);
-              
-              // Go back to the trance settings page
-              pageIndexNotifier.value = previousPage;
-              
-              // Make sure the previous page index is set to the page before the trance settings page
-              if (previousPage == 4) { // If going back to trance settings page (index 4)
-                // Reset the previous page index to ensure we can navigate back from trance settings
-                ref.read(previousPageIndexProvider.notifier).state = 3; // Modality select page
-              }
+              ModalNavigationHelper.safeExecution(() {
+                // Fix back button navigation
+                final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                final previousPage = ref.read(previousPageIndexProvider);
+                
+                // Go back to the trance settings page
+                pageIndexNotifier.value = previousPage;
+                
+                // Make sure the previous page index is set to the page before the trance settings page
+                if (previousPage == 4) { // If going back to trance settings page (index 4)
+                  // Reset the previous page index to ensure we can navigate back from trance settings
+                  ref.read(previousPageIndexProvider.notifier).state = 3; // Modality select page
+                }
+              }, 'Error navigating back from HypnotherapyMethodsPage');
             },
           );
         },
@@ -1073,14 +1076,16 @@ class HypnotherapyMethodsPage {
                     onTap: () async {
                       await tranceSettingsNotifier.setHypnotherapyMethod(method);
                       
-                      // Navigate back to trance settings page and ensure correct previous page tracking
-                      final previousPage = ref.read(previousPageIndexProvider);
-                      ref.read(pageIndexNotifierProvider).value = previousPage;
-                      
-                      // If going back to trance settings (page 4), update previous page index to modality page (3)
-                      if (previousPage == 4) {
-                        ref.read(previousPageIndexProvider.notifier).state = 3;
-                      }
+                      ModalNavigationHelper.safeExecution(() {
+                        // Navigate back to trance settings page and ensure correct previous page tracking
+                        final previousPage = ref.read(previousPageIndexProvider);
+                        ref.read(pageIndexNotifierProvider).value = previousPage;
+                        
+                        // If going back to trance settings (page 4), update previous page index to modality page (3)
+                        if (previousPage == 4) {
+                          ref.read(previousPageIndexProvider.notifier).state = 3;
+                        }
+                      }, 'Error navigating after hypnotherapy method selection');
                     },
                   ),
                 );
@@ -1107,21 +1112,11 @@ class SoundscapesPage {
           return IconButton(
             icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
             onPressed: () {
-              try {
+              ModalNavigationHelper.safeExecution(() {
                 final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
                 final previousPage = ref.read(previousPageIndexProvider);
                 pageIndexNotifier.value = previousPage;
-              } catch (e) {
-                print('Error navigating back from SoundscapesPage: $e');
-                // Fallback to the trance settings page if there's an error
-                try {
-                  final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-                  pageIndexNotifier.value = 4; // TranceSettingsPage
-                } catch (e) {
-                  print('Failed to navigate even to trance settings page: $e');
-                  // At this point we can't do much more
-                }
-              }
+              }, 'Error navigating back from SoundscapesPage');
             },
           );
         },
@@ -1145,7 +1140,7 @@ class SoundscapesPage {
           try {
             tranceSettingsNotifier = ref.read(tranceSettingsProvider.notifier);
           } catch (e) {
-            print('Error accessing tranceSettingsNotifier in SoundscapesPage: $e');
+            debugPrint('Error accessing tranceSettingsNotifier in SoundscapesPage: $e');
             // Continue without the notifier - we'll handle this case later
           }
           
@@ -1193,40 +1188,17 @@ class SoundscapesPage {
                     onTap: () {
                       // Defer the update to avoid build-time provider modifications
                       Future.microtask(() async {
-                        try {
-                          // Update the background sound if the notifier is available
-                          if (tranceSettingsNotifier != null && tranceSettingsNotifier.mounted) {
-                            await tranceSettingsNotifier.setBackgroundSound(sound);
-                          } else {
-                            print('Warning: tranceSettingsNotifier was null or not mounted');
-                          }
-                          
-                          // Navigate back to trance settings page
-                          try {
-                            final previousPage = ref.read(previousPageIndexProvider);
-                            final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-                            pageIndexNotifier.value = previousPage;
-                          } catch (e) {
-                            print('Error navigating after selecting sound: $e');
-                            // Try to fallback to trance settings page
-                            try {
-                              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-                              pageIndexNotifier.value = 4; // TranceSettingsPage
-                            } catch (e) {
-                              print('Failed to navigate even to fallback page: $e');
-                            }
-                          }
-                        } catch (e) {
-                          print('Error handling sound selection: $e');
-                          // Show an error message if possible, otherwise silently fail
-                          try {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Could not set sound: $e')),
-                            );
-                          } catch (e) {
-                            print('Could not show error snackbar: $e');
-                          }
+                        // Update the background sound if the notifier is available
+                        if (tranceSettingsNotifier != null && tranceSettingsNotifier.mounted) {
+                          await tranceSettingsNotifier.setBackgroundSound(sound);
                         }
+                        
+                        ModalNavigationHelper.safeExecution(() {
+                          // Navigate back to trance settings page
+                          final previousPage = ref.read(previousPageIndexProvider);
+                          final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                          pageIndexNotifier.value = previousPage;
+                        }, 'Error navigating after sound selection');
                       });
                     },
                   ),
@@ -1256,18 +1228,20 @@ class BreathingMethodsPage {
           return IconButton(
             icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
             onPressed: () {
-              // Fix back button navigation
-              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              final previousPage = ref.read(previousPageIndexProvider);
-              
-              // Go back to the trance settings page
-              pageIndexNotifier.value = previousPage;
-              
-              // Make sure the previous page index is set to the page before the trance settings page
-              if (previousPage == 4) { // If going back to trance settings page (index 4)
-                // Reset the previous page index to ensure we can navigate back from trance settings
-                ref.read(previousPageIndexProvider.notifier).state = 3; // Modality select page
-              }
+              ModalNavigationHelper.safeExecution(() {
+                // Fix back button navigation
+                final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                final previousPage = ref.read(previousPageIndexProvider);
+                
+                // Go back to the trance settings page
+                pageIndexNotifier.value = previousPage;
+                
+                // Make sure the previous page index is set to the page before the trance settings page
+                if (previousPage == 4) { // If going back to trance settings page (index 4)
+                  // Reset the previous page index to ensure we can navigate back from trance settings
+                  ref.read(previousPageIndexProvider.notifier).state = 3; // Modality select page
+                }
+              }, 'Error navigating back from BreathingMethodsPage');
             },
           );
         },
@@ -1337,14 +1311,16 @@ class BreathingMethodsPage {
                     onTap: () async {
                       await tranceSettingsNotifier.setBreathingMethod(method);
                       
-                      // Navigate back to trance settings page and ensure correct previous page tracking
-                      final previousPage = ref.read(previousPageIndexProvider);
-                      ref.read(pageIndexNotifierProvider).value = previousPage;
-                      
-                      // If going back to trance settings (page 4), update previous page index to modality page (3)
-                      if (previousPage == 4) {
-                        ref.read(previousPageIndexProvider.notifier).state = 3;
-                      }
+                      ModalNavigationHelper.safeExecution(() {
+                        // Navigate back to trance settings page and ensure correct previous page tracking
+                        final previousPage = ref.read(previousPageIndexProvider);
+                        ref.read(pageIndexNotifierProvider).value = previousPage;
+                        
+                        // If going back to trance settings (page 4), update previous page index to modality page (3)
+                        if (previousPage == 4) {
+                          ref.read(previousPageIndexProvider.notifier).state = 3;
+                        }
+                      }, 'Error navigating after breathing method selection');
                     },
                   ),
                 );
@@ -1371,18 +1347,20 @@ class MeditationMethodsPage {
           return IconButton(
             icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
             onPressed: () {
-              // Fix back button navigation
-              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              final previousPage = ref.read(previousPageIndexProvider);
-              
-              // Go back to the trance settings page
-              pageIndexNotifier.value = previousPage;
-              
-              // Make sure the previous page index is set to the page before the trance settings page
-              if (previousPage == 4) { // If going back to trance settings page (index 4)
-                // Reset the previous page index to ensure we can navigate back from trance settings
-                ref.read(previousPageIndexProvider.notifier).state = 3; // Modality select page
-              }
+              ModalNavigationHelper.safeExecution(() {
+                // Fix back button navigation
+                final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                final previousPage = ref.read(previousPageIndexProvider);
+                
+                // Go back to the trance settings page
+                pageIndexNotifier.value = previousPage;
+                
+                // Make sure the previous page index is set to the page before the trance settings page
+                if (previousPage == 4) { // If going back to trance settings page (index 4)
+                  // Reset the previous page index to ensure we can navigate back from trance settings
+                  ref.read(previousPageIndexProvider.notifier).state = 3; // Modality select page
+                }
+              }, 'Error navigating back from MeditationMethodsPage');
             },
           );
         },
@@ -1452,14 +1430,16 @@ class MeditationMethodsPage {
                     onTap: () async {
                       await tranceSettingsNotifier.setMeditationMethod(method);
                       
-                      // Navigate back to trance settings page and ensure correct previous page tracking
-                      final previousPage = ref.read(previousPageIndexProvider);
-                      ref.read(pageIndexNotifierProvider).value = previousPage;
-                      
-                      // If going back to trance settings (page 4), update previous page index to modality page (3)
-                      if (previousPage == 4) {
-                        ref.read(previousPageIndexProvider.notifier).state = 3;
-                      }
+                      ModalNavigationHelper.safeExecution(() {
+                        // Navigate back to trance settings page and ensure correct previous page tracking
+                        final previousPage = ref.read(previousPageIndexProvider);
+                        ref.read(pageIndexNotifierProvider).value = previousPage;
+                        
+                        // If going back to trance settings (page 4), update previous page index to modality page (3)
+                        if (previousPage == 4) {
+                          ref.read(previousPageIndexProvider.notifier).state = 3;
+                        }
+                      }, 'Error navigating after meditation method selection');
                     },
                   ),
                 );
@@ -1471,3 +1451,4 @@ class MeditationMethodsPage {
     );
   }
 }
+

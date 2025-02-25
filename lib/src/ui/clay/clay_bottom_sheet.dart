@@ -24,7 +24,7 @@ class ClayBottomSheet extends StatelessWidget {
       const Duration(milliseconds: 360),
       () => showModalBottomSheet<T>(
         context: context,
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.transparent,
         barrierColor: Colors.transparent,
         isDismissible: true,
         isScrollControlled: true,

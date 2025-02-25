@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/modal/pages/root_sheet_page.dart';
 import 'package:trancend/src/providers/intention_selection_provider.dart';
+import 'package:trancend/src/providers/selected_modality_provider.dart' as modality_provider;
 import 'package:trancend/src/providers/trance_settings_provider.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
+import 'package:trancend/src/ui/helpers/modal_navigation_helper.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 /// A helper class to show a modal sheet with consistent styling
@@ -24,9 +26,10 @@ class ModalSheetHelper {
     // Schedule provider updates for after the current build phase
     // to avoid build-time modifications
     Future.microtask(() {
-      try {
+      // Use the safeExecution method for better error handling
+      ModalNavigationHelper.safeExecution(() {
         // Reset modality selection
-        final modalityNotifier = container.read(selectedModalityProvider.notifier);
+        final modalityNotifier = container.read(modality_provider.selectedModalityProvider.notifier);
         if (modalityNotifier.mounted) {
           modalityNotifier.reset(); // Use the safer reset method
         }
@@ -51,11 +54,7 @@ class ModalSheetHelper {
           // Set the previous page to 0 (root page)
           container.read(previousPageIndexProvider.notifier).state = 0;
         }
-      } catch (e) {
-        // Handle any errors with provider access
-        print('Error resetting providers: $e');
-        // Continue showing the modal even if there's an error with the providers
-      }
+      }, 'Error initializing providers in showModalSheet');
     });
     
     // Set the initial page
@@ -65,7 +64,7 @@ class ModalSheetHelper {
       pageIndexNotifier.value = initialPage;
     } catch (e) {
       // If we can't access the existing notifier, create a new one
-      print('Creating new page index notifier: $e');
+      debugPrint('Creating new page index notifier: $e');
       pageIndexNotifier = ValueNotifier(initialPage);
     }
     

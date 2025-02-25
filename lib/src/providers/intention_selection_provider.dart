@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trancend/src/providers/base/safe_state_notifier.dart';
 
 enum IntentionSelectionType {
   none,
@@ -37,94 +39,81 @@ final intentionSelectionProvider = StateNotifierProvider<IntentionSelectionNotif
   return IntentionSelectionNotifier();
 });
 
-class IntentionSelectionNotifier extends StateNotifier<IntentionSelectionState> {
-  IntentionSelectionNotifier() : super(IntentionSelectionState(type: IntentionSelectionType.none, selectedGoalIds: {})) {
+class IntentionSelectionNotifier extends SafeStateNotifier<IntentionSelectionState> {
+  IntentionSelectionNotifier() 
+    : super(IntentionSelectionState(
+        type: IntentionSelectionType.none, 
+        selectedGoalIds: {}
+      )) {
     _loadSavedSelection();
-  }
-  
-  // Track safety status
-  bool _isSafeToUse = true;
-  
-  // Safe state update method
-  void _safeUpdateState(IntentionSelectionState newState) {
-    if (!mounted || !_isSafeToUse) return;
-    state = newState;
-  }
-  
-  @override
-  void dispose() {
-    _isSafeToUse = false;
-    super.dispose();
   }
 
   Future<void> _loadSavedSelection() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedSelection = prefs.getString('intention_selection_type');
-      final savedGoals = prefs.getStringList('selected_goal_ids');
-      final savedCustomIntention = prefs.getString('custom_intention');
-      
-      if (!mounted || !_isSafeToUse) return; // Check if safe to use
-      
-      if (savedSelection != null) {
-        final type = IntentionSelectionType.values.firstWhere(
-          (type) => type.toString() == savedSelection,
-          orElse: () => IntentionSelectionType.none,
-        );
-        _safeUpdateState(IntentionSelectionState(
-          type: type,
-          selectedGoalIds: savedGoals?.toSet() ?? {},
-          customIntention: savedCustomIntention,
-        ));
+    await safeAsyncUpdate(() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final savedSelection = prefs.getString('intention_selection_type');
+        final savedGoals = prefs.getStringList('selected_goal_ids');
+        final savedCustomIntention = prefs.getString('custom_intention');
+        
+        if (savedSelection != null) {
+          final type = IntentionSelectionType.values.firstWhere(
+            (type) => type.toString() == savedSelection,
+            orElse: () => IntentionSelectionType.none,
+          );
+          safeUpdateState(IntentionSelectionState(
+            type: type,
+            selectedGoalIds: savedGoals?.toSet() ?? {},
+            customIntention: savedCustomIntention,
+          ));
+        }
+      } catch (e) {
+        debugPrint('Error loading intention selection: $e');
       }
-    } catch (e) {
-      print('Error loading intention selection: $e');
-    }
+    });
   }
 
   Future<void> setSelection(IntentionSelectionType type) async {
-    if (!mounted || !_isSafeToUse) return;
+    safeUpdateState(state.copyWith(type: type));
     
-    _safeUpdateState(state.copyWith(type: type));
-    
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('intention_selection_type', type.toString());
-    } catch (e) {
-      print('Error saving intention selection type: $e');
-    }
+    await safeAsyncUpdate(() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('intention_selection_type', type.toString());
+      } catch (e) {
+        debugPrint('Error saving intention selection type: $e');
+      }
+    });
   }
 
   Future<void> setSelectedGoals(Set<String> goals) async {
-    if (!mounted || !_isSafeToUse) return;
+    safeUpdateState(state.copyWith(selectedGoalIds: goals));
     
-    _safeUpdateState(state.copyWith(selectedGoalIds: goals));
-    
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList('selected_goal_ids', goals.toList());
-    } catch (e) {
-      print('Error saving selected goals: $e');
-    }
+    await safeAsyncUpdate(() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setStringList('selected_goal_ids', goals.toList());
+      } catch (e) {
+        debugPrint('Error saving selected goals: $e');
+      }
+    });
   }
 
   Future<void> setCustomIntention(String intention) async {
-    if (!mounted || !_isSafeToUse) return;
+    safeUpdateState(state.copyWith(customIntention: intention));
     
-    _safeUpdateState(state.copyWith(customIntention: intention));
-    
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('custom_intention', intention);
-    } catch (e) {
-      print('Error saving custom intention: $e');
-    }
+    await safeAsyncUpdate(() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('custom_intention', intention);
+      } catch (e) {
+        debugPrint('Error saving custom intention: $e');
+      }
+    });
   }
 
   void clearSelection() {
-    if (!mounted || !_isSafeToUse) return;
-    
-    _safeUpdateState(IntentionSelectionState(
+    safeUpdateState(IntentionSelectionState(
       type: IntentionSelectionType.none, 
       selectedGoalIds: {}
     ));

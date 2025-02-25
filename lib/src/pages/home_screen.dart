@@ -10,6 +10,7 @@ import 'package:trancend/src/pages/day.dart';
 import 'package:trancend/src/pages/settings.dart';
 import 'package:trancend/src/providers/app_state_provider.dart';
 import 'package:trancend/src/providers/intention_selection_provider.dart';
+import 'package:trancend/src/providers/selected_modality_provider.dart';
 import 'package:trancend/src/providers/trance_settings_provider.dart';
 import 'package:trancend/src/ui/clay_bottom_nav/clay_bottom_nav.dart';
 

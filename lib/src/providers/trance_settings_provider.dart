@@ -16,6 +16,7 @@ class TranceSettingsState {
   final IntentionSelectionType intentionType;
   final Set<String> selectedGoalIds;
   final String? customIntention;
+  final int breakBetweenSentences;
 
   TranceSettingsState({
     required this.tranceMethod,
@@ -29,6 +30,7 @@ class TranceSettingsState {
     required this.intentionType,
     required this.selectedGoalIds,
     this.customIntention,
+    this.breakBetweenSentences = 2,
   });
 
   TranceSettingsState copyWith({
@@ -43,6 +45,7 @@ class TranceSettingsState {
     IntentionSelectionType? intentionType,
     Set<String>? selectedGoalIds,
     String? customIntention,
+    int? breakBetweenSentences,
   }) {
     return TranceSettingsState(
       tranceMethod: tranceMethod ?? this.tranceMethod,
@@ -56,6 +59,7 @@ class TranceSettingsState {
       intentionType: intentionType ?? this.intentionType,
       selectedGoalIds: selectedGoalIds ?? this.selectedGoalIds,
       customIntention: customIntention ?? this.customIntention,
+      breakBetweenSentences: breakBetweenSentences ?? this.breakBetweenSentences,
     );
   }
 }
@@ -119,6 +123,7 @@ class TranceSettingsNotifier extends StateNotifier<TranceSettingsState> {
       final savedBackgroundVolume = prefs.getDouble('background_volume');
       final savedVoiceVolume = prefs.getDouble('voice_volume');
       final savedCustomIntention = prefs.getString('custom_intention');
+      final savedBreakBetweenSentences = prefs.getInt('break_between_sentences');
       
       if (!mounted || !_isSafeToUse) return; // Safety check
       
@@ -173,6 +178,7 @@ class TranceSettingsNotifier extends StateNotifier<TranceSettingsState> {
           backgroundVolume: savedBackgroundVolume ?? state.backgroundVolume,
           voiceVolume: savedVoiceVolume ?? state.voiceVolume,
           customIntention: savedCustomIntention,
+          breakBetweenSentences: savedBreakBetweenSentences ?? state.breakBetweenSentences,
         );
       }
     } catch (e) {
@@ -298,6 +304,19 @@ class TranceSettingsNotifier extends StateNotifier<TranceSettingsState> {
       await prefs.setDouble('voice_volume', volume);
     } catch (e) {
       print('Error saving voice volume: $e');
+    }
+  }
+
+  Future<void> setBreakBetweenSentences(int seconds) async {
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(state.copyWith(breakBetweenSentences: seconds));
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('break_between_sentences', seconds);
+    } catch (e) {
+      print('Error saving break between sentences: $e');
     }
   }
 
