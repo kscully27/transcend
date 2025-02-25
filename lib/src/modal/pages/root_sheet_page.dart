@@ -1094,9 +1094,21 @@ class SoundscapesPage {
           return IconButton(
             icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
             onPressed: () {
-              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              final previousPage = ref.read(previousPageIndexProvider);
-              pageIndexNotifier.value = previousPage;
+              try {
+                final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                final previousPage = ref.read(previousPageIndexProvider);
+                pageIndexNotifier.value = previousPage;
+              } catch (e) {
+                print('Error navigating back from SoundscapesPage: $e');
+                // Fallback to the trance settings page if there's an error
+                try {
+                  final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                  pageIndexNotifier.value = 4; // TranceSettingsPage
+                } catch (e) {
+                  print('Failed to navigate even to trance settings page: $e');
+                  // At this point we can't do much more
+                }
+              }
             },
           );
         },
@@ -1114,7 +1126,15 @@ class SoundscapesPage {
       child: Consumer(
         builder: (context, ref, _) {
           final tranceSettings = ref.watch(tranceSettingsProvider);
-          final tranceSettingsNotifier = ref.watch(tranceSettingsProvider.notifier);
+          
+          // Safe access to tranceSettingsNotifier
+          TranceSettingsNotifier? tranceSettingsNotifier;
+          try {
+            tranceSettingsNotifier = ref.read(tranceSettingsProvider.notifier);
+          } catch (e) {
+            print('Error accessing tranceSettingsNotifier in SoundscapesPage: $e');
+            // Continue without the notifier - we'll handle this case later
+          }
           
           return Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -1157,11 +1177,44 @@ class SoundscapesPage {
                           size: 22.0,
                         )
                       : null,
-                    onTap: () async {
-                      await tranceSettingsNotifier.setBackgroundSound(sound);
-                      
-                      // Navigate back to trance settings page
-                      ref.read(pageIndexNotifierProvider).value = ref.read(previousPageIndexProvider);
+                    onTap: () {
+                      // Defer the update to avoid build-time provider modifications
+                      Future.microtask(() async {
+                        try {
+                          // Update the background sound if the notifier is available
+                          if (tranceSettingsNotifier != null && tranceSettingsNotifier.mounted) {
+                            await tranceSettingsNotifier.setBackgroundSound(sound);
+                          } else {
+                            print('Warning: tranceSettingsNotifier was null or not mounted');
+                          }
+                          
+                          // Navigate back to trance settings page
+                          try {
+                            final previousPage = ref.read(previousPageIndexProvider);
+                            final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                            pageIndexNotifier.value = previousPage;
+                          } catch (e) {
+                            print('Error navigating after selecting sound: $e');
+                            // Try to fallback to trance settings page
+                            try {
+                              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                              pageIndexNotifier.value = 4; // TranceSettingsPage
+                            } catch (e) {
+                              print('Failed to navigate even to fallback page: $e');
+                            }
+                          }
+                        } catch (e) {
+                          print('Error handling sound selection: $e');
+                          // Show an error message if possible, otherwise silently fail
+                          try {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Could not set sound: $e')),
+                            );
+                          } catch (e) {
+                            print('Could not show error snackbar: $e');
+                          }
+                        }
+                      });
                     },
                   ),
                 );

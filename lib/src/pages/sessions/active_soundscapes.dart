@@ -89,35 +89,54 @@ class _ActiveSoundscapesState extends ConsumerState<ActiveSoundscapes> {
                       child: GlassRadioButton<user_model.ActiveBackgroundSound>(
                         value: sound,
                         groupValue: currentSound,
-                        onChanged: (value) async {
+                        onChanged: (value) {
                           if (value == null) return;
 
-                          // Stop current audio before playing new one
-                          await _stopAudio();
+                          // Schedule state updates to happen after the build phase is complete
+                          Future.microtask(() async {
+                            try {
+                              // Make sure we're still mounted before proceeding
+                              if (!mounted) return;
+                              
+                              // Stop current audio before playing new one
+                              await _stopAudio();
+                              
+                              // Update local state outside of build phase
+                              if (mounted) {
+                                ref.read(activeSoundscapeProvider.notifier).state = value;
+                              }
 
-                          // Update local state immediately
-                          ref.read(activeSoundscapeProvider.notifier).state = value;
+                              // Play the new sound
+                              final result = await _cloudStorageService.getFile(
+                                bucket: "background_loops",
+                                fileName: value.path,
+                              );
 
-                          try {
-                            // Play the new sound
-                            final result = await _cloudStorageService.getFile(
-                              bucket: "background_loops",
-                              fileName: value.path,
-                            );
-
-                            if (mounted) {
-                              await _backgroundAudioService.play(result.url);
-                              widget.onPlayStateChanged(true);
-                              setState(() => _isPlaying = true);
+                              if (mounted) {
+                                await _backgroundAudioService.play(result.url);
+                                widget.onPlayStateChanged(true);
+                                setState(() => _isPlaying = true);
+                                
+                                // Then update Firestore - only if still mounted
+                                try {
+                                  await ref
+                                      .read(userProvider.notifier)
+                                      .updateActiveBackgroundSound(value);
+                                } catch (e) {
+                                  print("Error updating user preference: $e");
+                                  // Continue even if Firestore update fails - it's not critical
+                                }
+                              }
+                            } catch (e) {
+                              print("Error handling soundscape selection: $e");
+                              // Make sure error doesn't break the UI
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("Could not play soundscape: $e")),
+                                );
+                              }
                             }
-
-                            // Then update Firestore
-                            await ref
-                                .read(userProvider.notifier)
-                                .updateActiveBackgroundSound(value);
-                          } catch (e) {
-                            print("error playing audio: $e");
-                          }
+                          });
                         },
                         icon: sound.icon,
                         title: sound.string,

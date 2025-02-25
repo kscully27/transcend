@@ -85,6 +85,26 @@ class TranceSettingsNotifier extends StateNotifier<TranceSettingsState> {
 
   // A flag to track additional state beyond the built-in mounted property
   bool _isSafeToUse = true;
+  
+  // Flag to track if we're currently in an asynchronous update
+  bool _isUpdating = false;
+
+  // Safe method to update state that handles concurrency and lifecycle
+  void _safeUpdateState(TranceSettingsState newState) {
+    if (!mounted || !_isSafeToUse) return;
+    try {
+      state = newState;
+    } catch (e) {
+      print('Error updating trance settings state: $e');
+      // The state update failed, but we shouldn't throw as this would crash the app
+    }
+  }
+  
+  @override
+  void dispose() {
+    _isSafeToUse = false;
+    super.dispose();
+  }
 
   Future<void> _loadSavedSettings() async {
     try {
@@ -160,19 +180,6 @@ class TranceSettingsNotifier extends StateNotifier<TranceSettingsState> {
     }
   }
 
-  // Override the dispose method to set our custom flag
-  @override
-  void dispose() {
-    _isSafeToUse = false;
-    super.dispose();
-  }
-
-  // Safe wrapper for state updates
-  void _safeUpdateState(TranceSettingsState newState) {
-    if (!mounted || !_isSafeToUse) return; // Skip update if not safe
-    state = newState;
-  }
-
   Future<void> setTranceMethod(TranceMethod method) async {
     if (!mounted || !_isSafeToUse) return; // Early return if not safe
     
@@ -202,13 +209,30 @@ class TranceSettingsNotifier extends StateNotifier<TranceSettingsState> {
   Future<void> setBackgroundSound(BackgroundSound sound) async {
     if (!mounted || !_isSafeToUse) return;
     
-    _safeUpdateState(state.copyWith(backgroundSound: sound));
+    // Set a flag to avoid concurrent updates
+    if (_isUpdating) {
+      print('Skipping update, already processing another update');
+      return;
+    }
+    
+    _isUpdating = true;
     
     try {
+      // First update the state in memory
+      _safeUpdateState(state.copyWith(backgroundSound: sound));
+      
+      // Then save to SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('background_sound', sound.name);
+      if (mounted && _isSafeToUse) {
+        await prefs.setString('background_sound', sound.name);
+      }
     } catch (e) {
-      print('Error saving background sound: $e');
+      print('Error in setBackgroundSound: $e');
+    } finally {
+      // Clear the flag to allow future updates
+      if (mounted && _isSafeToUse) {
+        _isUpdating = false;
+      }
     }
   }
 
