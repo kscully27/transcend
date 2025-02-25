@@ -40,80 +40,77 @@ class _BreakDurationSelectorState extends ConsumerState<BreakDurationSelector> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Text(
-            widget.title,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.shadow,
+    // Compact layout with minimal extra space
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Title
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+            child: Text(
+              widget.title,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.shadow,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
-        ),
-        const SizedBox(height: 10),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40),
-          child: Text(
-            'Select how much time to pause between sentences during your session',
-            style: TextStyle(
-              fontSize: 14,
-              color: theme.colorScheme.shadow.withOpacity(0.7),
+          
+          // Description
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 4.0),
+            child: Text(
+              'Select how much time to pause between sentences',
+              style: TextStyle(
+                fontSize: 14,
+                color: theme.colorScheme.shadow.withOpacity(0.7),
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
-        ),
-        const SizedBox(height: 30),
-        
-        // Value selector for break duration
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40),
-          child: ValueSelector(
-            values: _durationOptions,
-            unit: 'seconds',
-            initialValue: _selectedDuration,
-            backgroundColor: Colors.white.withOpacity(0.3),
-            textColor: theme.colorScheme.shadow,
-            onValueChanged: (value) {
-              setState(() {
-                _selectedDuration = value;
-              });
-            },
+          
+          // Value selector - maintain 120px height as requested
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8.0),
+            child: ValueSelector(
+              values: _durationOptions,
+              unit: 'seconds',
+              initialValue: _selectedDuration,
+              backgroundColor: Colors.white.withOpacity(0.3),
+              textColor: theme.colorScheme.shadow,
+              height: 120, // Keep at 120px as requested
+              onValueChanged: (value) {
+                setState(() {
+                  _selectedDuration = value;
+                });
+              },
+            ),
           ),
-        ),
-        
-        const SizedBox(height: 40),
-        
-        // Apply button
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40),
-          child: ClayButton(
-            color: Colors.white,
-            parentColor: Colors.white.withOpacity(0.5),
-            borderRadius: 10,
-            height: 50,
-            text: 'Apply',
-            textColor: theme.colorScheme.shadow,
-            onPressed: () {
-              // Update the break duration setting
-              ref.read(tranceSettingsProvider.notifier).setBreakBetweenSentences(_selectedDuration);
-              
-              // Close the modal
-              Navigator.of(context).pop();
-              
-              // Call the onClose callback if provided
-              if (widget.onClose != null) {
-                Future.delayed(const Duration(milliseconds: 300), widget.onClose!);
-              }
-            },
+          
+          // Apply button positioned higher with less vertical space
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+            child: ClayButton(
+              color: Theme.of(context).colorScheme.primary,
+              parentColor: Colors.white,
+              borderRadius: 10,
+              height: 50,
+              text: 'Apply',
+              onPressed: () {
+                // Important: update state before closing modal
+                ref.read(tranceSettingsProvider.notifier).setBreakBetweenSentences(_selectedDuration);
+                
+                // Close the modal
+                Navigator.of(context).pop();
+              },
+            ),
           ),
-        ),
-        const SizedBox(height: 20),
-      ],
+        ],
+      ),
     );
   }
 } 

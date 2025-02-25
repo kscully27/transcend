@@ -6,67 +6,47 @@ class ClayBottomSheet extends StatelessWidget {
   final Widget content;
   final bool hasCloseButton;
   final double heightPercent;
+  final EdgeInsets contentPadding;
 
   const ClayBottomSheet({
     super.key,
     required this.content,
     this.hasCloseButton = true,
     this.heightPercent = 0.5,
+    this.contentPadding = const EdgeInsets.only(bottom: 20),
   });
 
   static Future<T?> show<T>({
     required BuildContext context,
     required Widget content,
     bool hasCloseButton = true,
-    double heightPercent = 0.5,
+    double heightPercent = 0.4,
+    EdgeInsets contentPadding = const EdgeInsets.only(bottom: 20),
   }) {
-    return Future.delayed(
-      const Duration(milliseconds: 360),
-      () => showModalBottomSheet<T>(
-        context: context,
-        backgroundColor: Colors.transparent,
-        barrierColor: Colors.transparent,
-        isDismissible: true,
-        isScrollControlled: true,
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * heightPercent,
-        ),
-        builder: (context) {
-          return AnimatedBuilder(
-            animation: ModalRoute.of(context)!.animation!,
-            builder: (context, child) {
-              final delayedAnimation = CurvedAnimation(
-                parent: ModalRoute.of(context)!.animation!,
-                curve: const Interval(
-                  0.0,
-                  1.0,
-                  curve: Curves.easeOutBack,
-                ),
-              );
-              
-              return SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 1),
-                  end: Offset.zero,
-                ).animate(delayedAnimation),
-                child: FadeTransition(
-                  opacity: delayedAnimation,
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom,
-                    ),
-                    child: ClayBottomSheet(
-                      content: content,
-                      hasCloseButton: hasCloseButton,
-                      heightPercent: heightPercent,
-                    ),
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
+    return showModalBottomSheet<T>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.transparent,
+      isDismissible: true,
+      isScrollControlled: true,
+      builder: (builderContext) {
+        final screenHeight = MediaQuery.of(builderContext).size.height;
+        final maxHeight = screenHeight * heightPercent;
+        
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: maxHeight,
+          ),
+          child: SafeArea(
+            child: ClayBottomSheet(
+              content: content,
+              hasCloseButton: hasCloseButton,
+              heightPercent: heightPercent,
+              contentPadding: contentPadding,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -108,28 +88,39 @@ class ClayBottomSheet extends StatelessWidget {
                   ),
                 ),
                 if (hasCloseButton)
-                  SizedBox(
-                    width: double.infinity,
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: GlassIconButton(
-                            icon: Icons.close,
-                            iconColor: Colors.black,
-                            onPressed: () => Navigator.pop(context),
+                  Flexible(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: GlassIconButton(
+                              icon: Icons.close,
+                              iconColor: Colors.black,
+                              onPressed: () => Navigator.pop(context),
+                            ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: content,
-                        ),
-                      ],
+                          Padding(
+                            padding: contentPadding,
+                            child: SingleChildScrollView(
+                              child: content,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 else
-                  content,
+                  Flexible(
+                    child: Padding(
+                      padding: contentPadding,
+                      child: SingleChildScrollView(
+                        child: content,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:trancend/src/models/session.model.dart';
 import 'package:trancend/src/models/user.model.dart';
+import 'package:trancend/src/pages/sessions/active_soundscapes.dart' as active_sounds;
 import 'package:trancend/src/pages/sessions/intention_content.dart';
 import 'package:trancend/src/pages/sessions/modality_select.dart';
 import 'package:trancend/src/pages/sessions/previous_intentions.dart';
@@ -402,11 +403,11 @@ class TranceSettingsModalPage {
           final tranceMethod = selectedModality ?? TranceMethod.Hypnosis;
           
           return SingleChildScrollView(
-            child: Padding(
+      child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
+        child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+          children: [
                   // Session Duration (without title)
                   SizedBox(
                     height: 100,
@@ -455,6 +456,8 @@ class TranceSettingsModalPage {
       methodSelection = _buildBreathingMethodSelection(context, ref, tranceSettings);
     } else if (tranceMethod == TranceMethod.Meditation) {
       methodSelection = _buildMeditationMethodSelection(context, ref, tranceSettings);
+    } else if (tranceMethod == TranceMethod.Active) {
+      methodSelection = _buildActiveMethodSelection(context, ref, tranceSettings);
     } else {
       // For other methods, only show sound selection
       methodSelection = _buildSoundSelection(context, ref, tranceSettings);
@@ -754,6 +757,58 @@ class TranceSettingsModalPage {
     );
   }
 
+  static Widget _buildActiveMethodSelection(BuildContext context, WidgetRef ref, TranceSettingsState tranceSettings) {
+    final theme = Theme.of(context);
+    final userActiveSound = ref.watch(active_sounds.activeSoundscapeProvider) ?? active_sounds.ActiveBackgroundSound.None;
+    
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(10),
+      backgroundColor: Colors.white.withOpacity(0.1),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      border: Border.all(color: theme.colorScheme.shadow, width: .1),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Active soundscape selection
+            GestureDetector(
+              onTap: () {
+                // Navigate to active soundscapes using the proper modal navigation pattern
+                ref.read(previousPageIndexProvider.notifier).state = 4; // Track current page (trance settings)
+                
+                // We need to add an ActiveSoundscapesPage to the page list builder
+                // For now, reuse the SoundscapesPage (index 6) with a parameter
+                ref.read(pageIndexNotifierProvider).value = 6; // Go to soundscapes page
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Text(
+                      userActiveSound.string,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.shadow,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      'Active Sound',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.shadow,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // Show advanced settings in a clay bottom sheet
   static void _showAdvancedSettingsModal(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -769,7 +824,7 @@ class TranceSettingsModalPage {
       heightPercent: 0.6,
       content: StatefulBuilder(
         builder: (context, setState) {
-          return Column(
+    return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -790,13 +845,11 @@ class TranceSettingsModalPage {
               // Break between sentences option
               GestureDetector(
                 onTap: () {
-                  // Close the current bottom sheet
+                  // Close the current bottom sheet immediately
                   Navigator.pop(context);
                   
-                  // Show the break between sentences modal after a short delay
-                  Future.delayed(const Duration(milliseconds: 300), () {
-                    _showBreakBetweenSentencesModal(context, ref);
-                  });
+                  // Show the break between sentences modal directly
+                  _showBreakBetweenSentencesModal(context, ref);
                 },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -869,7 +922,7 @@ class TranceSettingsModalPage {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+      children: [
                     Text(
                       'Voice Volume',
                       style: TextStyle(
@@ -908,18 +961,25 @@ class TranceSettingsModalPage {
     final selectedModality = ref.read(selectedModalityProvider) ?? TranceMethod.Hypnosis;
     final modalityTitle = _getModalityTitle(selectedModality);
     
+    // Cache the theme and other values before showing modal to avoid context issues
+    final theme = Theme.of(context);
+    
     ClayBottomSheet.show(
       context: context,
-      heightPercent: 0.5,
+      heightPercent: 0.32, // Reduced to fit content exactly without extra space
       content: BreakDurationSelector(
         title: 'Break Between Sentences',
         initialDuration: tranceSettings.breakBetweenSentences,
-        onClose: () {
-          // Show the advanced settings modal again
-          _showAdvancedSettingsModal(context, ref);
-        },
+        // Remove the onClose callback that tries to show the advanced settings modal
+        // This was causing the issue when the context is deactivated
       ),
-    );
+    ).then((_) {
+      // After the modal is closed, safely reopen the advanced settings
+      // This ensures we're using a valid context
+      if (context.mounted) {
+        _showAdvancedSettingsModal(context, ref);
+      }
+    });
   }
 
   static String _getMethodTitle(TranceMethod method) {
@@ -1185,7 +1245,7 @@ class SoundscapesPage {
                           size: 22.0,
                         )
                       : null,
-                    onTap: () {
+          onTap: () {
                       // Defer the update to avoid build-time provider modifications
                       Future.microtask(() async {
                         // Update the background sound if the notifier is available

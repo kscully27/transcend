@@ -7,9 +7,64 @@ import 'package:trancend/src/services/background_audio.service.dart';
 import 'package:trancend/src/services/storage_service.dart';
 import 'package:trancend/src/ui/glass/glass_button.dart';
 import 'package:trancend/src/ui/glass/glass_radio_button.dart';
+import 'package:trancend/src/shared/icons.dart';
+
+enum ActiveBackgroundSound {
+  Fire,
+  Electricity,
+  Encouragement,
+  Energy,
+  Enhance,
+  Flight,
+  Force,
+  Ignition,
+  Motivation,
+  Passion,
+  Power,
+  Spark,
+  Stamina,
+  Strength,
+  None
+}
+
+Map<ActiveBackgroundSound, IconData> activeBackgroundIcons = {
+  ActiveBackgroundSound.Fire: AppIcons.fire,
+  ActiveBackgroundSound.Electricity: AppIcons.electricity,
+  ActiveBackgroundSound.Encouragement: AppIcons.encouragement,
+  ActiveBackgroundSound.Energy: AppIcons.energy,
+  ActiveBackgroundSound.Enhance: AppIcons.enhance,
+  ActiveBackgroundSound.Flight: AppIcons.flight,
+  ActiveBackgroundSound.Force: AppIcons.force,
+  ActiveBackgroundSound.Ignition: AppIcons.ignition,
+  ActiveBackgroundSound.Motivation: AppIcons.motivation,
+  ActiveBackgroundSound.Passion: AppIcons.passion,
+  ActiveBackgroundSound.Power: AppIcons.power,
+  ActiveBackgroundSound.Spark: AppIcons.spark,
+  ActiveBackgroundSound.Stamina: AppIcons.stamina,
+  ActiveBackgroundSound.Strength: AppIcons.strength,
+  ActiveBackgroundSound.None: AppIcons.none,
+};
+
+extension ActiveBackgroundSoundX on ActiveBackgroundSound {
+  String get string => _enumToString(this);
+  String get id => string.toLowerCase();
+  IconData get icon => activeBackgroundIcons[this] ?? AppIcons.none;
+  String get path => 'active/$id.mp3';
+  
+  static String _enumToString(ActiveBackgroundSound value) {
+    return value.toString().split('.').last;
+  }
+  
+  static ActiveBackgroundSound fromString(String string) {
+    return ActiveBackgroundSound.values.firstWhere(
+      (e) => _enumToString(e).toLowerCase() == string.toLowerCase(),
+      orElse: () => ActiveBackgroundSound.None,
+    );
+  }
+}
 
 final activeSoundscapeProvider =
-    StateProvider<user_model.ActiveBackgroundSound?>((ref) => null);
+    StateProvider<ActiveBackgroundSound?>((ref) => null);
 
 class ActiveSoundscapes extends ConsumerStatefulWidget {
   final Function(bool) onPlayStateChanged;
@@ -60,7 +115,14 @@ class _ActiveSoundscapesState extends ConsumerState<ActiveSoundscapes> {
       data: (user) {
         if (user == null) return const SizedBox();
 
-        final currentSound = ref.watch(activeSoundscapeProvider) ?? user.activeBackgroundSound;
+        // Convert from user model enum to local enum
+        final userSound = user.activeBackgroundSound != null 
+            ? ActiveBackgroundSound.values.firstWhere(
+                (s) => s.toString().split('.').last == user.activeBackgroundSound.toString().split('.').last,
+                orElse: () => ActiveBackgroundSound.None)
+            : ActiveBackgroundSound.None;
+            
+        final currentSound = ref.watch(activeSoundscapeProvider) ?? userSound;
 
         return Container(
           padding: const EdgeInsets.all(16),
@@ -79,14 +141,14 @@ class _ActiveSoundscapesState extends ConsumerState<ActiveSoundscapes> {
               const SizedBox(height: 16),
               Expanded(
                 child: ListView.builder(
-                  itemCount: user_model.ActiveBackgroundSound.values.length,
+                  itemCount: ActiveBackgroundSound.values.length,
                   itemBuilder: (context, index) {
-                    final sound = user_model.ActiveBackgroundSound.values[index];
-                    if (sound == user_model.ActiveBackgroundSound.None) return const SizedBox.shrink();
+                    final sound = ActiveBackgroundSound.values[index];
+                    if (sound == ActiveBackgroundSound.None) return const SizedBox.shrink();
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: GlassRadioButton<user_model.ActiveBackgroundSound>(
+                      child: GlassRadioButton<ActiveBackgroundSound>(
                         value: sound,
                         groupValue: currentSound,
                         onChanged: (value) {
@@ -119,9 +181,15 @@ class _ActiveSoundscapesState extends ConsumerState<ActiveSoundscapes> {
                                 
                                 // Then update Firestore - only if still mounted
                                 try {
+                                  // Convert to user model enum for storage
+                                  final userModelSound = user_model.ActiveBackgroundSound.values.firstWhere(
+                                    (s) => s.toString().split('.').last == value.toString().split('.').last,
+                                    orElse: () => user_model.ActiveBackgroundSound.None
+                                  );
+                                  
                                   await ref
                                       .read(userProvider.notifier)
-                                      .updateActiveBackgroundSound(value);
+                                      .updateActiveBackgroundSound(userModelSound);
                                 } catch (e) {
                                   print("Error updating user preference: $e");
                                   // Continue even if Firestore update fails - it's not critical

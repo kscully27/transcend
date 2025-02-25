@@ -60,7 +60,13 @@ class _ActiveState extends ConsumerState<Active> {
       data: (user) {
         if (user == null) return const SizedBox();
 
-        final activeSound = selectedSound ?? user.activeBackgroundSound ?? user_model.ActiveBackgroundSound.None;
+        final userSound = user.activeBackgroundSound != null 
+            ? ActiveBackgroundSound.values.firstWhere(
+                (s) => s.toString().split('.').last == user.activeBackgroundSound.toString().split('.').last,
+                orElse: () => ActiveBackgroundSound.None)
+            : ActiveBackgroundSound.None;
+            
+        final activeSound = selectedSound ?? userSound;
 
         return Navigator(
           key: _navigatorKey,
