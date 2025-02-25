@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:trancend/src/providers/intention_selection_provider.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 
-class PreviousIntentions extends StatelessWidget {
+class PreviousIntentions extends ConsumerWidget {
   final VoidCallback onBack;
   final Function(String intention) onIntentionSelected;
 
@@ -12,8 +14,9 @@ class PreviousIntentions extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final intentionState = ref.watch(intentionSelectionProvider);
     final placeholders = [
       "I want to feel more confident in social situations",
       "I want to sleep more deeply and wake up refreshed",
@@ -33,6 +36,9 @@ class PreviousIntentions extends StatelessWidget {
           itemCount: placeholders.length,
           itemBuilder: (context, index) {
             final intention = placeholders[index];
+            final isSelected = intentionState.type == IntentionSelectionType.previous && 
+                              intentionState.customIntention == intention;
+            
             return Padding(
               padding: EdgeInsets.only(
                 bottom: index == placeholders.length - 1 ? 48 : 12,
@@ -50,12 +56,23 @@ class PreviousIntentions extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  trailing: Icon(
-                    Icons.arrow_forward_ios,
-                    color: theme.colorScheme.shadow.withOpacity(0.7),
-                    size: 20,
-                  ),
-                  onTap: () => onIntentionSelected(intention),
+                  trailing: isSelected
+                    ? Icon(
+                        Icons.check,
+                        color: theme.colorScheme.primary,
+                        size: 22.0,
+                      )
+                    : Icon(
+                        Icons.arrow_forward_ios,
+                        color: theme.colorScheme.shadow.withOpacity(0.7),
+                        size: 20,
+                      ),
+                  onTap: () {
+                    // Update the provider
+                    ref.read(intentionSelectionProvider.notifier).setCustomIntention(intention);
+                    ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.previous);
+                    onIntentionSelected(intention);
+                  },
                 ),
               ),
             );

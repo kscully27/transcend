@@ -53,27 +53,12 @@ class GlassRadioButton<T> extends StatelessWidget {
                             ),
                       ),
                     ),
-                  Container(
-                    height: 30,
-                    width: 30,
-                    decoration: BoxDecoration(
-                      color: isSelected ? Colors.white70: Colors.white12,
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(
-                        color: theme.colorScheme.shadow.withOpacity(0.1),
-                        width: 0.5,
-                      ),
+                  if (isSelected)
+                    Icon(
+                      Icons.check,
+                      size: 25,
+                      color: theme.colorScheme.primary,
                     ),
-                    child: isSelected
-                        ? Center(
-                            child: Icon(
-                              Icons.check,
-                              size: 25,
-                              color: theme.colorScheme.shadow,
-                            ),
-                          )
-                        : Container(),
-                  ),
                   const SizedBox(width: 4),
                 ],
               ),

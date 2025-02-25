@@ -22,7 +22,7 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
           AppGender.Other,
       breathingMethod: $enumDecodeNullable(
               _$BreathingMethodEnumMap, json['breathingMethod']) ??
-          BreathingMethod.Focus,
+          BreathingMethod.BalancedBreathing,
       categories: (json['categories'] as List<dynamic>?)
               ?.map((e) => $enumDecode(_$CategoryEnumMap, e))
               .toList() ??
@@ -265,9 +265,10 @@ const _$AppGenderEnumMap = {
 };
 
 const _$BreathingMethodEnumMap = {
-  BreathingMethod.Energize: 'Energize',
-  BreathingMethod.Focus: 'Focus',
-  BreathingMethod.Relax: 'Relax',
+  BreathingMethod.BalancedBreathing: 'BalancedBreathing',
+  BreathingMethod.ButeykoBreathing: 'ButeykoBreathing',
+  BreathingMethod.BoxBreathing: 'BoxBreathing',
+  BreathingMethod.FourSevenEightBreathing: 'FourSevenEightBreathing',
 };
 
 const _$CategoryEnumMap = {

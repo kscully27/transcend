@@ -44,6 +44,18 @@ class UserNotifier extends AsyncNotifier<user_model.User?> {
     state = await AsyncValue.guard(() => build());
   }
 
+  Future<void> updateActiveBackgroundSound(user_model.ActiveBackgroundSound sound) async {
+    final user = state.value;
+    if (user == null) return;
+
+    final firestoreService = locator<FirestoreService>();
+    await firestoreService.updateUserFromData(
+        user.uid, {'activeBackgroundSound': sound.toString().split('.').last});
+
+    // Refresh user data after saving
+    state = await AsyncValue.guard(() => build());
+  }
+
   Future<void> updateHypnotherapyMethod(
       user_model.HypnotherapyMethod method) async {
     final user = state.value;

@@ -22,8 +22,12 @@ final pageIndexNotifierProvider = Provider<ValueNotifier<int>>((ref) {
 // Provider to track the previous page index
 final previousPageIndexProvider = StateProvider<int>((ref) => 0);
 
-// Provider to track the selected modality
-final selectedModalityProvider = StateProvider<TranceMethod?>((ref) => null);
+// Provider to track the selected modality - initialized as null to ensure no selection initially
+final selectedModalityProvider = StateProvider<TranceMethod?>((ref) {
+  // When this provider is first accessed, ensure the trance settings are also reset
+  ref.read(tranceSettingsProvider.notifier).clearTranceMethod();
+  return null; // Always start with null selection
+});
 
 class RootSheetPage {
   const RootSheetPage._();
@@ -34,6 +38,14 @@ class RootSheetPage {
       hasTopBarLayer: false,
       child: Consumer(
         builder: (context, ref, _) {
+          final intentionState = ref.watch(intentionSelectionProvider);
+          
+          // Reset the selected modality to null when the root page is built
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.read(selectedModalityProvider.notifier).state = null;
+            ref.read(tranceSettingsProvider.notifier).clearTranceMethod();
+          });
+          
           return IntentionContent(
             tranceMethod: TranceMethod.values.first,
             onContinue: (intention) {
@@ -48,9 +60,9 @@ class RootSheetPage {
               ref.read(previousPageIndexProvider.notifier).state = 0; // Track that we came from root page
               pageIndexNotifier.value = 3; // Index of ModalitySelectPage
             },
-            initialCustomIntention: null,
+            initialCustomIntention: intentionState.customIntention,
             onBack: null,
-            selectedGoalIds: {},
+            selectedGoalIds: intentionState.selectedGoalIds,
             isCustomMode: false,
           );
         },
@@ -105,7 +117,9 @@ class CustomIntentionPage {
               // Handle goals selection
               debugPrint('Selected goals: $goals');
             },
-            initialCustomIntention: '',
+            initialCustomIntention: intentionState.type == IntentionSelectionType.custom 
+                ? intentionState.customIntention 
+                : '',
             onBack: () {
               pageIndexNotifier.value = 0;
             },
@@ -207,6 +221,10 @@ class ModalitySelectPage {
         builder: (context, ref, _) {
           final pageIndexNotifier = ref.watch(pageIndexNotifierProvider);
           final selectedModality = ref.watch(selectedModalityProvider);
+          final tranceSettings = ref.watch(tranceSettingsProvider);
+          
+          // We now check if selectedModality is null and don't fallback to tranceSettings
+          // This ensures no selection is shown initially
           
           return Padding(
             padding: const EdgeInsets.only(top: 16.0),
@@ -227,7 +245,7 @@ class ModalitySelectPage {
                 ref.read(previousPageIndexProvider.notifier).state = 3; // Track that we came from modality page
                 pageIndexNotifier.value = 4; // Index of TranceSettingsPage
               },
-              selectedMethod: selectedModality,
+              selectedMethod: selectedModality, // Remove the fallback to tranceSettings.tranceMethod
               selectedIndex: null,
             ),
           );
@@ -253,7 +271,19 @@ class TranceSettingsModalPage {
             icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
             onPressed: () {
               final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              pageIndexNotifier.value = 3; // Go back to modality selection
+              final previousPage = ref.read(previousPageIndexProvider);
+              
+              // Always go back to modality selection page
+              pageIndexNotifier.value = 3; // ModifySelectPage is at index 3
+              
+              // Make sure to preserve the original page we came from before the modality page
+              if (previousPage < 3) {
+                // If we have a valid page index before modality page, preserve it
+                ref.read(previousPageIndexProvider.notifier).state = previousPage;
+              } else {
+                // If something went wrong, default to root page
+                ref.read(previousPageIndexProvider.notifier).state = 0;
+              }
             },
           );
         },
@@ -797,9 +827,30 @@ class HypnotherapyMethodsPage {
     return WoltModalSheetPage(
       backgroundColor: Colors.transparent,
       hasTopBarLayer: true,
+      leadingNavBarWidget: Consumer(
+        builder: (context, ref, _) {
+          return IconButton(
+            icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
+            onPressed: () {
+              // Fix back button navigation
+              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+              final previousPage = ref.read(previousPageIndexProvider);
+              
+              // Go back to the trance settings page
+              pageIndexNotifier.value = previousPage;
+              
+              // Make sure the previous page index is set to the page before the trance settings page
+              if (previousPage == 4) { // If going back to trance settings page (index 4)
+                // Reset the previous page index to ensure we can navigate back from trance settings
+                ref.read(previousPageIndexProvider.notifier).state = 3; // Modality select page
+              }
+            },
+          );
+        },
+      ),
       pageTitle: Center(
         child: Text(
-          'Select Method',
+          'Hypnotherapy Method',
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 18,
@@ -807,92 +858,74 @@ class HypnotherapyMethodsPage {
           ),
         ),
       ),
-      leadingNavBarWidget: Consumer(
-        builder: (context, ref, _) {
-          return IconButton(
-            icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
-            onPressed: () {
-              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              pageIndexNotifier.value = 4; // Go back to trance settings
-            },
-          );
-        },
-      ),
       child: Consumer(
         builder: (context, ref, _) {
           final tranceSettings = ref.watch(tranceSettingsProvider);
           final tranceSettingsNotifier = ref.watch(tranceSettingsProvider.notifier);
           
           return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                ...HypnotherapyMethod.values.map((method) {
-                  final isSelected = tranceSettings.hypnotherapyMethod == method;
-                  final methodName = hypnotherapyMethods[method] ?? method.name;
-                  final methodDescription = hypnotherapyMethodDescriptions[method] ?? '';
-                  final methodIcon = hypnotherapyMethodIcons[method] ?? Icons.psychology;
-                  
-                  return GlassContainer(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    borderRadius: BorderRadius.circular(12),
-                    backgroundColor: Colors.white12,
-                    child: ListTile(
-                      leading: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: isSelected
-                                    ? theme.colorScheme.primary
-                                    : theme.colorScheme.shadow.withOpacity(0.7),
-                                width: 2,
-                              ),
-                            ),
-                            child: isSelected
-                                ? Center(
-                                    child: Container(
-                                      width: 12,
-                                      height: 12,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: theme.colorScheme.primary,
-                                      ),
-                                    ),
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(width: 12),
-                          Icon(methodIcon, color: theme.colorScheme.shadow),
-                        ],
-                      ),
-                      title: Text(
-                        methodName,
-                        style: TextStyle(
-                          color: theme.colorScheme.shadow,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      subtitle: Text(
-                        methodDescription,
-                        style: TextStyle(
-                          color: theme.colorScheme.shadow.withOpacity(0.7),
-                          fontSize: 12,
-                        ),
-                      ),
-                      onTap: () {
-                        tranceSettingsNotifier.setHypnotherapyMethod(method);
-                        // Go back to trance settings
-                        ref.read(pageIndexNotifierProvider).value = 4;
-                      },
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: const ClampingScrollPhysics(),
+              itemCount: HypnotherapyMethod.values.length,
+              itemBuilder: (context, index) {
+                final method = HypnotherapyMethod.values[index];
+                final isSelected = tranceSettings.hypnotherapyMethod == method;
+                
+                return GlassContainer(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  borderRadius: BorderRadius.circular(12),
+                  backgroundColor: Colors.white12,
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    // Add leading icon for the method
+                    leading: Icon(
+                      hypnotherapyMethodIcons[method] ?? Icons.psychology,
+                      color: theme.colorScheme.shadow,
+                      size: 22,
                     ),
-                  );
-                }).toList(),
-              ],
+                    title: Text(
+                      hypnotherapyMethods[method] ?? method.name,
+                      style: TextStyle(
+                        color: theme.colorScheme.shadow,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                    // Make the subtitle smaller or remove if necessary
+                    subtitle: Text(
+                      hypnotherapyMethodDescriptions[method] ?? '',
+                      style: TextStyle(
+                        color: theme.colorScheme.shadow.withOpacity(0.7),
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: isSelected
+                      ? Icon(
+                          Icons.check,
+                          color: theme.colorScheme.primary,
+                          size: 22.0,
+                        )
+                      : null,
+                    onTap: () async {
+                      await tranceSettingsNotifier.setHypnotherapyMethod(method);
+                      
+                      // Navigate back to trance settings page and ensure correct previous page tracking
+                      final previousPage = ref.read(previousPageIndexProvider);
+                      ref.read(pageIndexNotifierProvider).value = previousPage;
+                      
+                      // If going back to trance settings (page 4), update previous page index to modality page (3)
+                      if (previousPage == 4) {
+                        ref.read(previousPageIndexProvider.notifier).state = 3;
+                      }
+                    },
+                  ),
+                );
+              },
             ),
           );
         },
@@ -910,9 +943,21 @@ class SoundscapesPage {
     return WoltModalSheetPage(
       backgroundColor: Colors.transparent,
       hasTopBarLayer: true,
+      leadingNavBarWidget: Consumer(
+        builder: (context, ref, _) {
+          return IconButton(
+            icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
+            onPressed: () {
+              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+              final previousPage = ref.read(previousPageIndexProvider);
+              pageIndexNotifier.value = previousPage;
+            },
+          );
+        },
+      ),
       pageTitle: Center(
         child: Text(
-          'Select Sound',
+          'Select Soundscape',
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 18,
@@ -920,76 +965,61 @@ class SoundscapesPage {
           ),
         ),
       ),
-      leadingNavBarWidget: Consumer(
-        builder: (context, ref, _) {
-          return IconButton(
-            icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
-            onPressed: () {
-              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              pageIndexNotifier.value = 4; // Go back to trance settings
-            },
-          );
-        },
-      ),
       child: Consumer(
         builder: (context, ref, _) {
           final tranceSettings = ref.watch(tranceSettingsProvider);
           final tranceSettingsNotifier = ref.watch(tranceSettingsProvider.notifier);
           
           return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                ...BackgroundSound.values
-                    .where((sound) => sound != BackgroundSound.None)
-                    .map((sound) {
-                  final isSelected = tranceSettings.backgroundSound == sound;
-                  return GlassContainer(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    borderRadius: BorderRadius.circular(12),
-                    backgroundColor: Colors.white12,
-                    child: ListTile(
-                      leading: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isSelected
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.shadow.withOpacity(0.7),
-                            width: 2,
-                          ),
-                        ),
-                        child: isSelected
-                            ? Center(
-                                child: Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                ),
-                              )
-                            : null,
-                      ),
-                      title: Text(
-                        sound.name,
-                        style: TextStyle(
-                          color: theme.colorScheme.shadow,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      onTap: () {
-                        tranceSettingsNotifier.setBackgroundSound(sound);
-                        // Go back to trance settings
-                        ref.read(pageIndexNotifierProvider).value = 4;
-                      },
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: const ClampingScrollPhysics(),
+              itemCount: BackgroundSound.values.length,
+              itemBuilder: (context, index) {
+                final sound = BackgroundSound.values[index];
+                final isSelected = tranceSettings.backgroundSound == sound;
+                
+                if (sound == BackgroundSound.None) {
+                  return const SizedBox.shrink(); // Skip None option
+                }
+                
+                return GlassContainer(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  borderRadius: BorderRadius.circular(12),
+                  backgroundColor: Colors.white12,
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    leading: Icon(
+                      sound.icon,
+                      color: theme.colorScheme.shadow,
+                      size: 22,
                     ),
-                  );
-                }).toList(),
-              ],
+                    title: Text(
+                      sound.name,
+                      style: TextStyle(
+                        color: theme.colorScheme.shadow,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                    trailing: isSelected
+                      ? Icon(
+                          Icons.check,
+                          color: theme.colorScheme.primary,
+                          size: 22.0,
+                        )
+                      : null,
+                    onTap: () async {
+                      await tranceSettingsNotifier.setBackgroundSound(sound);
+                      
+                      // Navigate back to trance settings page
+                      ref.read(pageIndexNotifierProvider).value = ref.read(previousPageIndexProvider);
+                    },
+                  ),
+                );
+              },
             ),
           );
         },
@@ -1009,9 +1039,30 @@ class BreathingMethodsPage {
     return WoltModalSheetPage(
       backgroundColor: Colors.transparent,
       hasTopBarLayer: true,
+      leadingNavBarWidget: Consumer(
+        builder: (context, ref, _) {
+          return IconButton(
+            icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
+            onPressed: () {
+              // Fix back button navigation
+              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+              final previousPage = ref.read(previousPageIndexProvider);
+              
+              // Go back to the trance settings page
+              pageIndexNotifier.value = previousPage;
+              
+              // Make sure the previous page index is set to the page before the trance settings page
+              if (previousPage == 4) { // If going back to trance settings page (index 4)
+                // Reset the previous page index to ensure we can navigate back from trance settings
+                ref.read(previousPageIndexProvider.notifier).state = 3; // Modality select page
+              }
+            },
+          );
+        },
+      ),
       pageTitle: Center(
         child: Text(
-          'Select Breathing Method',
+          'Breathing Method',
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 18,
@@ -1019,92 +1070,73 @@ class BreathingMethodsPage {
           ),
         ),
       ),
-      leadingNavBarWidget: Consumer(
-        builder: (context, ref, _) {
-          return IconButton(
-            icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
-            onPressed: () {
-              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              pageIndexNotifier.value = 4; // Go back to trance settings
-            },
-          );
-        },
-      ),
       child: Consumer(
         builder: (context, ref, _) {
           final tranceSettings = ref.watch(tranceSettingsProvider);
           final tranceSettingsNotifier = ref.watch(tranceSettingsProvider.notifier);
           
           return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                ...BreathingMethod.values.map((method) {
-                  final isSelected = tranceSettings.breathingMethod == method;
-                  final methodName = breathingMethods[method] ?? method.name;
-                  final methodDescription = breathingMethodDescriptions[method] ?? '';
-                  final methodIcon = breathingMethodIcons[method] ?? Icons.air;
-                  
-                  return GlassContainer(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    borderRadius: BorderRadius.circular(12),
-                    backgroundColor: Colors.white12,
-                    child: ListTile(
-                      leading: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: isSelected
-                                    ? theme.colorScheme.primary
-                                    : theme.colorScheme.shadow.withOpacity(0.7),
-                                width: 2,
-                              ),
-                            ),
-                            child: isSelected
-                                ? Center(
-                                    child: Container(
-                                      width: 12,
-                                      height: 12,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: theme.colorScheme.primary,
-                                      ),
-                                    ),
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(width: 12),
-                          Icon(methodIcon, color: theme.colorScheme.shadow),
-                        ],
-                      ),
-                      title: Text(
-                        methodName,
-                        style: TextStyle(
-                          color: theme.colorScheme.shadow,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      subtitle: Text(
-                        methodDescription,
-                        style: TextStyle(
-                          color: theme.colorScheme.shadow.withOpacity(0.7),
-                          fontSize: 12,
-                        ),
-                      ),
-                      onTap: () {
-                        tranceSettingsNotifier.setBreathingMethod(method);
-                        // Go back to trance settings
-                        ref.read(pageIndexNotifierProvider).value = 4;
-                      },
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: const ClampingScrollPhysics(),
+              itemCount: BreathingMethod.values.length,
+              itemBuilder: (context, index) {
+                final method = BreathingMethod.values[index];
+                final isSelected = tranceSettings.breathingMethod == method;
+                
+                return GlassContainer(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  borderRadius: BorderRadius.circular(12),
+                  backgroundColor: Colors.white12,
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    // Add leading icon for the method
+                    leading: Icon(
+                      breathingMethodIcons[method] ?? Icons.air,
+                      color: theme.colorScheme.shadow,
+                      size: 22,
                     ),
-                  );
-                }).toList(),
-              ],
+                    title: Text(
+                      breathingMethods[method] ?? method.name,
+                      style: TextStyle(
+                        color: theme.colorScheme.shadow,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: Text(
+                      breathingMethodDescriptions[method] ?? '',
+                      style: TextStyle(
+                        color: theme.colorScheme.shadow.withOpacity(0.7),
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: isSelected
+                      ? Icon(
+                          Icons.check,
+                          color: theme.colorScheme.primary,
+                          size: 22.0,
+                        )
+                      : null,
+                    onTap: () async {
+                      await tranceSettingsNotifier.setBreathingMethod(method);
+                      
+                      // Navigate back to trance settings page and ensure correct previous page tracking
+                      final previousPage = ref.read(previousPageIndexProvider);
+                      ref.read(pageIndexNotifierProvider).value = previousPage;
+                      
+                      // If going back to trance settings (page 4), update previous page index to modality page (3)
+                      if (previousPage == 4) {
+                        ref.read(previousPageIndexProvider.notifier).state = 3;
+                      }
+                    },
+                  ),
+                );
+              },
             ),
           );
         },
@@ -1122,9 +1154,30 @@ class MeditationMethodsPage {
     return WoltModalSheetPage(
       backgroundColor: Colors.transparent,
       hasTopBarLayer: true,
+      leadingNavBarWidget: Consumer(
+        builder: (context, ref, _) {
+          return IconButton(
+            icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
+            onPressed: () {
+              // Fix back button navigation
+              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+              final previousPage = ref.read(previousPageIndexProvider);
+              
+              // Go back to the trance settings page
+              pageIndexNotifier.value = previousPage;
+              
+              // Make sure the previous page index is set to the page before the trance settings page
+              if (previousPage == 4) { // If going back to trance settings page (index 4)
+                // Reset the previous page index to ensure we can navigate back from trance settings
+                ref.read(previousPageIndexProvider.notifier).state = 3; // Modality select page
+              }
+            },
+          );
+        },
+      ),
       pageTitle: Center(
         child: Text(
-          'Select Meditation Method',
+          'Meditation Method',
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 18,
@@ -1132,92 +1185,73 @@ class MeditationMethodsPage {
           ),
         ),
       ),
-      leadingNavBarWidget: Consumer(
-        builder: (context, ref, _) {
-          return IconButton(
-            icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
-            onPressed: () {
-              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              pageIndexNotifier.value = 4; // Go back to trance settings
-            },
-          );
-        },
-      ),
       child: Consumer(
         builder: (context, ref, _) {
           final tranceSettings = ref.watch(tranceSettingsProvider);
           final tranceSettingsNotifier = ref.watch(tranceSettingsProvider.notifier);
           
           return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                ...MeditationMethod.values.map((method) {
-                  final isSelected = tranceSettings.meditationMethod == method;
-                  final methodName = meditationMethods[method] ?? method.name;
-                  final methodDescription = meditationMethodDescriptions[method] ?? '';
-                  final methodIcon = meditationMethodIcons[method] ?? Icons.self_improvement;
-                  
-                  return GlassContainer(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    borderRadius: BorderRadius.circular(12),
-                    backgroundColor: Colors.white12,
-                    child: ListTile(
-                      leading: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: isSelected
-                                    ? theme.colorScheme.primary
-                                    : theme.colorScheme.shadow.withOpacity(0.7),
-                                width: 2,
-                              ),
-                            ),
-                            child: isSelected
-                                ? Center(
-                                    child: Container(
-                                      width: 12,
-                                      height: 12,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: theme.colorScheme.primary,
-                                      ),
-                                    ),
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(width: 12),
-                          Icon(methodIcon, color: theme.colorScheme.shadow),
-                        ],
-                      ),
-                      title: Text(
-                        methodName,
-                        style: TextStyle(
-                          color: theme.colorScheme.shadow,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      subtitle: Text(
-                        methodDescription,
-                        style: TextStyle(
-                          color: theme.colorScheme.shadow.withOpacity(0.7),
-                          fontSize: 12,
-                        ),
-                      ),
-                      onTap: () {
-                        tranceSettingsNotifier.setMeditationMethod(method);
-                        // Go back to trance settings
-                        ref.read(pageIndexNotifierProvider).value = 4;
-                      },
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: const ClampingScrollPhysics(),
+              itemCount: MeditationMethod.values.length,
+              itemBuilder: (context, index) {
+                final method = MeditationMethod.values[index];
+                final isSelected = tranceSettings.meditationMethod == method;
+                
+                return GlassContainer(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  borderRadius: BorderRadius.circular(12),
+                  backgroundColor: Colors.white12,
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    // Add leading icon for the method
+                    leading: Icon(
+                      meditationMethodIcons[method] ?? Icons.self_improvement,
+                      color: theme.colorScheme.shadow,
+                      size: 22,
                     ),
-                  );
-                }).toList(),
-              ],
+                    title: Text(
+                      meditationMethods[method] ?? method.name,
+                      style: TextStyle(
+                        color: theme.colorScheme.shadow,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: Text(
+                      meditationMethodDescriptions[method] ?? '',
+                      style: TextStyle(
+                        color: theme.colorScheme.shadow.withOpacity(0.7),
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: isSelected
+                      ? Icon(
+                          Icons.check,
+                          color: theme.colorScheme.primary,
+                          size: 22.0,
+                        )
+                      : null,
+                    onTap: () async {
+                      await tranceSettingsNotifier.setMeditationMethod(method);
+                      
+                      // Navigate back to trance settings page and ensure correct previous page tracking
+                      final previousPage = ref.read(previousPageIndexProvider);
+                      ref.read(pageIndexNotifierProvider).value = previousPage;
+                      
+                      // If going back to trance settings (page 4), update previous page index to modality page (3)
+                      if (previousPage == 4) {
+                        ref.read(previousPageIndexProvider.notifier).state = 3;
+                      }
+                    },
+                  ),
+                );
+              },
             ),
           );
         },

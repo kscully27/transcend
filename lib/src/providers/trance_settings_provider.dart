@@ -210,4 +210,14 @@ class TranceSettingsNotifier extends StateNotifier<TranceSettingsState> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('custom_intention', intention);
   }
+
+  /// Clears the trance method selection to ensure it's blank when reopening the modal
+  Future<void> clearTranceMethod() async {
+    // Only update the state in memory, don't write to SharedPreferences
+    // This ensures the modality selection appears blank when opening the modal
+    // but preserves the user's previous selection in storage for future sessions
+    state = state.copyWith(
+      tranceMethod: null // Use null to indicate no selection
+    );
+  }
 } 

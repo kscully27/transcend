@@ -61,8 +61,14 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
     isCustomMode = widget.isCustomMode;
     customIntention = widget.initialCustomIntention;
     
-    if (isCustomMode && widget.initialCustomIntention != null) {
-      _intentionController.text = widget.initialCustomIntention!;
+    // Initialize from the stored custom intention if available
+    final intentionState = ref.read(intentionSelectionProvider);
+    if (isCustomMode) {
+      if (widget.initialCustomIntention != null && widget.initialCustomIntention!.isNotEmpty) {
+        _intentionController.text = widget.initialCustomIntention!;
+      } else if (intentionState.customIntention != null && intentionState.customIntention!.isNotEmpty) {
+        _intentionController.text = intentionState.customIntention!;
+      }
     }
 
     _intentionController.addListener(() {
@@ -119,12 +125,17 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
         });
         return;
       }
+      // Save the custom intention when continuing
+      ref.read(intentionSelectionProvider.notifier).setCustomIntention(intention);
+      ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.custom);
       widget.onContinue(intention);
       return;
     }
 
     switch (type) {
       case IntentionSelectionType.default_intention:
+        // Update selection state in the provider
+        ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.default_intention);
         widget.onContinue("I want to feel more relaxed and at peace");
         break;
 
@@ -343,6 +354,18 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
           ),
         ],
       );
+    }
+
+    // When returning to this page, make sure we're using the selected goals from the provider
+    // This ensures intention selection state persists when navigating back
+    if (intentionState.selectedGoalIds.isNotEmpty && _selectedGoalIds != intentionState.selectedGoalIds) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _selectedGoalIds = intentionState.selectedGoalIds;
+          });
+        }
+      });
     }
 
     return Column(

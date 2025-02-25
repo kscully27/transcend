@@ -123,9 +123,9 @@ enum BreathingMethod {
   BoxBreathing,
   FourSevenEightBreathing,
   // Keep original values for backward compatibility
-  Energize,
-  Focus,
-  Relax
+  // Energize,
+  // Focus,
+  // Relax
 }
 
 // Map for breathing method names
@@ -135,9 +135,9 @@ Map<BreathingMethod, String> breathingMethods = {
   BreathingMethod.BoxBreathing: 'Box breathing',
   BreathingMethod.FourSevenEightBreathing: '4-7-8 breathing',
   // Legacy values
-  BreathingMethod.Energize: 'Energize',
-  BreathingMethod.Focus: 'Focus',
-  BreathingMethod.Relax: 'Relax',
+  // BreathingMethod.Energize: 'Energize',
+  // BreathingMethod.Focus: 'Focus',
+  // BreathingMethod.Relax: 'Relax',
 };
 
 // Map for breathing method descriptions
@@ -147,9 +147,9 @@ Map<BreathingMethod, String> breathingMethodDescriptions = {
   BreathingMethod.BoxBreathing: 'Quickly focus and improve your performance',
   BreathingMethod.FourSevenEightBreathing: 'Relax your mind and body to fall asleep quickly',
   // Legacy values
-  BreathingMethod.Energize: 'Increase energy and alertness',
-  BreathingMethod.Focus: 'Improve concentration and mental clarity',
-  BreathingMethod.Relax: 'Reduce anxiety and promote relaxation',
+  // BreathingMethod.Energize: 'Increase energy and alertness',
+  // BreathingMethod.Focus: 'Improve concentration and mental clarity',
+  // BreathingMethod.Relax: 'Reduce anxiety and promote relaxation',
 };
 
 // Map for breathing method icons
@@ -159,16 +159,16 @@ Map<BreathingMethod, IconData> breathingMethodIcons = {
   BreathingMethod.BoxBreathing: Icons.crop_square,
   BreathingMethod.FourSevenEightBreathing: Icons.bedtime,
   // Legacy values with appropriate icons
-  BreathingMethod.Energize: Icons.bolt,
-  BreathingMethod.Focus: Icons.center_focus_strong,
-  BreathingMethod.Relax: Icons.waves,
+  // BreathingMethod.Energize: Icons.bolt,
+  // BreathingMethod.Focus: Icons.center_focus_strong,
+  // BreathingMethod.Relax: Icons.waves,
 };
 
 // Meditation methods enum
 enum MeditationMethod {
   Mindfulness,
   BodyScan,
-  LovingKindness,
+  // LovingKindness,
   Mantra,
   Visualization
 }
@@ -177,7 +177,7 @@ enum MeditationMethod {
 Map<MeditationMethod, String> meditationMethods = {
   MeditationMethod.Mindfulness: 'Mindfulness',
   MeditationMethod.BodyScan: 'Body Scan',
-  MeditationMethod.LovingKindness: 'Loving-Kindness',
+  // MeditationMethod.LovingKindness: 'Loving-Kindness',
   MeditationMethod.Mantra: 'Mantra',
   MeditationMethod.Visualization: 'Visualization',
 };
@@ -186,7 +186,7 @@ Map<MeditationMethod, String> meditationMethods = {
 Map<MeditationMethod, String> meditationMethodDescriptions = {
   MeditationMethod.Mindfulness: 'Focus on being present and aware without judgment',
   MeditationMethod.BodyScan: 'Progressive relaxation by focusing on different body parts',
-  MeditationMethod.LovingKindness: 'Cultivate compassion and kindness toward self and others',
+  // MeditationMethod.LovingKindness: 'Cultivate compassion and kindness toward self and others',
   MeditationMethod.Mantra: 'Use repetitive sounds to clear the mind',
   MeditationMethod.Visualization: 'Create mental images of peaceful scenes or desired outcomes',
 };
@@ -195,7 +195,7 @@ Map<MeditationMethod, String> meditationMethodDescriptions = {
 Map<MeditationMethod, IconData> meditationMethodIcons = {
   MeditationMethod.Mindfulness: Icons.remove_red_eye,
   MeditationMethod.BodyScan: Icons.accessibility_new,
-  MeditationMethod.LovingKindness: Icons.favorite,
+  // MeditationMethod.LovingKindness: Icons.favorite,
   MeditationMethod.Mantra: Icons.record_voice_over,
   MeditationMethod.Visualization: Icons.panorama,
 };
@@ -315,7 +315,7 @@ class User with _$User {
     @Default([]) List<String> friends,
     @Default(0) int age,
     @Default(AppGender.Other) AppGender gender,
-    @Default(BreathingMethod.Focus) BreathingMethod breathingMethod,
+    @Default(BreathingMethod.BalancedBreathing) BreathingMethod breathingMethod,
     @Default([]) List<Category> categories,
     @Default([]) List<String> entitlements,
     @Default(Category.Mental) Category topCategory,

@@ -33,36 +33,13 @@ class ModalitySelect extends ConsumerWidget {
           itemCount: methods.length,
           itemBuilder: (context, index) {
             final method = methods[index];
-            final isSelected = selectedMethod == method && selectedIndex == index;
+            final isSelected = selectedMethod == method;
             
             return GlassContainer(
               margin: const EdgeInsets.only(bottom: 12),
               borderRadius: BorderRadius.circular(12),
               backgroundColor: Colors.white12,
               child: ListTile(
-                leading: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSelected ? theme.colorScheme.primary : theme.colorScheme.shadow.withOpacity(0.7),
-                      width: 2,
-                    ),
-                  ),
-                  child: isSelected
-                    ? Center(
-                        child: Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
-                      )
-                    : null,
-                ),
                 title: Text(
                   _getMethodTitle(method),
                   style: TextStyle(
@@ -70,11 +47,13 @@ class ModalitySelect extends ConsumerWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                trailing: Icon(
-                  Icons.arrow_forward_ios,
-                  color: theme.colorScheme.shadow.withOpacity(0.7),
-                  size: 20,
-                ),
+                trailing: isSelected 
+                  ? Icon(
+                      Icons.check,
+                      color: theme.colorScheme.primary,
+                      size: 24.0,
+                    )
+                  : null,
                 onTap: () => onSelectMethod(method, index),
               ),
             );

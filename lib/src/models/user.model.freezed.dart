@@ -1302,7 +1302,7 @@ class _$UserImpl implements _User {
       final List<String> friends = const [],
       this.age = 0,
       this.gender = AppGender.Other,
-      this.breathingMethod = BreathingMethod.Focus,
+      this.breathingMethod = BreathingMethod.BalancedBreathing,
       final List<Category> categories = const [],
       final List<String> entitlements = const [],
       this.topCategory = Category.Mental,
