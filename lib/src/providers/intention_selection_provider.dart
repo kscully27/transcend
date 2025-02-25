@@ -41,45 +41,92 @@ class IntentionSelectionNotifier extends StateNotifier<IntentionSelectionState> 
   IntentionSelectionNotifier() : super(IntentionSelectionState(type: IntentionSelectionType.none, selectedGoalIds: {})) {
     _loadSavedSelection();
   }
+  
+  // Track safety status
+  bool _isSafeToUse = true;
+  
+  // Safe state update method
+  void _safeUpdateState(IntentionSelectionState newState) {
+    if (!mounted || !_isSafeToUse) return;
+    state = newState;
+  }
+  
+  @override
+  void dispose() {
+    _isSafeToUse = false;
+    super.dispose();
+  }
 
   Future<void> _loadSavedSelection() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedSelection = prefs.getString('intention_selection_type');
-    final savedGoals = prefs.getStringList('selected_goal_ids');
-    final savedCustomIntention = prefs.getString('custom_intention');
-    
-    if (savedSelection != null) {
-      final type = IntentionSelectionType.values.firstWhere(
-        (type) => type.toString() == savedSelection,
-        orElse: () => IntentionSelectionType.none,
-      );
-      state = IntentionSelectionState(
-        type: type,
-        selectedGoalIds: savedGoals?.toSet() ?? {},
-        customIntention: savedCustomIntention,
-      );
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedSelection = prefs.getString('intention_selection_type');
+      final savedGoals = prefs.getStringList('selected_goal_ids');
+      final savedCustomIntention = prefs.getString('custom_intention');
+      
+      if (!mounted || !_isSafeToUse) return; // Check if safe to use
+      
+      if (savedSelection != null) {
+        final type = IntentionSelectionType.values.firstWhere(
+          (type) => type.toString() == savedSelection,
+          orElse: () => IntentionSelectionType.none,
+        );
+        _safeUpdateState(IntentionSelectionState(
+          type: type,
+          selectedGoalIds: savedGoals?.toSet() ?? {},
+          customIntention: savedCustomIntention,
+        ));
+      }
+    } catch (e) {
+      print('Error loading intention selection: $e');
     }
   }
 
   Future<void> setSelection(IntentionSelectionType type) async {
-    state = state.copyWith(type: type);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('intention_selection_type', type.toString());
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(state.copyWith(type: type));
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('intention_selection_type', type.toString());
+    } catch (e) {
+      print('Error saving intention selection type: $e');
+    }
   }
 
   Future<void> setSelectedGoals(Set<String> goals) async {
-    state = state.copyWith(selectedGoalIds: goals);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('selected_goal_ids', goals.toList());
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(state.copyWith(selectedGoalIds: goals));
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('selected_goal_ids', goals.toList());
+    } catch (e) {
+      print('Error saving selected goals: $e');
+    }
   }
 
   Future<void> setCustomIntention(String intention) async {
-    state = state.copyWith(customIntention: intention);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('custom_intention', intention);
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(state.copyWith(customIntention: intention));
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('custom_intention', intention);
+    } catch (e) {
+      print('Error saving custom intention: $e');
+    }
   }
 
   void clearSelection() {
-    state = IntentionSelectionState(type: IntentionSelectionType.none, selectedGoalIds: {});
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(IntentionSelectionState(
+      type: IntentionSelectionType.none, 
+      selectedGoalIds: {}
+    ));
   }
 } 

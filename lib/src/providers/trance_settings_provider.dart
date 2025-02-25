@@ -83,141 +83,234 @@ class TranceSettingsNotifier extends StateNotifier<TranceSettingsState> {
     _loadSavedSettings();
   }
 
+  // A flag to track additional state beyond the built-in mounted property
+  bool _isSafeToUse = true;
+
   Future<void> _loadSavedSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    
-    final savedMethod = prefs.getString('trance_method');
-    final savedDuration = prefs.getInt('session_duration');
-    final savedBackgroundSound = prefs.getString('background_sound');
-    final savedHypnoMethod = prefs.getString('hypnotherapy_method');
-    final savedBreathingMethod = prefs.getString('breathing_method');
-    final savedMeditationMethod = prefs.getString('meditation_method');
-    final savedBackgroundVolume = prefs.getDouble('background_volume');
-    final savedVoiceVolume = prefs.getDouble('voice_volume');
-    final savedCustomIntention = prefs.getString('custom_intention');
-    
-    if (savedMethod != null || savedDuration != null || savedBackgroundSound != null || 
-        savedHypnoMethod != null || savedBreathingMethod != null || savedMeditationMethod != null ||
-        savedBackgroundVolume != null || savedVoiceVolume != null) {
+    try {
+      final prefs = await SharedPreferences.getInstance();
       
-      final tranceMethod = savedMethod != null 
-          ? TranceMethod.values.firstWhere(
-              (type) => type.name == savedMethod,
-              orElse: () => TranceMethod.Hypnosis,
-            )
-          : state.tranceMethod;
+      final savedMethod = prefs.getString('trance_method');
+      final savedDuration = prefs.getInt('session_duration');
+      final savedBackgroundSound = prefs.getString('background_sound');
+      final savedHypnoMethod = prefs.getString('hypnotherapy_method');
+      final savedBreathingMethod = prefs.getString('breathing_method');
+      final savedMeditationMethod = prefs.getString('meditation_method');
+      final savedBackgroundVolume = prefs.getDouble('background_volume');
+      final savedVoiceVolume = prefs.getDouble('voice_volume');
+      final savedCustomIntention = prefs.getString('custom_intention');
       
-      final backgroundSound = savedBackgroundSound != null 
-          ? BackgroundSound.values.firstWhere(
-              (sound) => sound.name == savedBackgroundSound,
-              orElse: () => BackgroundSound.Waves,
-            )
-          : state.backgroundSound;
+      if (!mounted || !_isSafeToUse) return; // Safety check
       
-      final hypnotherapyMethod = savedHypnoMethod != null 
-          ? HypnotherapyMethod.values.firstWhere(
-              (method) => method.name == savedHypnoMethod,
-              orElse: () => HypnotherapyMethod.Guided,
-            )
-          : state.hypnotherapyMethod;
-          
-      final breathingMethod = savedBreathingMethod != null 
-          ? BreathingMethod.values.firstWhere(
-              (method) => method.name == savedBreathingMethod,
-              orElse: () => BreathingMethod.BalancedBreathing,
-            )
-          : state.breathingMethod;
-          
-      final meditationMethod = savedMeditationMethod != null 
-          ? MeditationMethod.values.firstWhere(
-              (method) => method.name == savedMeditationMethod,
-              orElse: () => MeditationMethod.Mindfulness,
-            )
-          : state.meditationMethod;
-      
-      state = state.copyWith(
-        tranceMethod: tranceMethod,
-        sessionDuration: savedDuration ?? state.sessionDuration,
-        backgroundSound: backgroundSound,
-        hypnotherapyMethod: hypnotherapyMethod,
-        breathingMethod: breathingMethod,
-        meditationMethod: meditationMethod,
-        backgroundVolume: savedBackgroundVolume ?? state.backgroundVolume,
-        voiceVolume: savedVoiceVolume ?? state.voiceVolume,
-        customIntention: savedCustomIntention,
-      );
+      if (savedMethod != null || savedDuration != null || savedBackgroundSound != null || 
+          savedHypnoMethod != null || savedBreathingMethod != null || savedMeditationMethod != null ||
+          savedBackgroundVolume != null || savedVoiceVolume != null) {
+        
+        final tranceMethod = savedMethod != null 
+            ? TranceMethod.values.firstWhere(
+                (type) => type.name == savedMethod,
+                orElse: () => TranceMethod.Hypnosis,
+              )
+            : state.tranceMethod;
+        
+        final backgroundSound = savedBackgroundSound != null 
+            ? BackgroundSound.values.firstWhere(
+                (sound) => sound.name == savedBackgroundSound,
+                orElse: () => BackgroundSound.Waves,
+              )
+            : state.backgroundSound;
+        
+        final hypnotherapyMethod = savedHypnoMethod != null 
+            ? HypnotherapyMethod.values.firstWhere(
+                (method) => method.name == savedHypnoMethod,
+                orElse: () => HypnotherapyMethod.Guided,
+              )
+            : state.hypnotherapyMethod;
+            
+        final breathingMethod = savedBreathingMethod != null 
+            ? BreathingMethod.values.firstWhere(
+                (method) => method.name == savedBreathingMethod,
+                orElse: () => BreathingMethod.BalancedBreathing,
+              )
+            : state.breathingMethod;
+            
+        final meditationMethod = savedMeditationMethod != null 
+            ? MeditationMethod.values.firstWhere(
+                (method) => method.name == savedMeditationMethod,
+                orElse: () => MeditationMethod.Mindfulness,
+              )
+            : state.meditationMethod;
+        
+        if (!mounted || !_isSafeToUse) return; // Check again after async operation
+        
+        state = state.copyWith(
+          tranceMethod: tranceMethod,
+          sessionDuration: savedDuration ?? state.sessionDuration,
+          backgroundSound: backgroundSound,
+          hypnotherapyMethod: hypnotherapyMethod,
+          breathingMethod: breathingMethod,
+          meditationMethod: meditationMethod,
+          backgroundVolume: savedBackgroundVolume ?? state.backgroundVolume,
+          voiceVolume: savedVoiceVolume ?? state.voiceVolume,
+          customIntention: savedCustomIntention,
+        );
+      }
+    } catch (e) {
+      print('Error loading trance settings: $e');
     }
   }
 
+  // Override the dispose method to set our custom flag
+  @override
+  void dispose() {
+    _isSafeToUse = false;
+    super.dispose();
+  }
+
+  // Safe wrapper for state updates
+  void _safeUpdateState(TranceSettingsState newState) {
+    if (!mounted || !_isSafeToUse) return; // Skip update if not safe
+    state = newState;
+  }
+
   Future<void> setTranceMethod(TranceMethod method) async {
-    state = state.copyWith(tranceMethod: method);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('trance_method', method.name);
+    if (!mounted || !_isSafeToUse) return; // Early return if not safe
+    
+    _safeUpdateState(state.copyWith(tranceMethod: method));
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('trance_method', method.name);
+    } catch (e) {
+      print('Error saving trance method: $e');
+    }
   }
 
   Future<void> setSessionDuration(int minutes) async {
-    state = state.copyWith(sessionDuration: minutes);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('session_duration', minutes);
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(state.copyWith(sessionDuration: minutes));
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('session_duration', minutes);
+    } catch (e) {
+      print('Error saving session duration: $e');
+    }
   }
 
   Future<void> setBackgroundSound(BackgroundSound sound) async {
-    state = state.copyWith(backgroundSound: sound);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('background_sound', sound.name);
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(state.copyWith(backgroundSound: sound));
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('background_sound', sound.name);
+    } catch (e) {
+      print('Error saving background sound: $e');
+    }
   }
 
   Future<void> setHypnotherapyMethod(HypnotherapyMethod method) async {
-    state = state.copyWith(hypnotherapyMethod: method);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('hypnotherapy_method', method.name);
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(state.copyWith(hypnotherapyMethod: method));
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('hypnotherapy_method', method.name);
+    } catch (e) {
+      print('Error saving hypnotherapy method: $e');
+    }
   }
   
   Future<void> setBreathingMethod(BreathingMethod method) async {
-    state = state.copyWith(breathingMethod: method);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('breathing_method', method.name);
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(state.copyWith(breathingMethod: method));
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('breathing_method', method.name);
+    } catch (e) {
+      print('Error saving breathing method: $e');
+    }
   }
   
   Future<void> setMeditationMethod(MeditationMethod method) async {
-    state = state.copyWith(meditationMethod: method);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('meditation_method', method.name);
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(state.copyWith(meditationMethod: method));
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('meditation_method', method.name);
+    } catch (e) {
+      print('Error saving meditation method: $e');
+    }
   }
 
   Future<void> setBackgroundVolume(double volume) async {
-    state = state.copyWith(backgroundVolume: volume);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('background_volume', volume);
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(state.copyWith(backgroundVolume: volume));
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('background_volume', volume);
+    } catch (e) {
+      print('Error saving background volume: $e');
+    }
   }
 
   Future<void> setVoiceVolume(double volume) async {
-    state = state.copyWith(voiceVolume: volume);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('voice_volume', volume);
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(state.copyWith(voiceVolume: volume));
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('voice_volume', volume);
+    } catch (e) {
+      print('Error saving voice volume: $e');
+    }
   }
 
   Future<void> setIntentionType(IntentionSelectionType type) async {
-    state = state.copyWith(intentionType: type);
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(state.copyWith(intentionType: type));
   }
 
   Future<void> setSelectedGoalIds(Set<String> goalIds) async {
-    state = state.copyWith(selectedGoalIds: goalIds);
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(state.copyWith(selectedGoalIds: goalIds));
   }
 
   Future<void> setCustomIntention(String intention) async {
-    state = state.copyWith(customIntention: intention);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('custom_intention', intention);
+    if (!mounted || !_isSafeToUse) return;
+    
+    _safeUpdateState(state.copyWith(customIntention: intention));
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('custom_intention', intention);
+    } catch (e) {
+      print('Error saving custom intention: $e');
+    }
   }
 
   /// Clears the trance method selection to ensure it's blank when reopening the modal
   Future<void> clearTranceMethod() async {
+    if (!mounted || !_isSafeToUse) return;
+    
     // Only update the state in memory, don't write to SharedPreferences
     // This ensures the modality selection appears blank when opening the modal
     // but preserves the user's previous selection in storage for future sessions
-    state = state.copyWith(
+    _safeUpdateState(state.copyWith(
       tranceMethod: null // Use null to indicate no selection
-    );
+    ));
   }
 } 

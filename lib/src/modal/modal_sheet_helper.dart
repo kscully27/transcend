@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trancend/src/modal/pages/root_sheet_page.dart';
+import 'package:trancend/src/providers/intention_selection_provider.dart';
 import 'package:trancend/src/providers/trance_settings_provider.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
@@ -20,21 +21,42 @@ class ModalSheetHelper {
     // Get the container for provider operations
     final container = ProviderScope.containerOf(context);
     
-    // Safely reset providers with error handling
-    try {
-      // Reset modality selection
-      container.read(selectedModalityProvider.notifier).state = null;
-      
-      // Only clear trance method if the provider is still mounted
-      final tranceSettingsNotifier = container.read(tranceSettingsProvider.notifier);
-      if (tranceSettingsNotifier.mounted) {
-        tranceSettingsNotifier.clearTranceMethod();
+    // Schedule provider updates for after the current build phase
+    // to avoid build-time modifications
+    Future.microtask(() {
+      try {
+        // Reset modality selection
+        final modalityNotifier = container.read(selectedModalityProvider.notifier);
+        if (modalityNotifier.mounted) {
+          modalityNotifier.reset(); // Use the safer reset method
+        }
+        
+        // Only clear trance method if the provider is still mounted
+        final tranceSettingsNotifier = container.read(tranceSettingsProvider.notifier);
+        if (tranceSettingsNotifier.mounted) {
+          tranceSettingsNotifier.clearTranceMethod();
+        }
+        
+        // If we're navigating directly to the modality page (index 3), ensure intention selection is initialized
+        if (initialPage == 3) {
+          // Initialize intention selection provider with default values if needed
+          final intentionNotifier = container.read(intentionSelectionProvider.notifier);
+          if (intentionNotifier.mounted) {
+            // Ensure there's at least a default selection type so the flow works correctly
+            if (container.read(intentionSelectionProvider).type == IntentionSelectionType.none) {
+              intentionNotifier.setSelection(IntentionSelectionType.default_intention);
+            }
+          }
+          
+          // Set the previous page to 0 (root page)
+          container.read(previousPageIndexProvider.notifier).state = 0;
+        }
+      } catch (e) {
+        // Handle any errors with provider access
+        print('Error resetting providers: $e');
+        // Continue showing the modal even if there's an error with the providers
       }
-    } catch (e) {
-      // Handle any errors with provider access
-      print('Error resetting providers: $e');
-      // Continue showing the modal even if there's an error with the providers
-    }
+    });
     
     // Set the initial page
     ValueNotifier<int> pageIndexNotifier;

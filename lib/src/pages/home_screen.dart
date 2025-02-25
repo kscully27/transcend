@@ -128,8 +128,9 @@ class _HomePageState extends ConsumerState<HomeScreen> {
     
     try {
       // Reset the selected modality provider to null before showing the sheet
-      if (ref.read(selectedModalityProvider.notifier).mounted) {
-        ref.read(selectedModalityProvider.notifier).state = null;
+      final modalityNotifier = ref.read(selectedModalityProvider.notifier);
+      if (modalityNotifier.mounted) {
+        modalityNotifier.reset(); // Use the safer reset method
       }
       
       // Clear the trance method to ensure no modality is selected initially

@@ -22,11 +22,57 @@ final pageIndexNotifierProvider = Provider<ValueNotifier<int>>((ref) {
 // Provider to track the previous page index
 final previousPageIndexProvider = StateProvider<int>((ref) => 0);
 
+// Create a safer StateNotifier for selectedModality
+class SelectedModalityNotifier extends StateNotifier<TranceMethod?> {
+  SelectedModalityNotifier(this.ref) : super(null) {
+    _initializeState();
+  }
+  
+  final Ref ref;
+  bool _isSafeToUse = true;
+  
+  void _initializeState() {
+    try {
+      // When this provider is first accessed, defer the trance settings reset
+      // to prevent build-time modifications of another provider
+      Future.microtask(() {
+        try {
+          if (!mounted || !_isSafeToUse) return;
+          final tranceSettingsNotifier = ref.read(tranceSettingsProvider.notifier);
+          if (tranceSettingsNotifier.mounted) {
+            tranceSettingsNotifier.clearTranceMethod();
+          }
+        } catch (e) {
+          print('Error resetting trance method in deferred initialization: $e');
+        }
+      });
+    } catch (e) {
+      print('Error initializing selectedModalityProvider: $e');
+    }
+  }
+  
+  @override
+  void dispose() {
+    _isSafeToUse = false;
+    super.dispose();
+  }
+  
+  // Safe state update method
+  void setModality(TranceMethod? method) {
+    if (!mounted || !_isSafeToUse) return;
+    state = method;
+  }
+  
+  // Method to reset the state to null
+  void reset() {
+    if (!mounted || !_isSafeToUse) return;
+    state = null;
+  }
+}
+
 // Provider to track the selected modality - initialized as null to ensure no selection initially
-final selectedModalityProvider = StateProvider<TranceMethod?>((ref) {
-  // When this provider is first accessed, ensure the trance settings are also reset
-  ref.read(tranceSettingsProvider.notifier).clearTranceMethod();
-  return null; // Always start with null selection
+final selectedModalityProvider = StateNotifierProvider<SelectedModalityNotifier, TranceMethod?>((ref) {
+  return SelectedModalityNotifier(ref);
 });
 
 class RootSheetPage {
@@ -42,8 +88,27 @@ class RootSheetPage {
           
           // Reset the selected modality to null when the root page is built
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref.read(selectedModalityProvider.notifier).state = null;
-            ref.read(tranceSettingsProvider.notifier).clearTranceMethod();
+            try {
+              // Use a microtask to avoid potential build phase issues,
+              // as this callback could still be within a build phase
+              Future.microtask(() {
+                try {
+                  final notifier = ref.read(selectedModalityProvider.notifier);
+                  if (notifier.mounted) {
+                    notifier.reset();
+                  }
+                  
+                  final tranceNotifier = ref.read(tranceSettingsProvider.notifier);
+                  if (tranceNotifier.mounted) {
+                    tranceNotifier.clearTranceMethod();
+                  }
+                } catch (e) {
+                  print('Error resetting providers in RootSheetPage microtask: $e');
+                }
+              });
+            } catch (e) {
+              print('Error setting up provider reset in RootSheetPage: $e');
+            }
           });
           
           return IntentionContent(
@@ -209,43 +274,124 @@ class ModalitySelectPage {
           return IconButton(
             icon: Icon(Icons.arrow_back_ios, size: 20, color: theme.colorScheme.shadow),
             onPressed: () {
-              final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
-              // Go back to the page we came from
-              final previousPage = ref.read(previousPageIndexProvider);
-              pageIndexNotifier.value = previousPage;
+              try {
+                final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                // Go back to the page we came from
+                final previousPage = ref.read(previousPageIndexProvider);
+                pageIndexNotifier.value = previousPage;
+              } catch (e) {
+                print('Error navigating back from ModalitySelectPage: $e');
+                // Fallback to going to the root page (0) if there's an error
+                try {
+                  final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                  pageIndexNotifier.value = 0;
+                } catch (e) {
+                  print('Failed to navigate even to root page: $e');
+                  // At this point, we can't do much more except let the user close the modal
+                }
+              }
             },
           );
         },
       ),
       child: Consumer(
         builder: (context, ref, _) {
-          final pageIndexNotifier = ref.watch(pageIndexNotifierProvider);
-          final selectedModality = ref.watch(selectedModalityProvider);
-          final tranceSettings = ref.watch(tranceSettingsProvider);
+          // Initialize the intention selection if it hasn't been set
+          // This ensures we have a valid state when this page is opened directly
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            try {
+              // Use a microtask to safely modify providers outside of build phase
+              Future.microtask(() {
+                try {
+                  final intentionState = ref.read(intentionSelectionProvider);
+                  if (intentionState.type == IntentionSelectionType.none) {
+                    final intentionNotifier = ref.read(intentionSelectionProvider.notifier);
+                    if (intentionNotifier.mounted) {
+                      intentionNotifier.setSelection(IntentionSelectionType.default_intention);
+                    }
+                  }
+                } catch (e) {
+                  print('Error initializing intention in ModalitySelectPage microtask: $e');
+                }
+              });
+            } catch (e) {
+              print('Error setting up intention initialization in ModalitySelectPage: $e');
+            }
+          });
           
-          // We now check if selectedModality is null and don't fallback to tranceSettings
-          // This ensures no selection is shown initially
+          // Now safely access providers with error handling
+          TranceMethod? selectedModality;
+          try {
+            selectedModality = ref.watch(selectedModalityProvider);
+          } catch (e) {
+            print('Error accessing selectedModalityProvider: $e');
+            // Leave as null if there's an error
+          }
           
           return Padding(
             padding: const EdgeInsets.only(top: 16.0),
             child: ModalitySelect(
               onBack: () {
                 // Go back to the page we came from
-                final previousPage = ref.read(previousPageIndexProvider);
-                pageIndexNotifier.value = previousPage;
+                try {
+                  final previousPage = ref.read(previousPageIndexProvider);
+                  final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                  pageIndexNotifier.value = previousPage;
+                } catch (e) {
+                  print('Error navigating back using onBack: $e');
+                  // Try to go to the root page as fallback
+                  try {
+                    final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                    pageIndexNotifier.value = 0;
+                  } catch (e) {
+                    print('Failed to navigate even to root page: $e');
+                  }
+                }
               },
               onSelectMethod: (method, index) {
-                // Store the selected modality
-                ref.read(selectedModalityProvider.notifier).state = method;
-                
-                // Update the trance settings with the selected modality
-                ref.read(tranceSettingsProvider.notifier).setTranceMethod(method);
-                
-                // Navigate to the trance settings page within the modal
-                ref.read(previousPageIndexProvider.notifier).state = 3; // Track that we came from modality page
-                pageIndexNotifier.value = 4; // Index of TranceSettingsPage
+                try {
+                  // Store the selected modality using the safer method
+                  final modalityNotifier = ref.read(selectedModalityProvider.notifier);
+                  if (modalityNotifier.mounted) {
+                    modalityNotifier.setModality(method);
+                  }
+                  
+                  // IMPORTANT: Defer the update of tranceSettings to avoid build-time modification
+                  // Schedule this update to occur after the current build phase is complete
+                  Future.microtask(() {
+                    try {
+                      final tranceNotifier = ref.read(tranceSettingsProvider.notifier);
+                      if (tranceNotifier.mounted) {
+                        tranceNotifier.setTranceMethod(method);
+                      }
+                    } catch (e) {
+                      print('Error updating trance settings after modality selection: $e');
+                    }
+                  });
+                  
+                  // Navigate to the trance settings page within the modal
+                  ref.read(previousPageIndexProvider.notifier).state = 3; // Track that we came from modality page
+                  
+                  // Safely access pageIndexNotifier
+                  try {
+                    final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                    pageIndexNotifier.value = 4; // Index of TranceSettingsPage
+                  } catch (e) {
+                    print('Error accessing pageIndexNotifier: $e');
+                  }
+                } catch (e) {
+                  print('Error in onSelectMethod: $e');
+                  // Still try to navigate even if there's an error
+                  try {
+                    ref.read(previousPageIndexProvider.notifier).state = 3;
+                    final pageIndexNotifier = ref.read(pageIndexNotifierProvider);
+                    pageIndexNotifier.value = 4;
+                  } catch (e) {
+                    print('Failed to navigate after error: $e');
+                  }
+                }
               },
-              selectedMethod: selectedModality, // Remove the fallback to tranceSettings.tranceMethod
+              selectedMethod: selectedModality, // No fallback, just use the value or null
               selectedIndex: null,
             ),
           );

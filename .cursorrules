@@ -30,7 +30,7 @@
       "rules": [
         {
           "pattern": "flutter run",
-          "message": "Always use 'flutter run -t lib/main_prod.dart' to run the app."
+          "message": "Don't ever run the app when not prompted to or debugging something based on building the app. I will always have the app running on my phone or a simulator when I ask you to fix or build something. Always use 'flutter run -t lib/main_prod.dart' to run the app."
         }
       ]
     },
