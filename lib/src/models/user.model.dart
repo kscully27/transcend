@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:recase/recase.dart';
 import 'package:trancend/src/constants/enums.dart';
-import 'package:trancend/src/models/breath.model.dart';
 import 'package:trancend/src/models/session.model.dart' show TranceMethod;
 import 'package:trancend/src/shared/icons.dart';
 
@@ -101,6 +100,104 @@ Map<HypnotherapyMethod, String> hypnotherapyMethods = {
   // HypnotherapyMethod.Ericksonian: 'Ericksonian',
   // HypnotherapyMethod.NLP: 'NLP',
   HypnotherapyMethod.Relaxed: 'Relaxed',
+};
+
+// Map for hypnotherapy method descriptions
+Map<HypnotherapyMethod, String> hypnotherapyMethodDescriptions = {
+  HypnotherapyMethod.Guided: 'A gentle guided experience toward your desired outcome',
+  HypnotherapyMethod.Cognitive: 'Combines hypnosis with cognitive behavioral techniques',
+  HypnotherapyMethod.Relaxed: 'Deep relaxation focused on mental and physical healing',
+};
+
+// Map for hypnotherapy method icons
+Map<HypnotherapyMethod, IconData> hypnotherapyMethodIcons = {
+  HypnotherapyMethod.Guided: Icons.psychology,
+  HypnotherapyMethod.Cognitive: Icons.sync_alt,
+  HypnotherapyMethod.Relaxed: Icons.spa,
+};
+
+// Breathing methods enum
+enum BreathingMethod {
+  BalancedBreathing,
+  ButeykoBreathing,
+  BoxBreathing,
+  FourSevenEightBreathing,
+  // Keep original values for backward compatibility
+  Energize,
+  Focus,
+  Relax
+}
+
+// Map for breathing method names
+Map<BreathingMethod, String> breathingMethods = {
+  BreathingMethod.BalancedBreathing: 'Balanced breathing',
+  BreathingMethod.ButeykoBreathing: 'Buteyko breathing',
+  BreathingMethod.BoxBreathing: 'Box breathing',
+  BreathingMethod.FourSevenEightBreathing: '4-7-8 breathing',
+  // Legacy values
+  BreathingMethod.Energize: 'Energize',
+  BreathingMethod.Focus: 'Focus',
+  BreathingMethod.Relax: 'Relax',
+};
+
+// Map for breathing method descriptions
+Map<BreathingMethod, String> breathingMethodDescriptions = {
+  BreathingMethod.BalancedBreathing: 'Improves mood and relieves stress',
+  BreathingMethod.ButeykoBreathing: 'Improve respiratory health and increase CO2',
+  BreathingMethod.BoxBreathing: 'Quickly focus and improve your performance',
+  BreathingMethod.FourSevenEightBreathing: 'Relax your mind and body to fall asleep quickly',
+  // Legacy values
+  BreathingMethod.Energize: 'Increase energy and alertness',
+  BreathingMethod.Focus: 'Improve concentration and mental clarity',
+  BreathingMethod.Relax: 'Reduce anxiety and promote relaxation',
+};
+
+// Map for breathing method icons
+Map<BreathingMethod, IconData> breathingMethodIcons = {
+  BreathingMethod.BalancedBreathing: Icons.balance,
+  BreathingMethod.ButeykoBreathing: Icons.air,
+  BreathingMethod.BoxBreathing: Icons.crop_square,
+  BreathingMethod.FourSevenEightBreathing: Icons.bedtime,
+  // Legacy values with appropriate icons
+  BreathingMethod.Energize: Icons.bolt,
+  BreathingMethod.Focus: Icons.center_focus_strong,
+  BreathingMethod.Relax: Icons.waves,
+};
+
+// Meditation methods enum
+enum MeditationMethod {
+  Mindfulness,
+  BodyScan,
+  LovingKindness,
+  Mantra,
+  Visualization
+}
+
+// Map for meditation method names
+Map<MeditationMethod, String> meditationMethods = {
+  MeditationMethod.Mindfulness: 'Mindfulness',
+  MeditationMethod.BodyScan: 'Body Scan',
+  MeditationMethod.LovingKindness: 'Loving-Kindness',
+  MeditationMethod.Mantra: 'Mantra',
+  MeditationMethod.Visualization: 'Visualization',
+};
+
+// Map for meditation method descriptions
+Map<MeditationMethod, String> meditationMethodDescriptions = {
+  MeditationMethod.Mindfulness: 'Focus on being present and aware without judgment',
+  MeditationMethod.BodyScan: 'Progressive relaxation by focusing on different body parts',
+  MeditationMethod.LovingKindness: 'Cultivate compassion and kindness toward self and others',
+  MeditationMethod.Mantra: 'Use repetitive sounds to clear the mind',
+  MeditationMethod.Visualization: 'Create mental images of peaceful scenes or desired outcomes',
+};
+
+// Map for meditation method icons
+Map<MeditationMethod, IconData> meditationMethodIcons = {
+  MeditationMethod.Mindfulness: Icons.remove_red_eye,
+  MeditationMethod.BodyScan: Icons.accessibility_new,
+  MeditationMethod.LovingKindness: Icons.favorite,
+  MeditationMethod.Mantra: Icons.record_voice_over,
+  MeditationMethod.Visualization: Icons.panorama,
 };
 
 enum BackgroundSound {

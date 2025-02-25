@@ -111,12 +111,26 @@ class _BottomSheetTopicsListViewState
                   topic: topic,
                   isSelected: widget.selectedGoalIds.contains(topic.id),
                   onSelectPressed: () {
+                    // Handle selection and immediately close the bottom sheet
                     final newIsSelected = !widget.selectedGoalIds.contains(topic.id);
                     widget.onSelectionChanged(topic.id, newIsSelected);
+                    
+                    // If selected, close the bottom sheet and navigate to modality page
+                    if (newIsSelected) {
+                      widget.onGoalsSelected({topic.id});
+                      Navigator.of(context).pop();
+                    }
                   },
                   onTap: () {
+                    // Handle tap and immediately close the bottom sheet
                     final newIsSelected = !widget.selectedGoalIds.contains(topic.id);
                     widget.onSelectionChanged(topic.id, newIsSelected);
+                    
+                    // If selected, close the bottom sheet and navigate to modality page
+                    if (newIsSelected) {
+                      widget.onGoalsSelected({topic.id});
+                      Navigator.of(context).pop();
+                    }
                   },
                 );
               },
@@ -211,54 +225,13 @@ class _BottomSheetTopicsListViewState
                 ),
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.only(
-                      bottom: widget.selectedGoalIds.isNotEmpty ? 120 : 0,
-                    ),
+                    padding: const EdgeInsets.only(bottom: 8),
                     child: _buildTopicsList(),
                   ),
                 ),
               ],
             ),
           ),
-          if (widget.selectedGoalIds.isNotEmpty)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 8,
-              child: Container(
-                height: 120,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(20),
-                  ),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 24,
-                ),
-                child: ClayButton(
-                  color: Colors.white,
-                  parentColor: Theme.of(context).colorScheme.surface,
-                  borderRadius: 12,
-                  borderWidth: .5,
-                  borderColor: Colors.white24,
-                  text: 'Next',
-                  textColor: Theme.of(context).colorScheme.surface,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  onPressed: () {
-                    if (mounted) {
-                      widget.onSelectionChanged("", false); // Trigger parent update
-                      widget.onGoalsSelected(widget.selectedGoalIds);
-                    }
-                    Navigator.pop(context);
-                  },
-                ),
-              ),
-            ),
         ],
       ),
       loading: () => const CircularProgressIndicator(),

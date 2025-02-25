@@ -4,6 +4,7 @@ import 'package:trancend/src/models/session.model.dart' as session;
 import 'package:trancend/src/modal/pages/root_sheet_page.dart';
 import 'package:trancend/src/providers/intention_selection_provider.dart';
 import 'package:trancend/src/providers/modal_sheet_provider.dart';
+import 'package:trancend/src/topics/bottomsheet_topics_list.dart';
 import 'package:trancend/src/ui/glass/glass_container.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
@@ -138,15 +139,56 @@ class _IntentionContentState extends ConsumerState<IntentionContent>
         break;
 
       case IntentionSelectionType.goals:
-        // For now, we'll just go to the modality page directly
-        // In a real implementation, we would show a goals selection UI first
-        widget.onGoalsSelected(_selectedGoalIds);
+        // Show the BottomSheetTopicsList
+        _showTopicsBottomSheet(context);
         break;
 
       case IntentionSelectionType.none:
         // No action needed; handle "none" gracefully.
         break;
     }
+  }
+
+  void _showTopicsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return FractionallySizedBox(
+          heightFactor: 0.9,
+          child: BottomSheetTopicsListView(
+            selectedGoalIds: _selectedGoalIds,
+            onSelectionChanged: (id, isSelected) {
+              // Since we only want to allow one selection, clear previous selections
+              if (isSelected) {
+                setState(() {
+                  _selectedGoalIds = {id};
+                });
+                
+                // Update the provider
+                ref.read(intentionSelectionProvider.notifier).setSelectedGoals({id});
+                ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.goals);
+              }
+            },
+            onGoalsSelected: (goals) {
+              // This is called when the user clicks "Next" in the bottom sheet
+              // Update the selected goals and navigate to modality page
+              setState(() {
+                _selectedGoalIds = goals;
+              });
+              
+              // Update the provider
+              ref.read(intentionSelectionProvider.notifier).setSelectedGoals(goals);
+              ref.read(intentionSelectionProvider.notifier).setSelection(IntentionSelectionType.goals);
+              
+              // Navigate to modality page
+              widget.onGoalsSelected(goals);
+            },
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildIntentionButton({

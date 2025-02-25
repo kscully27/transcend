@@ -9,28 +9,35 @@ import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 /// A helper class to show a modal sheet with consistent styling
 class ModalSheetHelper {
+  const ModalSheetHelper._();
+
+  /// Shows a modal sheet with the intention selection flow
+  /// This is the main method to use for showing the modal sheet
   static Future<void> showModalSheet(
     BuildContext context, {
-    ValueNotifier<int>? pageIndexNotifier,
     int initialPage = 0,
-  }) {
-    final container = ProviderScope.containerOf(context);
-    final notifier = pageIndexNotifier ?? container.read(pageIndexNotifierProvider);
+  }) async {
+    final pageIndexNotifier = ProviderScope.containerOf(context).read(pageIndexNotifierProvider);
+    pageIndexNotifier.value = initialPage;
     
-    // Set to the specified initial page
-    if (notifier != null) {
-      notifier.value = initialPage;
-    }
-    
-    return Navigator.of(context).push(
+    final pageListBuilderNotifier = ValueNotifier<WoltModalSheetPageListBuilder>(
+      (context) => [
+        RootSheetPage.build(context),
+        CustomIntentionPage.build(context),
+        PreviousIntentionsPage.build(context),
+        ModalitySelectPage.build(context),
+        TranceSettingsModalPage.build(context),
+        HypnotherapyMethodsPage.build(context),
+        SoundscapesPage.build(context),
+        BreathingMethodsPage.build(context),
+        MeditationMethodsPage.build(context),
+      ]
+    );
+
+    await Navigator.of(context).push(
       WoltModalSheetRoute(
-        pageIndexNotifier: notifier!,
-        pageListBuilderNotifier: ValueNotifier((context) => [
-          RootSheetPage.build(context),
-          CustomIntentionPage.build(context),
-          PreviousIntentionsPage.build(context),
-          ModalitySelectPage.build(context),
-        ]),
+        pageIndexNotifier: pageIndexNotifier,
+        pageListBuilderNotifier: pageListBuilderNotifier,
         onModalDismissedWithBarrierTap: () {
           Navigator.of(context).pop();
         },
@@ -39,86 +46,31 @@ class ModalSheetHelper {
         },
         modalBarrierColor: Colors.transparent,
         barrierDismissible: true,
-        useSafeArea: true,
         enableDrag: true,
-        modalDecorator: (child) {
-          return Stack(
-            children: [
-              const _SheetBackground(),
-              TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                builder: (context, value, child) {
-                  return Transform.translate(
-                    offset: Offset(0, 20.0 * (1 - value)),
-                    child: Opacity(
-                      opacity: value,
-                      child: child,
-                    ),
-                  );
-                },
-                child: child,
-              ),
-            ],
-          );
-        },
-        pageContentDecorator: (child) => Builder(
-          builder: (context) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: GlassContainer(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(1), width: .65),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 20.0),
-                child: Theme(
-                  data: Theme.of(context).copyWith(
-                    primaryTextTheme: Theme.of(context).primaryTextTheme.apply(
-                      bodyColor: Theme.of(context).colorScheme.shadow,
-                      displayColor: Theme.of(context).colorScheme.shadow,
-                      decorationColor: Theme.of(context).colorScheme.shadow,
-                    ),
-                    textSelectionTheme: Theme.of(context).textSelectionTheme.copyWith(
-                      cursorColor: Theme.of(context).colorScheme.shadow,
-                      selectionColor: Theme.of(context).colorScheme.shadow,
-                      selectionHandleColor: Theme.of(context).colorScheme.shadow,
-                    ),
-                    textTheme: Theme.of(context).textTheme.apply(
-                      bodyColor: Theme.of(context).colorScheme.shadow,
-                      displayColor: Theme.of(context).colorScheme.shadow,
-                      decorationColor: Theme.of(context).colorScheme.shadow,
-                    ),
-                    listTileTheme: ListTileThemeData(
-                      titleTextStyle: TextStyle(color: Theme.of(context).colorScheme.shadow),
-                      subtitleTextStyle: TextStyle(color: Theme.of(context).colorScheme.shadow.withOpacity(0.7)),
-                      iconColor: Theme.of(context).colorScheme.shadow,
-                    ),
-                    iconTheme: IconThemeData(
-                      color: Theme.of(context).colorScheme.shadow,
-                    ),
-                    buttonTheme: ButtonThemeData(
-                      textTheme: ButtonTextTheme.primary,
-                      buttonColor: Theme.of(context).colorScheme.shadow,
-                    ),
-                    elevatedButtonTheme: ElevatedButtonThemeData(
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Theme.of(context).colorScheme.shadow,
-                      ),
-                    ),
-                    textButtonTheme: TextButtonThemeData(
-                      style: TextButton.styleFrom(
-                        foregroundColor: Theme.of(context).colorScheme.shadow,
-                      ),
-                    ),
-                  ),
-                  child: child,
-                ),
-              ),
-            ),
-          ),
+        useSafeArea: true,
+        pageContentDecorator: (child) => pageContentDecorator(child),
+      ),
+    );
+  }
+
+  /// Alias for showModalSheet for backward compatibility
+  static Future<void> showIntentionSheet(
+    BuildContext context, {
+    int initialPage = 0,
+  }) async {
+    return showModalSheet(context, initialPage: initialPage);
+  }
+
+  static Widget pageContentDecorator(Widget child) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(20),
+        backgroundColor: Colors.white.withOpacity(0.1),
+        blur: 10,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: child,
         ),
       ),
     );

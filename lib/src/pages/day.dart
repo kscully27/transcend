@@ -45,7 +45,6 @@ class TimelineCard extends StatelessWidget {
       builder: (context, ref, child) {
         return GestureDetector(
       onTap: () {
-        print('tapped');
         // Go directly to the modality page (index 3)
         ModalSheetHelper.showModalSheet(context, initialPage: 3);
       },

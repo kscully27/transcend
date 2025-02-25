@@ -24,6 +24,17 @@
       ]
     },
     {
+      "name": "Development Workflow",
+      "description": "Ensure correct development workflow and commands.",
+      "enabled": true,
+      "rules": [
+        {
+          "pattern": "flutter run",
+          "message": "Always use 'flutter run -t lib/main_prod.dart' to run the app."
+        }
+      ]
+    },
+    {
       "name": "Coding Style",
       "description": "Enforce consistent Dart coding style and best practices.",
       "enabled": true,
